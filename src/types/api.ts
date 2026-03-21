@@ -1,4 +1,4 @@
-export type ApiFieldErrors = Record<string, string[]>;
+export type ApiFieldErrors = Record<string, string>;
 
 export type ApiSuccessResponse<T = unknown> = {
   success: true;
@@ -10,12 +10,10 @@ export type ApiSuccessResponse<T = unknown> = {
 export type ApiErrorResponse = {
   success: false;
   message: string;
-  error?: string;
+  errors?: ApiFieldErrors;
+  timestamp?: string;
   status?: number;
   code?: string;
-  path?: string;
-  timestamp?: string;
-  fieldErrors?: ApiFieldErrors;
 };
 
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
@@ -24,6 +22,6 @@ export type AppError = {
   message: string;
   status?: number;
   code?: string;
-  fieldErrors?: ApiFieldErrors;
+  errors?: ApiFieldErrors;
   raw?: unknown;
 };

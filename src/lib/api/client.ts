@@ -3,7 +3,7 @@ import type {ApiErrorResponse, ApiResponse, AppError} from '@/types/api';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
-  token?: string | null;
+  token?: unknown;
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
@@ -22,13 +22,30 @@ function buildUrl(path: string) {
   return `${base}${cleanPath}`;
 }
 
-function toAppError(error: unknown): AppError {
+function buildAuthorizationHeader(token: unknown) {
+  if (typeof token !== 'string') return undefined;
+
+  const trimmed = token.trim();
+
+  if (
+    !trimmed ||
+    trimmed === 'undefined' ||
+    trimmed === 'null' ||
+    trimmed === '[object Object]'
+  ) {
+    return undefined;
+  }
+
+  return trimmed.startsWith('Bearer ') ? trimmed : `Bearer ${trimmed}`;
+}
+
+export function toAppError(error: unknown): AppError {
   if (error instanceof HttpError) {
     return {
       message: error.message,
       status: error.status,
       code: error.code,
-      fieldErrors: error.fieldErrors,
+      errors: error.errors,
       raw: error.raw
     };
   }
@@ -67,22 +84,15 @@ async function parseResponse<T>(response: Response): Promise<T> {
     const err = payload as ApiErrorResponse;
 
     throw new HttpError({
-      message:
-        err.message ||
-        err.error ||
-        `Request failed with status ${response.status}`,
+      message: err.message || `Request failed with status ${response.status}`,
       status: err.status ?? response.status,
       code: err.code,
-      fieldErrors: err.fieldErrors,
+      errors: err.errors,
       raw: payload
     });
   }
 
-  if (
-    payload &&
-    typeof payload === 'object' &&
-    'success' in payload
-  ) {
+  if (payload && typeof payload === 'object' && 'success' in payload) {
     const apiPayload = payload as ApiResponse<T>;
 
     if (apiPayload.success === false) {
@@ -90,7 +100,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
         message: apiPayload.message || 'Request failed.',
         status: apiPayload.status ?? response.status,
         code: apiPayload.code,
-        fieldErrors: apiPayload.fieldErrors,
+        errors: apiPayload.errors,
         raw: payload
       });
     }
@@ -106,12 +116,13 @@ export async function apiClient<T>(
   options: RequestOptions = {}
 ): Promise<T> {
   const {body, headers, token, ...rest} = options;
+  const authorizationHeader = buildAuthorizationHeader(token);
 
   const response = await fetch(buildUrl(path), {
     ...rest,
     headers: {
       ...(body !== undefined ? {'Content-Type': 'application/json'} : {}),
-      ...(token ? {Authorization: token.startsWith('Bearer ') ? token : `Bearer ${token}`} : {}),
+      ...(authorizationHeader ? {Authorization: authorizationHeader} : {}),
       ...headers
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -120,5 +131,3 @@ export async function apiClient<T>(
 
   return parseResponse<T>(response);
 }
-
-export {toAppError};

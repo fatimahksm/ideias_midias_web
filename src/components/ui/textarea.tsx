@@ -1,14 +1,14 @@
 import * as React from 'react';
 import {cn} from '@/lib/cn';
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string;
   error?: string;
   hint?: string;
   containerClassName?: string;
 };
 
-export function Input({
+export function Textarea({
   label,
   error,
   hint,
@@ -16,7 +16,7 @@ export function Input({
   containerClassName,
   id,
   ...props
-}: InputProps) {
+}: TextareaProps) {
   return (
     <div className={cn('w-full space-y-1.5', containerClassName)}>
       {label ? (
@@ -28,10 +28,10 @@ export function Input({
         </label>
       ) : null}
 
-      <input
+      <textarea
         id={id}
         className={cn(
-          'w-full rounded-xl border bg-white px-4 py-3 text-sm text-[var(--color-text)] outline-none transition placeholder:text-slate-400',
+          'min-h-[120px] w-full rounded-xl border bg-white px-4 py-3 text-sm text-[var(--color-text)] outline-none transition placeholder:text-slate-400',
           error
             ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-100'
             : 'border-slate-300 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10',

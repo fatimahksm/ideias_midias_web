@@ -1,21 +1,27 @@
 'use client';
 
 import {zodResolver} from '@hookform/resolvers/zod';
-import {useTranslations} from 'next-intl';
+import {useTranslations, useLocale} from 'next-intl';
+import {useRouter} from 'next/navigation';
 import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {toAppError} from '@/lib/api/client';
+import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {setAdminToken} from '@/lib/auth/token';
 import {adminLoginSchema, type AdminLoginFormValues} from '../schema';
 import {adminLogin} from '../api';
 
 export default function LoginForm() {
   const t = useTranslations('AdminLoginPage');
   const common = useTranslations('Common');
+  const errorT = useTranslations('CommonErrors');
+  const locale = useLocale();
+  const router = useRouter();
 
-  const [serverError, setServerError] = useState<string>('');
-  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [serverError, setServerError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const {
     register,
@@ -36,18 +42,15 @@ export default function LoginForm() {
     try {
       const result = await adminLogin(values);
 
-      const token = result.accessToken || result.token || '';
-
-      if (!token) {
-        setSuccessMessage(t('loginSuccessNoToken'));
-        return;
-      }
-
-      localStorage.setItem('admin_token', token);
+      setAdminToken(result.token);
       setSuccessMessage(t('loginSuccess'));
+      router.replace(`/${locale}/admin`);
     } catch (error) {
       const appError = toAppError(error);
-      setServerError(appError.message || t('genericError'));
+
+      setServerError(
+        getErrorMessage(appError, (key) => errorT(key))
+      );
     }
   }
 
@@ -74,11 +77,7 @@ export default function LoginForm() {
         type="password"
         label={t('password')}
         placeholder={t('passwordPlaceholder')}
-        error={
-          errors.password?.message
-            ? t('passwordRequired')
-            : undefined
-        }
+        error={errors.password?.message ? t('passwordRequired') : undefined}
         autoComplete="current-password"
         {...register('password')}
       />

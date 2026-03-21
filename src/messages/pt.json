@@ -11,18 +11,182 @@
     "close": "Fechar",
     "submit": "Enviar",
     "email": "E-mail",
-    "password": "Senha"
+    "password": "Senha",
+    "logout": "Sair",
+    "language": "Idioma",
+    "notAvailable": "Não disponível",
+"english": "Inglês",
+"portuguese": "Português"
   },
+  "MapPickerField": {
+  "label": "Seletor de Mapa",
+  "clickHint": "Clique no mapa para escolher a localização da empresa.",
+  "useMyLocation": "Usar Minha Localização",
+  "locating": "Localizando...",
+  "selectedCoordinates": "Coordenadas Selecionadas",
+  "selectedAddress": "Endereço Selecionado",
+  "reverseFailed": "A localização foi selecionada, mas a busca do endereço falhou.",
+  "permissionDenied": "A permissão de localização foi negada.",
+  "geolocationUnsupported": "Geolocalização não é suportada neste navegador."
+},
+  "SiteSettingsForm": {
+  "companyNamePt": "Nome da Empresa (Português)",
+  "companyNameEn": "Nome da Empresa (Inglês)",
+  "companyNamePtPlaceholder": "Digite o nome da empresa em português",
+  "companyNameEnPlaceholder": "Digite o nome da empresa em inglês",
+
+  "shortIntroPt": "Introdução Curta (Português)",
+  "shortIntroEn": "Introdução Curta (Inglês)",
+  "shortIntroPtPlaceholder": "Digite a introdução curta em português",
+  "shortIntroEnPlaceholder": "Digite a introdução curta em inglês",
+
+  "heroTitlePt": "Título do Hero (Português)",
+  "heroTitleEn": "Título do Hero (Inglês)",
+  "heroTitlePtPlaceholder": "Digite o título do hero em português",
+  "heroTitleEnPlaceholder": "Digite o título do hero em inglês",
+
+  "heroSubtitlePt": "Subtítulo do Hero (Português)",
+  "heroSubtitleEn": "Subtítulo do Hero (Inglês)",
+  "heroSubtitlePtPlaceholder": "Digite o subtítulo do hero em português",
+  "heroSubtitleEnPlaceholder": "Digite o subtítulo do hero em inglês",
+
+  "logoUrl": "URL do Logo",
+  "logoUrlPlaceholder": "Digite a URL do logo",
+
+  "heroBackgroundType": "Tipo de Fundo do Hero",
+  "backgroundTypeImage": "Imagem",
+  "backgroundTypeVideo": "Vídeo",
+
+  "heroBackgroundUrl": "URL do Fundo do Hero",
+  "heroBackgroundUrlPlaceholder": "Digite a URL do fundo do hero",
+
+  "companyVideoUrl": "URL do Vídeo da Empresa",
+  "companyVideoUrlPlaceholder": "Digite a URL do vídeo da empresa",
+
+  "addressPt": "Endereço (Português)",
+  "addressEn": "Endereço (Inglês)",
+  "addressPtPlaceholder": "Digite o endereço em português",
+  "addressEnPlaceholder": "Digite o endereço em inglês",
+
+  "mapEmbedUrl": "URL do Mapa Incorporado",
+  "mapEmbedUrlPlaceholder": "Digite a URL do mapa incorporado",
+
+  "locationLat": "Latitude",
+  "locationLng": "Longitude",
+  "locationLatPlaceholder": "Digite a latitude",
+  "locationLngPlaceholder": "Digite a longitude",
+
+  "save": "Salvar Alterações",
+  "saveSuccess": "As configurações do site foram atualizadas com sucesso.",
+
+  "companyNamePtRequired": "O nome da empresa em português é obrigatório.",
+  "companyNameEnRequired": "O nome da empresa em inglês é obrigatório.",
+  "heroBackgroundTypeRequired": "O tipo de fundo do hero é obrigatório.",
+  "invalidLatitude": "A latitude deve estar entre -90 e 90.",
+  "invalidLongitude": "A longitude deve estar entre -180 e 180.",
+  "textTooLong": "Um dos textos informados é muito longo.",
+  
+  "bilingualRequired": "Obrigatório em PT e EN",
+  "copyPtToEn": "Copiar PT → EN",
+  "copyEnToPt": "Copiar EN → PT",
+  "ptCode": "PT",
+  "enCode": "EN",
+  "ptLabel": "Português",
+  "enLabel": "Inglês",
+
+  "identityNote": "Mantenha os dados da marca alinhados nos dois idiomas. O usuário não deve ficar adivinhando qual versão é a principal.",
+  "heroNote": "Esses textos são a primeira impressão que os visitantes veem.",
+  "locationNote": "Escolha o local no mapa primeiro e depois ajuste os textos em PT e EN, se necessário.",
+
+  "companyNameGroupTitle": "Nome da Empresa",
+  "companyNameGroupDescription": "Nome principal da marca exibido em todo o site. Mantenha as duas versões consistentes e bem escritas.",
+
+  "shortIntroGroupTitle": "Introdução Curta",
+  "shortIntroGroupDescription": "Uma introdução curta para áreas de resumo da marca.",
+
+  "heroTitleGroupTitle": "Título do Hero",
+  "heroTitleGroupDescription": "O título principal que os visitantes veem primeiro.",
+
+  "heroSubtitleGroupTitle": "Subtítulo do Hero",
+  "heroSubtitleGroupDescription": "Texto de apoio logo abaixo do título principal.",
+
+  "addressGroupTitle": "Endereço",
+  "addressGroupDescription": "O mapa pode preencher as duas versões automaticamente. Você ainda pode editar cada uma manualmente.",
+
+  "saveBarHint": "Verifique se os conteúdos em PT e EN foram preenchidos onde necessário antes de salvar."
+
+},
+  "SiteSettingsPage": {
+  "title": "Configurações do Site",
+  "subtitle": "Gerencie o conteúdo global do site e as informações da empresa."
+},
   "HomePage": {
     "title": "Ideias Midias",
     "subtitle": "O frontend em Next.js já está pronto com suporte para inglês e português.",
     "adminLogin": "Ir para o login do painel"
   },
+  "SiteSettingsSections": {
+  "identityTitle": "Identidade da Empresa",
+  "identityDescription": "Nomes principais da empresa, textos de introdução e logo.",
+  "heroTitle": "Seção Hero",
+  "heroDescription": "Textos principais da home e mídia de fundo.",
+  "videoTitle": "Vídeo da Empresa",
+  "videoDescription": "Vídeo principal de apresentação da empresa.",
+  "locationTitle": "Localização e Mapa",
+  "locationDescription": "Endereços e localização geográfica.",
+  "logoPreview": "Pré-visualização do Logo",
+  "heroPreview": "Pré-visualização do Fundo do Hero",
+  "videoPreview": "Pré-visualização do Vídeo",
+  "noLogo": "Nenhum logo selecionado ainda.",
+  "noHeroMedia": "Nenhuma mídia de fundo selecionada ainda.",
+  "noVideo": "Nenhum vídeo da empresa selecionado ainda."
+},
+"MediaUploadField": {
+  "uploadImage": "Enviar Imagem",
+  "uploadVideo": "Enviar Vídeo",
+  "replaceImage": "Trocar Imagem",
+  "replaceVideo": "Trocar Vídeo",
+  "remove": "Remover",
+  "uploading": "Enviando...",
+  "noFileSelected": "Nenhum arquivo selecionado ainda.",
+  "invalidImage": "Selecione uma imagem válida.",
+  "invalidVideo": "Selecione um vídeo válido.",
+  "uploadFailed": "Falha no envio."
+},
   "AdminLoginPage": {
     "title": "Login do Admin",
     "subtitle": "Entre para gerenciar o conteúdo e as configurações do site.",
     "email": "E-mail",
     "password": "Senha",
-    "submit": "Entrar"
-  }
-}
+    "submit": "Entrar",
+    "emailPlaceholder": "admin@ideiasmidias.com",
+    "passwordPlaceholder": "Digite sua senha",
+    "emailRequired": "O e-mail é obrigatório.",
+    "invalidEmail": "Digite um e-mail válido.",
+    "passwordRequired": "A senha é obrigatória.",
+    "genericError": "Algo deu errado ao entrar.",
+    "loginSuccess": "Login realizado com sucesso.",
+    "loginSuccessNoToken": "O login funcionou, mas nenhum token foi retornado."
+  },
+  "AdminLayout": {
+    "dashboard": "Painel",
+    "users": "Usuários",
+    "media": "Mídia",
+    "siteSettings": "Configurações do Site",
+    "themeSettings": "Configurações de Tema",
+    "sections": "Seções",
+    "checkingSession": "Verificando sua sessão...",
+    "welcome": "Bem-vindo ao painel administrativo"
+  },
+  "AdminDashboardPage": {
+    "title": "Painel",
+    "subtitle": "Gerencie os módulos e configurações do site em um só lugar."
+  },
+  "CommonErrors": {
+  "networkError": "Erro de rede. Tente novamente.",
+  "unauthorized": "Você não está autorizado.",
+  "forbidden": "Você não tem permissão para acessar este recurso.",
+  "notFound": "O recurso solicitado não foi encontrado.",
+  "validationError": "Verifique os dados informados.",
+  "unknownError": "Algo deu errado."
+}}

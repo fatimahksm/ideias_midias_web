@@ -1,22 +1,29 @@
 import * as React from 'react';
 import {cn} from '@/lib/cn';
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type Option = {
+  value: string;
+  label: string;
+};
+
+type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
   label?: string;
   error?: string;
   hint?: string;
+  options: Option[];
   containerClassName?: string;
 };
 
-export function Input({
+export function Select({
   label,
   error,
   hint,
   className,
   containerClassName,
   id,
+  options,
   ...props
-}: InputProps) {
+}: SelectProps) {
   return (
     <div className={cn('w-full space-y-1.5', containerClassName)}>
       {label ? (
@@ -28,17 +35,23 @@ export function Input({
         </label>
       ) : null}
 
-      <input
+      <select
         id={id}
         className={cn(
-          'w-full rounded-xl border bg-white px-4 py-3 text-sm text-[var(--color-text)] outline-none transition placeholder:text-slate-400',
+          'w-full rounded-xl border bg-white px-4 py-3 text-sm text-[var(--color-text)] outline-none transition',
           error
             ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-100'
             : 'border-slate-300 focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10',
           className
         )}
         {...props}
-      />
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
 
       {error ? (
         <p className="text-sm text-red-600">{error}</p>

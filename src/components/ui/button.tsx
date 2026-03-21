@@ -13,15 +13,15 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-400',
+    'bg-[var(--color-primary)] text-white hover:opacity-90 disabled:opacity-50',
   secondary:
-    'bg-slate-200 text-slate-900 hover:bg-slate-300 disabled:bg-slate-100',
+    'bg-[var(--color-secondary)] text-white hover:opacity-90 disabled:opacity-50',
   outline:
-    'border border-slate-300 bg-white text-slate-900 hover:bg-slate-50 disabled:text-slate-400',
+    'border border-[var(--color-primary)] bg-white text-[var(--color-primary)] hover:bg-slate-50 disabled:opacity-50',
   danger:
-    'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
+    'bg-red-600 text-white hover:bg-red-700 disabled:opacity-50',
   ghost:
-    'bg-transparent text-slate-900 hover:bg-slate-100 disabled:text-slate-400'
+    'bg-transparent text-[var(--color-text)] hover:bg-slate-100 disabled:opacity-50'
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
@@ -43,7 +43,7 @@ export function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed',
+        'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],
         className

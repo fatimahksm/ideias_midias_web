@@ -5,6 +5,7 @@ import {notFound} from 'next/navigation';
 import {routing} from '@/i18n/routing';
 import Providers from '../providers';
 import '../globals.css';
+import 'leaflet/dist/leaflet.css';
 
 type Props = {
   children: React.ReactNode;

@@ -3,7 +3,7 @@ import type {AppError} from '@/types/api';
 export class HttpError extends Error {
   status?: number;
   code?: string;
-  fieldErrors?: Record<string, string[]>;
+  errors?: Record<string, string>;
   raw?: unknown;
 
   constructor(error: AppError) {
@@ -11,7 +11,7 @@ export class HttpError extends Error {
     this.name = 'HttpError';
     this.status = error.status;
     this.code = error.code;
-    this.fieldErrors = error.fieldErrors;
+    this.errors = error.errors;
     this.raw = error.raw;
   }
 }

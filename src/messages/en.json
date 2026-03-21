@@ -11,8 +11,141 @@
     "close": "Close",
     "submit": "Submit",
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "logout": "Logout",
+    "language": "Language",
+    "notAvailable": "Not available",
+"english": "English",
+"portuguese": "Portuguese"
   },
+  "MapPickerField": {
+  "label": "Map Picker",
+  "clickHint": "Click on the map to choose the company location.",
+  "useMyLocation": "Use My Location",
+  "locating": "Locating...",
+  "selectedCoordinates": "Selected Coordinates",
+  "selectedAddress": "Selected Address",
+  "reverseFailed": "Location selected, but address lookup failed.",
+  "permissionDenied": "Location permission was denied.",
+  "geolocationUnsupported": "Geolocation is not supported in this browser."
+},
+  "SiteSettingsPage": {
+  "title": "Site Settings",
+  "subtitle": "Manage the global website content and company information."
+},
+"SiteSettingsSections": {
+  "identityTitle": "Company Identity",
+  "identityDescription": "Main company names, intro texts and logo.",
+  "heroTitle": "Hero Section",
+  "heroDescription": "Homepage hero texts and background media.",
+  "videoTitle": "Company Video",
+  "videoDescription": "Main showcase video for the company.",
+  "locationTitle": "Location & Map",
+  "locationDescription": "Addresses and geographic location.",
+  "logoPreview": "Logo Preview",
+  "heroPreview": "Hero Background Preview",
+  "videoPreview": "Video Preview",
+  "noLogo": "No logo selected yet.",
+  "noHeroMedia": "No hero background selected yet.",
+  "noVideo": "No company video selected yet."
+},
+"MediaUploadField": {
+  "uploadImage": "Upload Image",
+  "uploadVideo": "Upload Video",
+  "replaceImage": "Replace Image",
+  "replaceVideo": "Replace Video",
+  "remove": "Remove",
+  "uploading": "Uploading...",
+  "noFileSelected": "No file selected yet.",
+  "invalidImage": "Please select a valid image file.",
+  "invalidVideo": "Please select a valid video file.",
+  "uploadFailed": "Upload failed."
+},
+"SiteSettingsForm": {
+  "companyNamePt": "Company Name (Portuguese)",
+  "companyNameEn": "Company Name (English)",
+  "companyNamePtPlaceholder": "Enter the company name in Portuguese",
+  "companyNameEnPlaceholder": "Enter the company name in English",
+
+  "shortIntroPt": "Short Intro (Portuguese)",
+  "shortIntroEn": "Short Intro (English)",
+  "shortIntroPtPlaceholder": "Enter the short intro in Portuguese",
+  "shortIntroEnPlaceholder": "Enter the short intro in English",
+
+  "heroTitlePt": "Hero Title (Portuguese)",
+  "heroTitleEn": "Hero Title (English)",
+  "heroTitlePtPlaceholder": "Enter the hero title in Portuguese",
+  "heroTitleEnPlaceholder": "Enter the hero title in English",
+
+  "heroSubtitlePt": "Hero Subtitle (Portuguese)",
+  "heroSubtitleEn": "Hero Subtitle (English)",
+  "heroSubtitlePtPlaceholder": "Enter the hero subtitle in Portuguese",
+  "heroSubtitleEnPlaceholder": "Enter the hero subtitle in English",
+
+  "logoUrl": "Logo URL",
+  "logoUrlPlaceholder": "Enter the logo URL",
+
+  "heroBackgroundType": "Hero Background Type",
+  "backgroundTypeImage": "Image",
+  "backgroundTypeVideo": "Video",
+
+  "heroBackgroundUrl": "Hero Background URL",
+  "heroBackgroundUrlPlaceholder": "Enter the hero background URL",
+
+  "companyVideoUrl": "Company Video URL",
+  "companyVideoUrlPlaceholder": "Enter the company video URL",
+
+  "addressPt": "Address (Portuguese)",
+  "addressEn": "Address (English)",
+  "addressPtPlaceholder": "Enter the address in Portuguese",
+  "addressEnPlaceholder": "Enter the address in English",
+
+  "mapEmbedUrl": "Map Embed URL",
+  "mapEmbedUrlPlaceholder": "Enter the map embed URL",
+
+  "locationLat": "Latitude",
+  "locationLng": "Longitude",
+  "locationLatPlaceholder": "Enter latitude",
+  "locationLngPlaceholder": "Enter longitude",
+
+  "save": "Save Changes",
+  "saveSuccess": "Site settings updated successfully.",
+
+  "companyNamePtRequired": "Company name in Portuguese is required.",
+  "companyNameEnRequired": "Company name in English is required.",
+  "heroBackgroundTypeRequired": "Hero background type is required.",
+  "invalidLatitude": "Latitude must be between -90 and 90.",
+  "invalidLongitude": "Longitude must be between -180 and 180.",
+  "textTooLong": "One of the entered texts is too long.",
+   "bilingualRequired": "Required in PT & EN",
+  "copyPtToEn": "Copy PT → EN",
+  "copyEnToPt": "Copy EN → PT",
+  "ptCode": "PT",
+  "enCode": "EN",
+  "ptLabel": "Portuguese",
+  "enLabel": "English",
+
+  "identityNote": "Keep brand details aligned in both languages. Users should not have to guess which version is the real one.",
+  "heroNote": "These texts are the first impression visitors see.",
+  "locationNote": "Pick the place from the map first, then adjust PT and EN wording if needed.",
+
+  "companyNameGroupTitle": "Company name",
+  "companyNameGroupDescription": "Main brand name shown across the website. Keep both versions polished and consistent.",
+
+  "shortIntroGroupTitle": "Short introduction",
+  "shortIntroGroupDescription": "A compact intro for brand summary sections.",
+
+  "heroTitleGroupTitle": "Hero title",
+  "heroTitleGroupDescription": "The main headline visitors see first.",
+
+  "heroSubtitleGroupTitle": "Hero subtitle",
+  "heroSubtitleGroupDescription": "Short supporting copy under the main headline.",
+
+  "addressGroupTitle": "Address",
+  "addressGroupDescription": "The map can auto-fill both versions. You can still edit each one manually.",
+
+  "saveBarHint": "Make sure PT and EN content are both filled where needed before saving."
+},
   "HomePage": {
     "title": "Ideias Midias",
     "subtitle": "The Next.js frontend is now ready with English and Portuguese support.",
@@ -23,6 +156,36 @@
     "subtitle": "Sign in to manage the website content and settings.",
     "email": "Email",
     "password": "Password",
-    "submit": "Sign in"
-  }
+    "submit": "Sign in",
+    "emailPlaceholder": "admin@ideiasmidias.com",
+    "passwordPlaceholder": "Enter your password",
+    "emailRequired": "Email is required.",
+    "invalidEmail": "Enter a valid email address.",
+    "passwordRequired": "Password is required.",
+    "genericError": "Something went wrong while signing in.",
+    "loginSuccess": "Login successful.",
+    "loginSuccessNoToken": "Login succeeded, but no token was returned."
+  },
+  "AdminLayout": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "media": "Media",
+    "siteSettings": "Site Settings",
+    "themeSettings": "Theme Settings",
+    "sections": "Sections",
+    "checkingSession": "Checking your session...",
+    "welcome": "Welcome to the admin dashboard"
+  },
+  "AdminDashboardPage": {
+    "title": "Dashboard",
+    "subtitle": "Manage the website modules and settings from one place."
+  },
+  "CommonErrors": {
+  "networkError": "Network error. Please try again.",
+  "unauthorized": "You are not authorized.",
+  "forbidden": "You do not have permission to access this resource.",
+  "notFound": "The requested resource was not found.",
+  "validationError": "Please check the entered data.",
+  "unknownError": "Something went wrong."
+}
 }
