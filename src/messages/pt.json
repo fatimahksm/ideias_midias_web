@@ -1,0 +1,28 @@
+{
+  "Common": {
+    "loading": "Carregando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "search": "Pesquisar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "create": "Criar",
+    "back": "Voltar",
+    "close": "Fechar",
+    "submit": "Enviar",
+    "email": "E-mail",
+    "password": "Senha"
+  },
+  "HomePage": {
+    "title": "Ideias Midias",
+    "subtitle": "O frontend em Next.js já está pronto com suporte para inglês e português.",
+    "adminLogin": "Ir para o login do painel"
+  },
+  "AdminLoginPage": {
+    "title": "Login do Admin",
+    "subtitle": "Entre para gerenciar o conteúdo e as configurações do site.",
+    "email": "E-mail",
+    "password": "Senha",
+    "submit": "Entrar"
+  }
+}
