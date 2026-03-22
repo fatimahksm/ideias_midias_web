@@ -18,20 +18,19 @@ import type {SectionResponse} from '@/features/sections/types';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {
-  createHomeCard,
-  getAllHomeCards,
-  getHomeCardById,
-  updateHomeCard
+  createCategory,
+  getAllCategories,
+  getCategoryById,
+  updateCategory
 } from '../api';
-import {homeCardSchema, type HomeCardFormValues} from '../schema';
-import type {HomeCardPayload} from '../types';
-import {emptyToNull, getNextHomeCardSortOrder} from '../utils';
-import {HomeCardFormSidebar} from './home-card-form-sidebar';
-import {HomeCardIconPicker} from './home-card-icon-picker';
+import {categorySchema, type CategoryFormValues} from '../schema';
+import type {SectionCategoryPayload} from '../types';
+import {emptyToNull, getNextCategorySortOrder} from '../utils';
+import {CategoryFormSidebar} from './category-form-sidebar';
 
 type Props = {
   mode: 'create' | 'edit';
-  cardId?: number;
+  categoryId?: number;
 };
 
 type BilingualFieldGroupProps = {
@@ -140,8 +139,8 @@ function BilingualFieldGroup({
   );
 }
 
-export default function HomeCardForm({mode, cardId}: Props) {
-  const t = useTranslations('HomeCardForm');
+export default function CategoryForm({mode, categoryId}: Props) {
+  const t = useTranslations('CategoryForm');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
   const locale = useLocale();
@@ -160,18 +159,17 @@ export default function HomeCardForm({mode, cardId}: Props) {
     setValue,
     getValues,
     formState: {errors, touchedFields}
-  } = useForm<HomeCardFormValues>({
-    resolver: zodResolver(homeCardSchema),
+  } = useForm<CategoryFormValues>({
+    resolver: zodResolver(categorySchema),
     defaultValues: {
       sectionId: 0,
-      titlePt: '',
-      titleEn: '',
-      shortDescriptionPt: '',
-      shortDescriptionEn: '',
+      namePt: '',
+      nameEn: '',
+      descriptionPt: '',
+      descriptionEn: '',
       imageUrl: '',
-      iconName: '',
-      sortOrder: 0,
-      isActive: true
+      isActive: true,
+      sortOrder: 0
     }
   });
 
@@ -180,46 +178,45 @@ export default function HomeCardForm({mode, cardId}: Props) {
     queryFn: getAllSections
   });
 
-  const cardsQuery = useQuery({
-    queryKey: ['home-cards', 'all'],
-    queryFn: getAllHomeCards
+  const categoriesQuery = useQuery({
+    queryKey: ['categories', 'all'],
+    queryFn: getAllCategories
   });
 
-  const cardQuery = useQuery({
-    queryKey: ['home-cards', cardId],
-    queryFn: () => getHomeCardById(cardId as number),
-    enabled: mode === 'edit' && Boolean(cardId)
+  const categoryQuery = useQuery({
+    queryKey: ['categories', categoryId],
+    queryFn: () => getCategoryById(categoryId as number),
+    enabled: mode === 'edit' && Boolean(categoryId)
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (payload: HomeCardPayload) => {
-      if (mode === 'edit' && cardId) {
-        return updateHomeCard(cardId, payload);
+    mutationFn: async (payload: SectionCategoryPayload) => {
+      if (mode === 'edit' && categoryId) {
+        return updateCategory(categoryId, payload);
       }
 
-      return createHomeCard(payload);
+      return createCategory(payload);
     },
-    onSuccess: async (savedCard) => {
+    onSuccess: async (savedCategory) => {
       setServerError('');
       setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
-      await queryClient.invalidateQueries({queryKey: ['home-cards']});
+      await queryClient.invalidateQueries({queryKey: ['categories']});
 
       if (mode === 'create') {
-        router.replace(`/${locale}/admin/home-cards/${savedCard.id}/edit`);
+        router.replace(`/${locale}/admin/categories/${savedCategory.id}/edit`);
         return;
       }
 
       reset({
-        sectionId: savedCard.sectionId,
-        titlePt: savedCard.titlePt,
-        titleEn: savedCard.titleEn,
-        shortDescriptionPt: savedCard.shortDescriptionPt ?? '',
-        shortDescriptionEn: savedCard.shortDescriptionEn ?? '',
-        imageUrl: savedCard.imageUrl ?? '',
-        iconName: savedCard.iconName ?? '',
-        sortOrder: savedCard.sortOrder,
-        isActive: savedCard.isActive
+        sectionId: savedCategory.sectionId,
+        namePt: savedCategory.namePt,
+        nameEn: savedCategory.nameEn,
+        descriptionPt: savedCategory.descriptionPt ?? '',
+        descriptionEn: savedCategory.descriptionEn ?? '',
+        imageUrl: savedCategory.imageUrl ?? '',
+        isActive: savedCategory.isActive,
+        sortOrder: savedCategory.sortOrder
       });
     },
     onError: (error) => {
@@ -229,89 +226,61 @@ export default function HomeCardForm({mode, cardId}: Props) {
   });
 
   useEffect(() => {
-    if (!cardQuery.data) return;
+    if (!categoryQuery.data) return;
 
-    const card = cardQuery.data;
+    const category = categoryQuery.data;
 
     reset({
-      sectionId: card.sectionId,
-      titlePt: card.titlePt,
-      titleEn: card.titleEn,
-      shortDescriptionPt: card.shortDescriptionPt ?? '',
-      shortDescriptionEn: card.shortDescriptionEn ?? '',
-      imageUrl: card.imageUrl ?? '',
-      iconName: card.iconName ?? '',
-      sortOrder: card.sortOrder,
-      isActive: card.isActive
+      sectionId: category.sectionId,
+      namePt: category.namePt,
+      nameEn: category.nameEn,
+      descriptionPt: category.descriptionPt ?? '',
+      descriptionEn: category.descriptionEn ?? '',
+      imageUrl: category.imageUrl ?? '',
+      isActive: category.isActive,
+      sortOrder: category.sortOrder
     });
-  }, [cardQuery.data, reset]);
+  }, [categoryQuery.data, reset]);
+
+  const categorySections = useMemo(
+    () =>
+      (sectionsQuery.data ?? [])
+        .filter((section) => section.sectionType === 'CATEGORY_ITEMS')
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id),
+    [sectionsQuery.data]
+  );
 
   useEffect(() => {
     if (mode !== 'create') return;
-    if (!cardsQuery.data?.length) return;
+    if (!categoriesQuery.data?.length) return;
     if (touchedFields.sortOrder) return;
     if ((getValues('sortOrder') || 0) > 0) return;
 
-    setValue('sortOrder', getNextHomeCardSortOrder(cardsQuery.data), {
-      shouldValidate: true
-    });
-  }, [mode, cardsQuery.data, touchedFields.sortOrder, getValues, setValue]);
+    setValue(
+      'sortOrder',
+      getNextCategorySortOrder(categoriesQuery.data, getValues('sectionId')),
+      {shouldValidate: true}
+    );
+  }, [mode, categoriesQuery.data, touchedFields.sortOrder, getValues, setValue]);
 
   const watchedValues = watch();
 
   const linkedSection = useMemo(() => {
-    return sectionsQuery.data?.find(
+    return categorySections.find(
       (section) => section.id === watchedValues.sectionId
     );
-  }, [sectionsQuery.data, watchedValues.sectionId]);
-
-  useEffect(() => {
-    if (mode !== 'create') return;
-    if (!linkedSection) return;
-
-    if (!touchedFields.titleEn && !getValues('titleEn')) {
-      setValue('titleEn', linkedSection.nameEn, {shouldDirty: true});
-    }
-
-    if (!touchedFields.titlePt && !getValues('titlePt')) {
-      setValue('titlePt', linkedSection.namePt, {shouldDirty: true});
-    }
-  }, [
-    mode,
-    linkedSection,
-    touchedFields.titleEn,
-    touchedFields.titlePt,
-    getValues,
-    setValue
-  ]);
-
-  const sectionOptions = useMemo(
-    () =>
-      (sectionsQuery.data ?? [])
-        .filter((section) => section.isActive)
-        .sort(
-          (a: SectionResponse, b: SectionResponse) => a.sortOrder - b.sortOrder
-        )
-        .map((section) => ({
-          value: String(section.id),
-          label: `${section.nameEn} (${section.slug})`
-        })),
-    [sectionsQuery.data]
-  );
+  }, [categorySections, watchedValues.sectionId]);
 
   const fieldErrors = useMemo(
     () => ({
       sectionId: errors.sectionId?.message
         ? t(errors.sectionId.message as never)
         : undefined,
-      titlePt: errors.titlePt?.message
-        ? t(errors.titlePt.message as never)
+      namePt: errors.namePt?.message
+        ? t(errors.namePt.message as never)
         : undefined,
-      titleEn: errors.titleEn?.message
-        ? t(errors.titleEn.message as never)
-        : undefined,
-      iconName: errors.iconName?.message
-        ? t(errors.iconName.message as never)
+      nameEn: errors.nameEn?.message
+        ? t(errors.nameEn.message as never)
         : undefined,
       sortOrder: errors.sortOrder?.message
         ? t(errors.sortOrder.message as never)
@@ -320,7 +289,25 @@ export default function HomeCardForm({mode, cardId}: Props) {
     [errors, t]
   );
 
-  if (mode === 'edit' && cardQuery.isPending) {
+  async function onSubmit(values: CategoryFormValues) {
+    setServerError('');
+    setSuccessMessage('');
+
+    const payload: SectionCategoryPayload = {
+      sectionId: values.sectionId,
+      namePt: values.namePt.trim(),
+      nameEn: values.nameEn.trim(),
+      descriptionPt: emptyToNull(values.descriptionPt),
+      descriptionEn: emptyToNull(values.descriptionEn),
+      imageUrl: emptyToNull(values.imageUrl),
+      isActive: values.isActive,
+      sortOrder: values.sortOrder
+    };
+
+    await saveMutation.mutateAsync(payload);
+  }
+
+  if (mode === 'edit' && categoryQuery.isPending) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-sm text-slate-600">{common('loading')}</p>
@@ -328,42 +315,26 @@ export default function HomeCardForm({mode, cardId}: Props) {
     );
   }
 
-  if (mode === 'edit' && cardQuery.isError) {
+  if (mode === 'edit' && categoryQuery.isError) {
     return (
       <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
         <p className="text-sm text-red-700">
-          {getErrorMessage(toAppError(cardQuery.error), (key) => errorT(key))}
+          {getErrorMessage(toAppError(categoryQuery.error), (key) => errorT(key))}
         </p>
       </div>
     );
   }
 
-  async function onSubmit(values: HomeCardFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
-    const payload: HomeCardPayload = {
-      sectionId: values.sectionId,
-      titlePt: values.titlePt.trim(),
-      titleEn: values.titleEn.trim(),
-      shortDescriptionPt: emptyToNull(values.shortDescriptionPt),
-      shortDescriptionEn: emptyToNull(values.shortDescriptionEn),
-      imageUrl: emptyToNull(values.imageUrl),
-      iconName: emptyToNull(values.iconName),
-      sortOrder: values.sortOrder,
-      isActive: values.isActive
-    };
-
-    await saveMutation.mutateAsync(payload);
-  }
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]"
+    >
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/admin/home-cards">
+          <Link href="/admin/categories">
             <Button type="button" variant="outline">
-              {t('backToCards')}
+              {t('backToCategories')}
             </Button>
           </Link>
 
@@ -394,43 +365,30 @@ export default function HomeCardForm({mode, cardId}: Props) {
           title={t('linkCardTitle')}
           description={t('linkCardDescription')}
         >
-          <div className="grid gap-5 md:grid-cols-2">
-            <Controller
-              name="sectionId"
-              control={control}
-              render={({field}) => (
-                <Select
-                  label={t('sectionLabel')}
-                  value={field.value ? String(field.value) : ''}
-                  onChange={(event) =>
-                    field.onChange(
-                      event.target.value ? Number(event.target.value) : 0
-                    )
-                  }
-                  options={[
-                    {value: '', label: t('sectionPlaceholder')},
-                    ...sectionOptions
-                  ]}
-                  error={fieldErrors.sectionId}
-                  hint={t('sectionHint')}
-                />
-              )}
-            />
-
-            <Controller
-              name="iconName"
-              control={control}
-              render={({field}) => (
-                <HomeCardIconPicker
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  label={t('iconNameLabel')}
-                  hint={t('iconNameHint')}
-                  error={fieldErrors.iconName}
-                />
-              )}
-            />
-          </div>
+          <Controller
+            name="sectionId"
+            control={control}
+            render={({field}) => (
+              <Select
+                label={t('sectionLabel')}
+                value={field.value ? String(field.value) : ''}
+                onChange={(event) =>
+                  field.onChange(
+                    event.target.value ? Number(event.target.value) : 0
+                  )
+                }
+                options={[
+                  {value: '', label: t('sectionPlaceholder')},
+                  ...categorySections.map((section) => ({
+                    value: String(section.id),
+                    label: `${section.nameEn} (${section.slug})`
+                  }))
+                ]}
+                error={fieldErrors.sectionId}
+                hint={t('sectionHint')}
+              />
+            )}
+          />
         </SettingsCard>
 
         <SettingsCard
@@ -438,34 +396,34 @@ export default function HomeCardForm({mode, cardId}: Props) {
           description={t('contentCardDescription')}
         >
           <BilingualFieldGroup
-            title={t('titlesGroupTitle')}
-            description={t('titlesGroupDescription')}
+            title={t('namesGroupTitle')}
+            description={t('namesGroupDescription')}
             ptLabel={t('ptLabel')}
             enLabel={t('enLabel')}
             copyPtToEnLabel={t('copyPtToEn')}
             copyEnToPtLabel={t('copyEnToPt')}
             onCopyPtToEn={() =>
-              setValue('titleEn', getValues('titlePt'), {shouldDirty: true})
+              setValue('nameEn', getValues('namePt'), {shouldDirty: true})
             }
             onCopyEnToPt={() =>
-              setValue('titlePt', getValues('titleEn'), {shouldDirty: true})
+              setValue('namePt', getValues('nameEn'), {shouldDirty: true})
             }
             ptField={
               <Input
-                id="titlePt"
-                label={t('titlePtLabel')}
-                {...register('titlePt')}
-                error={fieldErrors.titlePt}
-                hint={t('titlePtHint')}
+                id="namePt"
+                label={t('namePtLabel')}
+                {...register('namePt')}
+                error={fieldErrors.namePt}
+                hint={t('namePtHint')}
               />
             }
             enField={
               <Input
-                id="titleEn"
-                label={t('titleEnLabel')}
-                {...register('titleEn')}
-                error={fieldErrors.titleEn}
-                hint={t('titleEnHint')}
+                id="nameEn"
+                label={t('nameEnLabel')}
+                {...register('nameEn')}
+                error={fieldErrors.nameEn}
+                hint={t('nameEnHint')}
               />
             }
           />
@@ -483,29 +441,29 @@ export default function HomeCardForm({mode, cardId}: Props) {
             copyPtToEnLabel={t('copyPtToEn')}
             copyEnToPtLabel={t('copyEnToPt')}
             onCopyPtToEn={() =>
-              setValue('shortDescriptionEn', getValues('shortDescriptionPt'), {
+              setValue('descriptionEn', getValues('descriptionPt'), {
                 shouldDirty: true
               })
             }
             onCopyEnToPt={() =>
-              setValue('shortDescriptionPt', getValues('shortDescriptionEn'), {
+              setValue('descriptionPt', getValues('descriptionEn'), {
                 shouldDirty: true
               })
             }
             ptField={
               <Textarea
-                id="shortDescriptionPt"
-                label={t('shortDescriptionPtLabel')}
-                {...register('shortDescriptionPt')}
-                hint={t('shortDescriptionPtHint')}
+                id="descriptionPt"
+                label={t('descriptionPtLabel')}
+                {...register('descriptionPt')}
+                hint={t('descriptionPtHint')}
               />
             }
             enField={
               <Textarea
-                id="shortDescriptionEn"
-                label={t('shortDescriptionEnLabel')}
-                {...register('shortDescriptionEn')}
-                hint={t('shortDescriptionEnHint')}
+                id="descriptionEn"
+                label={t('descriptionEnLabel')}
+                {...register('descriptionEn')}
+                hint={t('descriptionEnHint')}
               />
             }
           />
@@ -574,10 +532,7 @@ export default function HomeCardForm({mode, cardId}: Props) {
         </SettingsCard>
       </div>
 
-      <HomeCardFormSidebar
-        values={watchedValues}
-        linkedSection={linkedSection}
-      />
+      <CategoryFormSidebar values={watchedValues} linkedSection={linkedSection} />
     </form>
   );
 }

@@ -11,6 +11,16 @@ type Props = {
   isVisible: boolean;
 };
 
+type WorkspaceContent = {
+  title: string;
+  description: string;
+  contentModelLabel: string;
+  contentModelValue: string;
+  nextModuleLabel: string;
+  nextModuleValue: string;
+  recommendation: string;
+};
+
 export function SectionNextActions({
   sectionId,
   sectionType,
@@ -22,52 +32,124 @@ export function SectionNextActions({
     return null;
   }
 
-  const content = {
+  const content: Record<SectionType, WorkspaceContent> = {
     CONTENT: {
       title: t('CONTENT.title'),
       description: t('CONTENT.description'),
-      primaryLabel: t('CONTENT.primaryLabel'),
-      primaryHref: `/admin/sections/${sectionId}/edit`
+      contentModelLabel: t('CONTENT.contentModelLabel'),
+      contentModelValue: t('CONTENT.contentModelValue'),
+      nextModuleLabel: t('CONTENT.nextModuleLabel'),
+      nextModuleValue: t('CONTENT.nextModuleValue'),
+      recommendation: t('CONTENT.recommendation')
     },
     CATEGORY_ITEMS: {
       title: t('CATEGORY_ITEMS.title'),
       description: t('CATEGORY_ITEMS.description'),
-      primaryLabel: t('CATEGORY_ITEMS.primaryLabel'),
-      primaryHref: `/admin/sections/${sectionId}/edit`
+      contentModelLabel: t('CATEGORY_ITEMS.contentModelLabel'),
+      contentModelValue: t('CATEGORY_ITEMS.contentModelValue'),
+      nextModuleLabel: t('CATEGORY_ITEMS.nextModuleLabel'),
+      nextModuleValue: t('CATEGORY_ITEMS.nextModuleValue'),
+      recommendation: t('CATEGORY_ITEMS.recommendation')
     },
     DIRECT_ITEMS: {
       title: t('DIRECT_ITEMS.title'),
       description: t('DIRECT_ITEMS.description'),
-      primaryLabel: t('DIRECT_ITEMS.primaryLabel'),
-      primaryHref: `/admin/sections/${sectionId}/edit`
+      contentModelLabel: t('DIRECT_ITEMS.contentModelLabel'),
+      contentModelValue: t('DIRECT_ITEMS.contentModelValue'),
+      nextModuleLabel: t('DIRECT_ITEMS.nextModuleLabel'),
+      nextModuleValue: t('DIRECT_ITEMS.nextModuleValue'),
+      recommendation: t('DIRECT_ITEMS.recommendation')
     },
     PORTFOLIO: {
       title: t('PORTFOLIO.title'),
       description: t('PORTFOLIO.description'),
-      primaryLabel: t('PORTFOLIO.primaryLabel'),
-      primaryHref: `/admin/sections/${sectionId}/edit`
+      contentModelLabel: t('PORTFOLIO.contentModelLabel'),
+      contentModelValue: t('PORTFOLIO.contentModelValue'),
+      nextModuleLabel: t('PORTFOLIO.nextModuleLabel'),
+      nextModuleValue: t('PORTFOLIO.nextModuleValue'),
+      recommendation: t('PORTFOLIO.recommendation')
     }
-  }[sectionType];
+  };
+
+  const current = content[sectionType];
 
   return (
     <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-      <p className="text-sm font-semibold text-emerald-800">{content.title}</p>
-      <p className="mt-2 text-sm leading-6 text-emerald-700">
-        {content.description}
-      </p>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-emerald-900">
+            {t('workspaceLabel')}
+          </p>
+          <h3 className="text-lg font-semibold text-emerald-950">
+            {current.title}
+          </h3>
+          <p className="max-w-3xl text-sm leading-6 text-emerald-800">
+            {current.description}
+          </p>
+        </div>
 
-      <div className="mt-4 flex flex-wrap gap-3">
-        <Link href={content.primaryHref}>
-          <Button type="button" size="sm">
-            {content.primaryLabel}
-          </Button>
-        </Link>
+        <div className="rounded-2xl border border-emerald-200 bg-white/80 px-4 py-3 text-sm text-emerald-900 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+            {t('sectionIdLabel')}
+          </p>
+          <p className="mt-1 font-semibold">#{sectionId}</p>
+        </div>
+      </div>
 
-        <Link href="/admin/sections">
-          <Button type="button" variant="outline" size="sm">
-            {t('backToStudio')}
+      <div className="mt-5 grid gap-4 xl:grid-cols-3">
+        <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+            {current.contentModelLabel}
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-900">
+            {current.contentModelValue}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+            {current.nextModuleLabel}
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-900">
+            {current.nextModuleValue}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+            {t('recommendationLabel')}
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-900">
+            {current.recommendation}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+        <p className="text-sm font-semibold text-slate-900">
+          {t('safeActionsTitle')}
+        </p>
+        <p className="mt-1 text-sm text-slate-600">
+          {t('safeActionsDescription')}
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Link href="/admin/sections">
+            <Button type="button" variant="outline" size="sm">
+              {t('backToStudio')}
+            </Button>
+          </Link>
+
+          <Link href="/admin/home-cards">
+            <Button type="button" size="sm">
+              {t('manageHomeCards')}
+            </Button>
+          </Link>
+
+          <Button type="button" variant="ghost" size="sm" disabled>
+            {t('nextModuleLocked')}
           </Button>
-        </Link>
+        </div>
       </div>
     </div>
   );

@@ -18,20 +18,20 @@ import type {SectionResponse} from '@/features/sections/types';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {
-  createHomeCard,
-  getAllHomeCards,
-  getHomeCardById,
-  updateHomeCard
+  createContentBlock,
+  getAllContentBlocks,
+  getContentBlockById,
+  updateContentBlock
 } from '../api';
-import {homeCardSchema, type HomeCardFormValues} from '../schema';
-import type {HomeCardPayload} from '../types';
-import {emptyToNull, getNextHomeCardSortOrder} from '../utils';
-import {HomeCardFormSidebar} from './home-card-form-sidebar';
-import {HomeCardIconPicker} from './home-card-icon-picker';
+import {CONTENT_BLOCK_TYPE_OPTIONS} from '../constants';
+import {contentBlockSchema, type ContentBlockFormValues} from '../schema';
+import type {SectionContentBlockPayload} from '../types';
+import {emptyToNull, getNextContentBlockSortOrder} from '../utils';
+import {ContentBlockFormSidebar} from './content-block-form-sidebar';
 
 type Props = {
   mode: 'create' | 'edit';
-  cardId?: number;
+  blockId?: number;
 };
 
 type BilingualFieldGroupProps = {
@@ -140,8 +140,8 @@ function BilingualFieldGroup({
   );
 }
 
-export default function HomeCardForm({mode, cardId}: Props) {
-  const t = useTranslations('HomeCardForm');
+export default function ContentBlockForm({mode, blockId}: Props) {
+  const t = useTranslations('ContentBlockForm');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
   const locale = useLocale();
@@ -160,18 +160,21 @@ export default function HomeCardForm({mode, cardId}: Props) {
     setValue,
     getValues,
     formState: {errors, touchedFields}
-  } = useForm<HomeCardFormValues>({
-    resolver: zodResolver(homeCardSchema),
+  } = useForm<ContentBlockFormValues>({
+    resolver: zodResolver(contentBlockSchema),
     defaultValues: {
       sectionId: 0,
+      blockType: 'TEXT',
       titlePt: '',
       titleEn: '',
-      shortDescriptionPt: '',
-      shortDescriptionEn: '',
+      subtitlePt: '',
+      subtitleEn: '',
+      contentPt: '',
+      contentEn: '',
       imageUrl: '',
-      iconName: '',
-      sortOrder: 0,
-      isActive: true
+      videoUrl: '',
+      isActive: true,
+      sortOrder: 0
     }
   });
 
@@ -180,46 +183,49 @@ export default function HomeCardForm({mode, cardId}: Props) {
     queryFn: getAllSections
   });
 
-  const cardsQuery = useQuery({
-    queryKey: ['home-cards', 'all'],
-    queryFn: getAllHomeCards
+  const blocksQuery = useQuery({
+    queryKey: ['content-blocks', 'all'],
+    queryFn: getAllContentBlocks
   });
 
-  const cardQuery = useQuery({
-    queryKey: ['home-cards', cardId],
-    queryFn: () => getHomeCardById(cardId as number),
-    enabled: mode === 'edit' && Boolean(cardId)
+  const blockQuery = useQuery({
+    queryKey: ['content-blocks', blockId],
+    queryFn: () => getContentBlockById(blockId as number),
+    enabled: mode === 'edit' && Boolean(blockId)
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (payload: HomeCardPayload) => {
-      if (mode === 'edit' && cardId) {
-        return updateHomeCard(cardId, payload);
+    mutationFn: async (payload: SectionContentBlockPayload) => {
+      if (mode === 'edit' && blockId) {
+        return updateContentBlock(blockId, payload);
       }
 
-      return createHomeCard(payload);
+      return createContentBlock(payload);
     },
-    onSuccess: async (savedCard) => {
+    onSuccess: async (savedBlock) => {
       setServerError('');
       setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
-      await queryClient.invalidateQueries({queryKey: ['home-cards']});
+      await queryClient.invalidateQueries({queryKey: ['content-blocks']});
 
       if (mode === 'create') {
-        router.replace(`/${locale}/admin/home-cards/${savedCard.id}/edit`);
+        router.replace(`/${locale}/admin/content-blocks/${savedBlock.id}/edit`);
         return;
       }
 
       reset({
-        sectionId: savedCard.sectionId,
-        titlePt: savedCard.titlePt,
-        titleEn: savedCard.titleEn,
-        shortDescriptionPt: savedCard.shortDescriptionPt ?? '',
-        shortDescriptionEn: savedCard.shortDescriptionEn ?? '',
-        imageUrl: savedCard.imageUrl ?? '',
-        iconName: savedCard.iconName ?? '',
-        sortOrder: savedCard.sortOrder,
-        isActive: savedCard.isActive
+        sectionId: savedBlock.sectionId,
+        blockType: savedBlock.blockType,
+        titlePt: savedBlock.titlePt ?? '',
+        titleEn: savedBlock.titleEn ?? '',
+        subtitlePt: savedBlock.subtitlePt ?? '',
+        subtitleEn: savedBlock.subtitleEn ?? '',
+        contentPt: savedBlock.contentPt ?? '',
+        contentEn: savedBlock.contentEn ?? '',
+        imageUrl: savedBlock.imageUrl ?? '',
+        videoUrl: savedBlock.videoUrl ?? '',
+        isActive: savedBlock.isActive,
+        sortOrder: savedBlock.sortOrder
       });
     },
     onError: (error) => {
@@ -229,75 +235,66 @@ export default function HomeCardForm({mode, cardId}: Props) {
   });
 
   useEffect(() => {
-    if (!cardQuery.data) return;
+    if (!blockQuery.data) return;
 
-    const card = cardQuery.data;
+    const block = blockQuery.data;
 
     reset({
-      sectionId: card.sectionId,
-      titlePt: card.titlePt,
-      titleEn: card.titleEn,
-      shortDescriptionPt: card.shortDescriptionPt ?? '',
-      shortDescriptionEn: card.shortDescriptionEn ?? '',
-      imageUrl: card.imageUrl ?? '',
-      iconName: card.iconName ?? '',
-      sortOrder: card.sortOrder,
-      isActive: card.isActive
+      sectionId: block.sectionId,
+      blockType: block.blockType,
+      titlePt: block.titlePt ?? '',
+      titleEn: block.titleEn ?? '',
+      subtitlePt: block.subtitlePt ?? '',
+      subtitleEn: block.subtitleEn ?? '',
+      contentPt: block.contentPt ?? '',
+      contentEn: block.contentEn ?? '',
+      imageUrl: block.imageUrl ?? '',
+      videoUrl: block.videoUrl ?? '',
+      isActive: block.isActive,
+      sortOrder: block.sortOrder
     });
-  }, [cardQuery.data, reset]);
+  }, [blockQuery.data, reset]);
 
-  useEffect(() => {
-    if (mode !== 'create') return;
-    if (!cardsQuery.data?.length) return;
-    if (touchedFields.sortOrder) return;
-    if ((getValues('sortOrder') || 0) > 0) return;
-
-    setValue('sortOrder', getNextHomeCardSortOrder(cardsQuery.data), {
-      shouldValidate: true
-    });
-  }, [mode, cardsQuery.data, touchedFields.sortOrder, getValues, setValue]);
+  const contentSections = useMemo(
+    () =>
+      (sectionsQuery.data ?? [])
+        .filter((section) => section.sectionType === 'CONTENT')
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id),
+    [sectionsQuery.data]
+  );
 
   const watchedValues = watch();
 
-  const linkedSection = useMemo(() => {
-    return sectionsQuery.data?.find(
-      (section) => section.id === watchedValues.sectionId
-    );
-  }, [sectionsQuery.data, watchedValues.sectionId]);
+  const selectedSection = useMemo(() => {
+    return contentSections.find((section) => section.id === watchedValues.sectionId);
+  }, [contentSections, watchedValues.sectionId]);
+
+  const isTextBlock = watchedValues.blockType === 'TEXT';
+  const isImageBlock = watchedValues.blockType === 'IMAGE';
+  const isVideoBlock = watchedValues.blockType === 'VIDEO';
+  const isTextImageBlock = watchedValues.blockType === 'TEXT_IMAGE';
+  const isGalleryBlock = watchedValues.blockType === 'GALLERY';
+
+  const needsTextContent =
+    isTextBlock || isTextImageBlock || isGalleryBlock;
+
+  const needsImage =
+    isImageBlock || isTextImageBlock || isGalleryBlock;
+
+  const needsVideo = isVideoBlock;
 
   useEffect(() => {
     if (mode !== 'create') return;
-    if (!linkedSection) return;
+    if (!blocksQuery.data?.length) return;
+    if (touchedFields.sortOrder) return;
+    if ((getValues('sortOrder') || 0) > 0) return;
 
-    if (!touchedFields.titleEn && !getValues('titleEn')) {
-      setValue('titleEn', linkedSection.nameEn, {shouldDirty: true});
-    }
-
-    if (!touchedFields.titlePt && !getValues('titlePt')) {
-      setValue('titlePt', linkedSection.namePt, {shouldDirty: true});
-    }
-  }, [
-    mode,
-    linkedSection,
-    touchedFields.titleEn,
-    touchedFields.titlePt,
-    getValues,
-    setValue
-  ]);
-
-  const sectionOptions = useMemo(
-    () =>
-      (sectionsQuery.data ?? [])
-        .filter((section) => section.isActive)
-        .sort(
-          (a: SectionResponse, b: SectionResponse) => a.sortOrder - b.sortOrder
-        )
-        .map((section) => ({
-          value: String(section.id),
-          label: `${section.nameEn} (${section.slug})`
-        })),
-    [sectionsQuery.data]
-  );
+    setValue(
+      'sortOrder',
+      getNextContentBlockSortOrder(blocksQuery.data, getValues('sectionId')),
+      {shouldValidate: true}
+    );
+  }, [mode, blocksQuery.data, touchedFields.sortOrder, getValues, setValue]);
 
   const fieldErrors = useMemo(
     () => ({
@@ -310,8 +307,11 @@ export default function HomeCardForm({mode, cardId}: Props) {
       titleEn: errors.titleEn?.message
         ? t(errors.titleEn.message as never)
         : undefined,
-      iconName: errors.iconName?.message
-        ? t(errors.iconName.message as never)
+      subtitlePt: errors.subtitlePt?.message
+        ? t(errors.subtitlePt.message as never)
+        : undefined,
+      subtitleEn: errors.subtitleEn?.message
+        ? t(errors.subtitleEn.message as never)
         : undefined,
       sortOrder: errors.sortOrder?.message
         ? t(errors.sortOrder.message as never)
@@ -320,7 +320,29 @@ export default function HomeCardForm({mode, cardId}: Props) {
     [errors, t]
   );
 
-  if (mode === 'edit' && cardQuery.isPending) {
+  async function onSubmit(values: ContentBlockFormValues) {
+    setServerError('');
+    setSuccessMessage('');
+
+    const payload: SectionContentBlockPayload = {
+      sectionId: values.sectionId,
+      blockType: values.blockType,
+      titlePt: emptyToNull(values.titlePt),
+      titleEn: emptyToNull(values.titleEn),
+      subtitlePt: emptyToNull(values.subtitlePt),
+      subtitleEn: emptyToNull(values.subtitleEn),
+      contentPt: needsTextContent ? emptyToNull(values.contentPt) : null,
+      contentEn: needsTextContent ? emptyToNull(values.contentEn) : null,
+      imageUrl: needsImage ? emptyToNull(values.imageUrl) : null,
+      videoUrl: needsVideo ? emptyToNull(values.videoUrl) : null,
+      isActive: values.isActive,
+      sortOrder: values.sortOrder
+    };
+
+    await saveMutation.mutateAsync(payload);
+  }
+
+  if (mode === 'edit' && blockQuery.isPending) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-sm text-slate-600">{common('loading')}</p>
@@ -328,42 +350,26 @@ export default function HomeCardForm({mode, cardId}: Props) {
     );
   }
 
-  if (mode === 'edit' && cardQuery.isError) {
+  if (mode === 'edit' && blockQuery.isError) {
     return (
       <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
         <p className="text-sm text-red-700">
-          {getErrorMessage(toAppError(cardQuery.error), (key) => errorT(key))}
+          {getErrorMessage(toAppError(blockQuery.error), (key) => errorT(key))}
         </p>
       </div>
     );
   }
 
-  async function onSubmit(values: HomeCardFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
-    const payload: HomeCardPayload = {
-      sectionId: values.sectionId,
-      titlePt: values.titlePt.trim(),
-      titleEn: values.titleEn.trim(),
-      shortDescriptionPt: emptyToNull(values.shortDescriptionPt),
-      shortDescriptionEn: emptyToNull(values.shortDescriptionEn),
-      imageUrl: emptyToNull(values.imageUrl),
-      iconName: emptyToNull(values.iconName),
-      sortOrder: values.sortOrder,
-      isActive: values.isActive
-    };
-
-    await saveMutation.mutateAsync(payload);
-  }
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]"
+    >
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/admin/home-cards">
+          <Link href="/admin/content-blocks">
             <Button type="button" variant="outline">
-              {t('backToCards')}
+              {t('backToBlocks')}
             </Button>
           </Link>
 
@@ -409,7 +415,10 @@ export default function HomeCardForm({mode, cardId}: Props) {
                   }
                   options={[
                     {value: '', label: t('sectionPlaceholder')},
-                    ...sectionOptions
+                    ...contentSections.map((section) => ({
+                      value: String(section.id),
+                      label: `${section.nameEn} (${section.slug})`
+                    }))
                   ]}
                   error={fieldErrors.sectionId}
                   hint={t('sectionHint')}
@@ -418,15 +427,20 @@ export default function HomeCardForm({mode, cardId}: Props) {
             />
 
             <Controller
-              name="iconName"
+              name="blockType"
               control={control}
               render={({field}) => (
-                <HomeCardIconPicker
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  label={t('iconNameLabel')}
-                  hint={t('iconNameHint')}
-                  error={fieldErrors.iconName}
+                <Select
+                  label={t('blockTypeLabel')}
+                  value={field.value}
+                  onChange={(event) =>
+                    field.onChange(event.target.value as ContentBlockFormValues['blockType'])
+                  }
+                  options={CONTENT_BLOCK_TYPE_OPTIONS.map((option) => ({
+                    value: option.value,
+                    label: t(option.labelKey as never)
+                  }))}
+                  hint={t('blockTypeHint')}
                 />
               )}
             />
@@ -434,8 +448,8 @@ export default function HomeCardForm({mode, cardId}: Props) {
         </SettingsCard>
 
         <SettingsCard
-          title={t('contentCardTitle')}
-          description={t('contentCardDescription')}
+          title={t('titlesCardTitle')}
+          description={t('titlesCardDescription')}
         >
           <BilingualFieldGroup
             title={t('titlesGroupTitle')}
@@ -472,62 +486,116 @@ export default function HomeCardForm({mode, cardId}: Props) {
         </SettingsCard>
 
         <SettingsCard
-          title={t('descriptionCardTitle')}
-          description={t('descriptionCardDescription')}
+          title={t('subtitlesCardTitle')}
+          description={t('subtitlesCardDescription')}
         >
           <BilingualFieldGroup
-            title={t('descriptionGroupTitle')}
-            description={t('descriptionGroupDescription')}
+            title={t('subtitlesGroupTitle')}
+            description={t('subtitlesGroupDescription')}
             ptLabel={t('ptLabel')}
             enLabel={t('enLabel')}
             copyPtToEnLabel={t('copyPtToEn')}
             copyEnToPtLabel={t('copyEnToPt')}
             onCopyPtToEn={() =>
-              setValue('shortDescriptionEn', getValues('shortDescriptionPt'), {
-                shouldDirty: true
-              })
+              setValue('subtitleEn', getValues('subtitlePt'), {shouldDirty: true})
             }
             onCopyEnToPt={() =>
-              setValue('shortDescriptionPt', getValues('shortDescriptionEn'), {
-                shouldDirty: true
-              })
+              setValue('subtitlePt', getValues('subtitleEn'), {shouldDirty: true})
             }
             ptField={
-              <Textarea
-                id="shortDescriptionPt"
-                label={t('shortDescriptionPtLabel')}
-                {...register('shortDescriptionPt')}
-                hint={t('shortDescriptionPtHint')}
+              <Input
+                id="subtitlePt"
+                label={t('subtitlePtLabel')}
+                {...register('subtitlePt')}
+                error={fieldErrors.subtitlePt}
+                hint={t('subtitlePtHint')}
               />
             }
             enField={
-              <Textarea
-                id="shortDescriptionEn"
-                label={t('shortDescriptionEnLabel')}
-                {...register('shortDescriptionEn')}
-                hint={t('shortDescriptionEnHint')}
+              <Input
+                id="subtitleEn"
+                label={t('subtitleEnLabel')}
+                {...register('subtitleEn')}
+                error={fieldErrors.subtitleEn}
+                hint={t('subtitleEnHint')}
               />
             }
           />
         </SettingsCard>
 
-        <SettingsCard
-          title={t('mediaCardTitle')}
-          description={t('mediaCardDescription')}
-        >
-          <Controller
-            name="imageUrl"
-            control={control}
-            render={({field}) => (
-              <MediaUploadField
-                label={t('imageLabel')}
-                value={field.value || ''}
-                type="IMAGE"
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </SettingsCard>
+        {needsTextContent ? (
+          <SettingsCard
+            title={t('contentCardTitle')}
+            description={t('contentCardDescription')}
+          >
+            <BilingualFieldGroup
+              title={t('contentGroupTitle')}
+              description={t('contentGroupDescription')}
+              ptLabel={t('ptLabel')}
+              enLabel={t('enLabel')}
+              copyPtToEnLabel={t('copyPtToEn')}
+              copyEnToPtLabel={t('copyEnToPt')}
+              onCopyPtToEn={() =>
+                setValue('contentEn', getValues('contentPt'), {shouldDirty: true})
+              }
+              onCopyEnToPt={() =>
+                setValue('contentPt', getValues('contentEn'), {shouldDirty: true})
+              }
+              ptField={
+                <Textarea
+                  id="contentPt"
+                  label={t('contentPtLabel')}
+                  {...register('contentPt')}
+                  hint={t('contentPtHint')}
+                  rows={6}
+                />
+              }
+              enField={
+                <Textarea
+                  id="contentEn"
+                  label={t('contentEnLabel')}
+                  {...register('contentEn')}
+                  hint={t('contentEnHint')}
+                  rows={6}
+                />
+              }
+            />
+          </SettingsCard>
+        ) : null}
+
+        {needsImage ? (
+          <SettingsCard
+            title={t('imageCardTitle')}
+            description={t('imageCardDescription')}
+          >
+            <Controller
+              name="imageUrl"
+              control={control}
+              render={({field}) => (
+                <MediaUploadField
+                  label={t('imageLabel')}
+                  value={field.value || ''}
+                  type="IMAGE"
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </SettingsCard>
+        ) : null}
+
+        {needsVideo ? (
+          <SettingsCard
+            title={t('videoCardTitle')}
+            description={t('videoCardDescription')}
+          >
+            <Input
+              id="videoUrl"
+              label={t('videoUrlLabel')}
+              {...register('videoUrl')}
+              hint={t('videoUrlHint')}
+            />
+          </SettingsCard>
+        ) : null}
 
         <SettingsCard
           title={t('publishingCardTitle')}
@@ -574,9 +642,9 @@ export default function HomeCardForm({mode, cardId}: Props) {
         </SettingsCard>
       </div>
 
-      <HomeCardFormSidebar
+      <ContentBlockFormSidebar
         values={watchedValues}
-        linkedSection={linkedSection}
+        linkedSection={selectedSection}
       />
     </form>
   );

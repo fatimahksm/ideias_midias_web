@@ -15,7 +15,14 @@ export const endpoints = {
     mediaLibrary: '/api/admin/media-library',
     mediaUpload: '/api/admin/media-library/upload',
     sections: '/api/admin/sections',
+    categories: '/api/admin/categories',
+    items: '/api/admin/items',
+    itemMedia: '/api/admin/item-media',
     homeCards: '/api/admin/home-cards',
-    contactMethods: '/api/admin/contact-methods'
+    contactMethods: '/api/admin/contact-methods',
+    contentBlocks: '/api/admin/content-blocks',
+    portfolioProjects: '/api/admin/portfolio-projects',
+    portfolioProjectMedia: '/api/admin/portfolio-project-media',
+
   }
 } as const;

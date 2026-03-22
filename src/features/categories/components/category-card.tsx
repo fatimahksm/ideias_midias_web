@@ -4,33 +4,33 @@ import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
 import {resolveMediaUrl, formatMediaDate} from '@/features/media-library/utils';
-import type {HomeCardResponse} from '../types';
 import type {SectionResponse} from '@/features/sections/types';
-import {getHomeCardIconOption} from '../home-card-icon-options';
+import type {SectionCategoryResponse} from '../types';
+import {CategoryStatusBadge} from './category-status-badge';
 
 type Props = {
-  item: HomeCardResponse;
+  item: SectionCategoryResponse;
   linkedSection?: SectionResponse;
   canDelete: boolean;
   isDeleting: boolean;
-  onDelete: (item: HomeCardResponse) => void;
+  isTogglingStatus: boolean;
+  onDelete: (item: SectionCategoryResponse) => void;
+  onToggleStatus: (item: SectionCategoryResponse) => void;
 };
 
-export function HomeCardCard({
+export function CategoryCard({
   item,
   linkedSection,
   canDelete,
   isDeleting,
-  onDelete
+  isTogglingStatus,
+  onDelete,
+  onToggleStatus
 }: Props) {
-  const t = useTranslations('HomeCardsManager');
-  const formT = useTranslations('HomeCardForm');
+  const t = useTranslations('CategoriesManager');
   const common = useTranslations('Common');
   const locale = useLocale();
-
   const imageUrl = resolveMediaUrl(item.imageUrl);
-  const selectedIcon = getHomeCardIconOption(item.iconName);
-  const SelectedIconComponent = selectedIcon?.icon;
 
   return (
     <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -38,7 +38,7 @@ export function HomeCardCard({
         {imageUrl ? (
           <img
             src={imageUrl}
-            alt={item.titleEn}
+            alt={item.nameEn}
             className="h-full w-full object-cover"
           />
         ) : (
@@ -47,21 +47,13 @@ export function HomeCardCard({
               {t('cardPreviewBadge')}
             </span>
             <p className="mt-3 line-clamp-2 text-lg font-semibold text-slate-700">
-              {item.titleEn}
+              {item.nameEn}
             </p>
           </div>
         )}
 
-        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
-              item.isActive
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border-slate-200 bg-slate-100 text-slate-700'
-            }`}
-          >
-            {item.isActive ? t('statusActive') : t('statusInactive')}
-          </span>
+        <div className="absolute left-4 top-4">
+          <CategoryStatusBadge isActive={item.isActive} />
         </div>
       </div>
 
@@ -70,9 +62,9 @@ export function HomeCardCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h3 className="truncate text-lg font-semibold text-slate-900">
-                {item.titleEn}
+                {item.nameEn}
               </h3>
-              <p className="truncate text-sm text-slate-500">{item.titlePt}</p>
+              <p className="truncate text-sm text-slate-500">{item.namePt}</p>
             </div>
 
             <div className="rounded-2xl bg-slate-100 px-3 py-2 text-center">
@@ -86,9 +78,7 @@ export function HomeCardCard({
           </div>
 
           <p className="line-clamp-3 text-sm leading-6 text-slate-600">
-            {item.shortDescriptionEn ||
-              item.shortDescriptionPt ||
-              t('noDescription')}
+            {item.descriptionEn || item.descriptionPt || t('noDescription')}
           </p>
         </div>
 
@@ -112,20 +102,8 @@ export function HomeCardCard({
           </div>
         </dl>
 
-        {selectedIcon ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              {t('iconNameLabel')}
-            </p>
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
-              {SelectedIconComponent ? <SelectedIconComponent size={16} /> : null}
-              <span>{formT(selectedIcon.labelKey as never)}</span>
-            </div>
-          </div>
-        ) : null}
-
         <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/home-cards/${item.id}/edit`}>
+          <Link href={`/admin/categories/${item.id}/edit`}>
             <Button type="button" size="sm">
               {common('edit')}
             </Button>
@@ -138,6 +116,17 @@ export function HomeCardCard({
               </Button>
             </Link>
           ) : null}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            isLoading={isTogglingStatus}
+            loadingText={common('loading')}
+            onClick={() => onToggleStatus(item)}
+          >
+            {item.isActive ? t('deactivate') : t('activate')}
+          </Button>
 
           {canDelete ? (
             <Button

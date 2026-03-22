@@ -2,20 +2,23 @@
 
 import {useTranslations} from 'next-intl';
 import {resolveMediaUrl} from '@/features/media-library/utils';
-import type {HomeCardFormValues} from '../schema';
 import type {SectionResponse} from '@/features/sections/types';
-import {getHomeCardIconOption} from '../home-card-icon-options';
+import type {SectionCategoryResponse} from '@/features/categories/types';
+import type {ItemFormValues} from '../schema';
 
 type Props = {
-  values: HomeCardFormValues;
+  values: ItemFormValues;
   linkedSection?: SectionResponse;
+  linkedCategory?: SectionCategoryResponse;
 };
 
-export function HomeCardFormSidebar({values, linkedSection}: Props) {
-  const t = useTranslations('HomeCardForm');
+export function ItemFormSidebar({
+  values,
+  linkedSection,
+  linkedCategory
+}: Props) {
+  const t = useTranslations('ItemForm');
   const imageUrl = resolveMediaUrl(values.imageUrl);
-  const selectedIcon = getHomeCardIconOption(values.iconName);
-  const SelectedIconComponent = selectedIcon?.icon;
 
   return (
     <div className="space-y-5 xl:sticky xl:top-6">
@@ -30,26 +33,41 @@ export function HomeCardFormSidebar({values, linkedSection}: Props) {
           >
             {values.isActive ? t('statusActive') : t('statusInactive')}
           </span>
+
+          {values.isFeatured ? (
+            <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+              {t('featuredBadge')}
+            </span>
+          ) : null}
         </div>
 
         <h3 className="text-lg font-semibold text-slate-900">
-          {values.titleEn || t('untitledCard')}
+          {values.titleEn || t('untitledItem')}
         </h3>
         <p className="mt-1 text-sm text-slate-500">
-          {values.titlePt || t('untitledCardPt')}
+          {values.titlePt || t('untitledItemPt')}
         </p>
 
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-            {t('linkedSectionLabel')}
-          </p>
-          <p className="mt-1 text-sm font-medium text-slate-800">
-            {linkedSection?.nameEn || t('noSectionLinked')}
-          </p>
-        </div>
+        <div className="mt-4 grid gap-3">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              {t('linkedSectionLabel')}
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {linkedSection?.nameEn || t('noSectionLinked')}
+            </p>
+          </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-          <div className="rounded-2xl bg-slate-50 p-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              {t('linkedCategoryLabel')}
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {linkedCategory?.nameEn || t('noCategoryLinked')}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               {t('sidebarSortOrder')}
             </p>
@@ -57,33 +75,16 @@ export function HomeCardFormSidebar({values, linkedSection}: Props) {
               {values.sortOrder}
             </p>
           </div>
-
-          <div className="rounded-2xl bg-slate-50 p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              {t('sidebarIcon')}
-            </p>
-
-            {selectedIcon ? (
-              <div className="mt-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
-                {SelectedIconComponent ? <SelectedIconComponent size={16} /> : null}
-                <span>{t(selectedIcon.labelKey as never)}</span>
-              </div>
-            ) : (
-              <p className="mt-1 text-sm font-semibold text-slate-800">
-                {t('noIconYet')}
-              </p>
-            )}
-          </div>
         </div>
       </div>
 
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 px-5 py-4">
           <h3 className="text-base font-semibold text-slate-900">
-            {t('cardPreviewTitle')}
+            {t('itemPreviewTitle')}
           </h3>
           <p className="mt-1 text-sm text-slate-500">
-            {t('cardPreviewDescription')}
+            {t('itemPreviewDescription')}
           </p>
         </div>
 
@@ -93,7 +94,7 @@ export function HomeCardFormSidebar({values, linkedSection}: Props) {
               {imageUrl ? (
                 <img
                   src={imageUrl}
-                  alt={values.titleEn || t('untitledCard')}
+                  alt={values.titleEn || t('untitledItem')}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -104,15 +105,8 @@ export function HomeCardFormSidebar({values, linkedSection}: Props) {
             </div>
 
             <div className="space-y-2 p-4">
-              {selectedIcon ? (
-                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
-                  {SelectedIconComponent ? <SelectedIconComponent size={14} /> : null}
-                  <span>{t(selectedIcon.labelKey as never)}</span>
-                </div>
-              ) : null}
-
               <h4 className="text-base font-semibold text-slate-900">
-                {values.titleEn || t('untitledCard')}
+                {values.titleEn || t('untitledItem')}
               </h4>
               <p className="line-clamp-3 text-sm leading-6 text-slate-600">
                 {values.shortDescriptionEn ||
@@ -121,6 +115,7 @@ export function HomeCardFormSidebar({values, linkedSection}: Props) {
               </p>
               <p className="text-xs font-medium text-slate-500">
                 {linkedSection?.nameEn || t('noSectionLinked')}
+                {linkedCategory ? ` • ${linkedCategory.nameEn}` : ''}
               </p>
             </div>
           </div>

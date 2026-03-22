@@ -370,11 +370,11 @@ export default function SectionForm({mode, sectionId}: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <SectionNextActions
-            sectionId={savedSectionId}
-            sectionType={savedSectionType}
-            isVisible={Boolean(successMessage)}
-          />
+         <SectionNextActions
+  sectionId={savedSectionId}
+  sectionType={savedSectionType}
+  isVisible={mode === 'edit' || Boolean(savedSectionId)}
+/>
 
           <SettingsCard
             title={t('identityCardTitle')}
