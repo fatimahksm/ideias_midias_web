@@ -1,6 +1,8 @@
+
 export type HomeCardResponse = {
   id: number;
   sectionId: number;
+  sectionSlug?: string | null;
   titlePt: string;
   titleEn: string;
   shortDescriptionPt?: string | null;
@@ -24,3 +26,4 @@ export type HomeCardPayload = {
   sortOrder: number;
   isActive: boolean;
 };
+

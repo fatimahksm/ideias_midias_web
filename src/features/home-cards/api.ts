@@ -20,6 +20,8 @@ export async function getAllHomeCards() {
   });
 }
 
+
+
 export async function getHomeCardById(id: number) {
   return apiClient<HomeCardResponse>(`${endpoints.admin.homeCards}/${id}`, {
     method: 'GET',
