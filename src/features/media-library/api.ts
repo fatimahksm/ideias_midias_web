@@ -1,3 +1,4 @@
+import {apiClient} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
 import {HttpError} from '@/lib/api/http-error';
@@ -83,37 +84,27 @@ export async function uploadMedia(file: File): Promise<MediaLibraryItem> {
 }
 
 export async function getAllMedia(): Promise<MediaLibraryItem[]> {
-  const token = getRequiredToken();
-
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoints.admin.mediaLibrary}`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: token
-      },
-      cache: 'no-store'
-    }
-  );
-
-  return parseJsonResponse<MediaLibraryItem[]>(response);
+  return apiClient<MediaLibraryItem[]>(endpoints.admin.mediaLibrary, {
+    method: 'GET',
+    token: getRequiredToken()
+  });
 }
 
 export async function getMediaByType(
   fileType: MediaFileType
 ): Promise<MediaLibraryItem[]> {
-  const token = getRequiredToken();
-
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoints.admin.mediaLibrary}/type/${fileType}`,
+  return apiClient<MediaLibraryItem[]>(
+    `${endpoints.admin.mediaLibrary}/type/${fileType}`,
     {
       method: 'GET',
-      headers: {
-        Authorization: token
-      },
-      cache: 'no-store'
+      token: getRequiredToken()
     }
   );
+}
 
-  return parseJsonResponse<MediaLibraryItem[]>(response);
+export async function deleteMedia(id: number): Promise<void> {
+  await apiClient<unknown>(`${endpoints.admin.mediaLibrary}/${id}`, {
+    method: 'DELETE',
+    token: getRequiredToken()
+  });
 }

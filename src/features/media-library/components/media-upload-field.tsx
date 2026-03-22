@@ -9,6 +9,7 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {uploadMedia} from '../api';
 import type {MediaFileType} from '../types';
+import {resolveMediaUrl} from '../utils';
 
 type Props = {
   label: string;
@@ -16,50 +17,6 @@ type Props = {
   type: MediaFileType;
   onChange: (value: string | null) => void;
 };
-
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  ''
-).replace(/\/$/, '');
-
-function isAbsoluteUrl(url: string) {
-  return /^https?:\/\//i.test(url);
-}
-
-function isBlobOrDataUrl(url: string) {
-  return url.startsWith('blob:') || url.startsWith('data:');
-}
-
-function resolveMediaUrl(url?: string | null) {
-  if (!url) return null;
-
-  const trimmed = url.trim();
-  if (!trimmed) return null;
-
-  if (isAbsoluteUrl(trimmed) || isBlobOrDataUrl(trimmed)) {
-    return trimmed;
-  }
-
-  if (trimmed.startsWith('/')) {
-    return API_BASE_URL ? `${API_BASE_URL}${trimmed}` : trimmed;
-  }
-
-  return API_BASE_URL ? `${API_BASE_URL}/${trimmed}` : `/${trimmed}`;
-}
-
-function extractUploadedFileUrl(uploaded: any): string | null {
-  return (
-    uploaded?.fileUrl ||
-    uploaded?.data?.fileUrl ||
-    uploaded?.data?.data?.fileUrl ||
-    uploaded?.url ||
-    uploaded?.data?.url ||
-    uploaded?.path ||
-    uploaded?.data?.path ||
-    null
-  );
-}
 
 export function MediaUploadField({label, value, type, onChange}: Props) {
   const t = useTranslations('MediaUploadField');
@@ -124,13 +81,12 @@ export function MediaUploadField({label, value, type, onChange}: Props) {
 
     try {
       const uploaded = await uploadMutation.mutateAsync(file);
-      const uploadedFileUrl = extractUploadedFileUrl(uploaded);
 
-      if (!uploadedFileUrl) {
+      if (!uploaded.fileUrl) {
         throw new Error(t('uploadFailed'));
       }
 
-      onChange(uploadedFileUrl);
+      onChange(uploaded.fileUrl);
 
       setTempPreviewUrl((previous) => {
         if (previous?.startsWith('blob:')) {
@@ -203,11 +159,7 @@ export function MediaUploadField({label, value, type, onChange}: Props) {
         </Button>
 
         {value || tempPreviewUrl ? (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={handleRemove}
-          >
+          <Button type="button" variant="ghost" onClick={handleRemove}>
             {t('remove')}
           </Button>
         ) : null}

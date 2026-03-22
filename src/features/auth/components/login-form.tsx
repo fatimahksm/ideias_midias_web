@@ -1,17 +1,37 @@
 'use client';
 
 import {zodResolver} from '@hookform/resolvers/zod';
+import {useQuery} from '@tanstack/react-query';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
-import {setAdminToken} from '@/lib/auth/token';
+import {
+  getAdminToken,
+  removeAdminToken,
+  setAdminToken
+} from '@/lib/auth/token';
 import {adminLoginSchema, type AdminLoginFormValues} from '../schema';
-import {adminLogin} from '../api';
+import {adminLogin, getCurrentAdmin} from '../api';
+
+function SessionStateCard({
+  title,
+  description
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm shadow-sm">
+      <p className="font-semibold text-slate-900">{title}</p>
+      <p className="mt-1 text-slate-600">{description}</p>
+    </div>
+  );
+}
 
 export default function LoginForm() {
   const t = useTranslations('AdminLoginPage');
@@ -22,6 +42,36 @@ export default function LoginForm() {
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  const storedToken = useMemo(() => {
+    if (!isHydrated) return null;
+    return getAdminToken();
+  }, [isHydrated]);
+
+  const sessionQuery = useQuery({
+    queryKey: ['admin-login-session', storedToken],
+    queryFn: () => getCurrentAdmin(storedToken),
+    enabled: Boolean(storedToken),
+    retry: false,
+    staleTime: 300_000
+  });
+
+  useEffect(() => {
+    if (sessionQuery.isSuccess) {
+      router.replace(`/${locale}/admin`);
+    }
+  }, [sessionQuery.isSuccess, locale, router]);
+
+  useEffect(() => {
+    if (sessionQuery.isError) {
+      removeAdminToken();
+    }
+  }, [sessionQuery.isError]);
 
   const {
     register,
@@ -48,10 +98,17 @@ export default function LoginForm() {
     } catch (error) {
       const appError = toAppError(error);
 
-      setServerError(
-        getErrorMessage(appError, (key) => errorT(key))
-      );
+      setServerError(getErrorMessage(appError, (key) => errorT(key)));
     }
+  }
+
+  if (storedToken && (sessionQuery.isPending || sessionQuery.isSuccess)) {
+    return (
+      <SessionStateCard
+        title={t('existingSessionTitle')}
+        description={t('redirectingToDashboard')}
+      />
+    );
   }
 
   return (

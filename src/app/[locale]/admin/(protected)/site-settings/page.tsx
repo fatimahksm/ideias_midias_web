@@ -14,13 +14,12 @@ export default async function SiteSettingsPage({params}: Props) {
   const t = await getTranslations('SiteSettingsPage');
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-6 py-8 text-[var(--color-text)]">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <PageHeader title={t('title')} description={t('subtitle')} />
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <SiteSettingsForm />
-        </div>
+    <section className="space-y-6">
+      <PageHeader title={t('title')} description={t('subtitle')} />
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <SiteSettingsForm />
       </div>
-    </main>
+    </section>
   );
 }

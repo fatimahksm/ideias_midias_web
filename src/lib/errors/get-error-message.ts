@@ -10,7 +10,9 @@ type ErrorTranslationKey =
 
 type TranslateFn = (key: ErrorTranslationKey) => string;
 
-export function getErrorMessage(error: AppError, t: TranslateFn) {
+export function getErrorMessage(error: AppError | null, t: TranslateFn) {
+  if (!error) return t('unknownError');
+
   if (error.status === 401) return t('unauthorized');
   if (error.status === 403) return t('forbidden');
   if (error.status === 404) return t('notFound');
@@ -19,10 +21,12 @@ export function getErrorMessage(error: AppError, t: TranslateFn) {
     return error.message || t('validationError');
   }
 
+  const normalizedMessage = error.message?.toLowerCase() || '';
+
   if (
-    error.message?.toLowerCase().includes('failed to fetch') ||
-    error.message?.toLowerCase().includes('network') ||
-    error.message?.toLowerCase().includes('load failed')
+    normalizedMessage.includes('failed to fetch') ||
+    normalizedMessage.includes('network') ||
+    normalizedMessage.includes('load failed')
   ) {
     return t('networkError');
   }
