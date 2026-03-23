@@ -1,6 +1,5 @@
 'use client';
-
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import Image from 'next/image';
 import {AnimatePresence, motion} from 'framer-motion';
 import {useTranslations} from 'next-intl';
@@ -21,8 +20,16 @@ import {Link} from '@/i18n/navigation';
 import type {SectionCategoryResponse} from '@/features/categories/types';
 import type {SectionContentBlockResponse} from '@/features/content-blocks/types';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
+import type {SectionItemMediaResponse} from '@/features/item-media/types';
+import type {PortfolioProjectMediaResponse} from '@/features/portfolio-project-media/types';
 import type {PublicSectionItemResponse, PublicSectionPageData} from '../types';
-import {getLocalizedValue, isEmbeddableVideoUrl} from '../utils';
+import {getPublicItemMedia, getPublicPortfolioProjectMedia} from '../api';
+import PublicMediaGallery from './public-media-gallery';
+import {
+  getLocalizedValue,
+  isEmbeddableVideoUrl,
+  toEmbeddableVideoUrl
+} from '../utils';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 
 type Props = {
@@ -87,13 +94,13 @@ function SectionHero({
         <>
           <div className="absolute inset-0">
             {isEmbeddableVideoUrl(resolvedCoverVideoUrl) ? (
-              <iframe
-                src={resolvedCoverVideoUrl}
-                title={title}
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+             <iframe
+  src={toEmbeddableVideoUrl(resolvedCoverVideoUrl) ?? resolvedCoverVideoUrl}
+  title={title}
+  className="h-full w-full"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
             ) : (
               <video
                 className="h-full w-full object-cover"
@@ -183,13 +190,13 @@ function BlockMedia({
       {resolvedVideoUrl ? (
         <div className="aspect-video w-full bg-black">
           {isEmbeddableVideoUrl(resolvedVideoUrl) ? (
-            <iframe
-              src={resolvedVideoUrl}
-              title={title || 'Video'}
-              className="h-full w-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
+           <iframe
+  src={toEmbeddableVideoUrl(resolvedVideoUrl) ?? resolvedVideoUrl}
+  title={title || 'Video'}
+  className="h-full w-full"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
           ) : (
             <video className="h-full w-full" controls playsInline preload="metadata">
               <source src={resolvedVideoUrl} />
@@ -504,6 +511,38 @@ function ItemModal({
   onClose: () => void;
   t: TranslateFn;
 }) {
+  const [galleryMedia, setGalleryMedia] = useState<SectionItemMediaResponse[]>(
+    []
+  );
+  const [isMediaLoading, setIsMediaLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    setIsMediaLoading(true);
+
+    getPublicItemMedia(item.id)
+      .then((response) => {
+        if (isMounted) {
+          setGalleryMedia(response);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setGalleryMedia([]);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsMediaLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [item.id]);
+
   const title =
     getLocalizedValue(locale, item.titlePt, item.titleEn) || t('untitled');
 
@@ -527,9 +566,6 @@ function ItemModal({
       item.specificationsPt,
       item.specificationsEn
     ) || '';
-
-  const itemImageUrl = resolveMediaUrl(item.coverImageUrl);
-  const itemVideoUrl = resolveMediaUrl(item.videoUrl);
 
   return (
     <AnimatePresence>
@@ -560,39 +596,16 @@ function ItemModal({
           </div>
 
           <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
-            {itemImageUrl ? (
-              <div className="relative h-[320px] w-full bg-slate-100 md:h-[460px]">
-                <Image
-                  src={itemImageUrl}
-                  alt={title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : null}
-
-            {itemVideoUrl ? (
-              <div className="aspect-video w-full bg-black">
-                {isEmbeddableVideoUrl(itemVideoUrl) ? (
-                  <iframe
-                    src={itemVideoUrl}
-                    title={title}
-                    className="h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                ) : (
-                  <video
-                    className="h-full w-full"
-                    controls
-                    playsInline
-                    preload="metadata"
-                  >
-                    <source src={itemVideoUrl} />
-                  </video>
-                )}
-              </div>
-            ) : null}
+            <PublicMediaGallery
+              locale={locale}
+              title={title}
+              media={galleryMedia}
+              fallbackImageUrl={item.coverImageUrl}
+              fallbackVideoUrl={item.videoUrl}
+              isLoading={isMediaLoading}
+              loadingLabel={t('loadingMedia')}
+              noMediaLabel={t('noMedia')}
+            />
 
             <div className="space-y-8 p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3">

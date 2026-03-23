@@ -4,9 +4,11 @@ import type {HomeCardResponse} from '@/features/home-cards/types';
 import type {ContactMethodResponse} from '@/features/contact-methods/types';
 import type {SectionContentBlockResponse} from '@/features/content-blocks/types';
 import type {SectionCategoryResponse} from '@/features/categories/types';
-import type {SectionResponse, SectionType} from '@/features/sections/types';
+import type {SectionResponse} from '@/features/sections/types';
 import type {SiteSettingsResponse} from '@/features/site-settings/types';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
+import type {SectionItemMediaResponse} from '@/features/item-media/types';
+import type {PortfolioProjectMediaResponse} from '@/features/portfolio-project-media/types';
 import type {
   PublicHomeData,
   PublicSectionItemResponse,
@@ -47,6 +49,32 @@ export async function getPublicSectionBySlug(
   return apiClient<SectionResponse>(endpoints.public.sectionBySlug(slug), {
     method: 'GET'
   }).catch(() => null);
+}
+
+export async function getPublicItemMedia(
+  itemId: number
+): Promise<SectionItemMediaResponse[]> {
+  const media = await apiClient<SectionItemMediaResponse[]>(
+    endpoints.public.itemMedia(itemId),
+    {
+      method: 'GET'
+    }
+  ).catch(() => []);
+
+  return sortByOrder(media.filter((item) => item.isActive));
+}
+
+export async function getPublicPortfolioProjectMedia(
+  projectId: number
+): Promise<PortfolioProjectMediaResponse[]> {
+  const media = await apiClient<PortfolioProjectMediaResponse[]>(
+    endpoints.public.portfolioProjectMedia(projectId),
+    {
+      method: 'GET'
+    }
+  ).catch(() => []);
+
+  return sortByOrder(media.filter((item) => item.isActive));
 }
 
 export async function getPublicSectionPageData(

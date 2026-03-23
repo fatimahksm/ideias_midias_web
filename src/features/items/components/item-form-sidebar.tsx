@@ -18,7 +18,7 @@ export function ItemFormSidebar({
   linkedCategory
 }: Props) {
   const t = useTranslations('ItemForm');
-  const imageUrl = resolveMediaUrl(values.imageUrl);
+  const imageUrl = resolveMediaUrl(values.coverImageUrl);
 
   return (
     <div className="space-y-5 xl:sticky xl:top-6">

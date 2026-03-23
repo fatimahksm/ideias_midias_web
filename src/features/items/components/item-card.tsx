@@ -33,7 +33,7 @@ export function ItemCard({
   const t = useTranslations('ItemsManager');
   const common = useTranslations('Common');
   const locale = useLocale();
-  const imageUrl = resolveMediaUrl(item.imageUrl);
+  const imageUrl = resolveMediaUrl(item.coverImageUrl);
 
   return (
     <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">

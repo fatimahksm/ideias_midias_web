@@ -477,6 +477,19 @@
   }
 },
 "ItemForm": {
+  "metadataCardTitle": "Metadados do item",
+"metadataCardDescription": "Guarde detalhes estruturados e leves sobre o item.",
+"itemTypeLabel": "Tipo do item",
+"itemTypeHint": "Tipo opcional, como banner, stand, letreiro em acrílico, serviço de impressão, etc.",
+"itemTypeTooLong": "O tipo do item não pode exceder 120 caracteres.",
+"specificationsCardTitle": "Especificações",
+"specificationsCardDescription": "Use estes campos para detalhes técnicos, materiais, dimensões, acabamentos ou notas de instalação.",
+"specificationsGroupTitle": "Especificações bilíngues",
+"specificationsGroupDescription": "Mantenha estas informações práticas e estruturadas para futuras páginas públicas de detalhe.",
+"specificationsPtLabel": "Especificações (PT)",
+"specificationsPtHint": "Especificações opcionais em português.",
+"specificationsEnLabel": "Specifications (EN)",
+"specificationsEnHint": "Optional English specifications.",
   "backToItems": "Voltar para itens",
   "createButton": "Criar item",
   "saveButton": "Salvar item",
@@ -673,6 +686,11 @@
   "mediaTypeRequired": "Escolha um tipo de mídia."
 },
 "PublicSite": {
+  "primaryContacts": "Contatos principais",
+"socialLinks": "Redes sociais",
+"followUs": "Siga-nos",
+  "loadingMedia": "Carregando mídia...",
+"noMedia": "Nenhuma mídia disponível ainda",
   "backHome": "Voltar para a página inicial",
 "featured": "Destaque",
 "details": "Detalhes",

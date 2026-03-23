@@ -26,8 +26,16 @@ export const itemSchema = z.object({
   fullDescriptionPt: z.string().trim(),
   fullDescriptionEn: z.string().trim(),
 
-  imageUrl: z.string().trim(),
+  coverImageUrl: z.string().trim(),
   videoUrl: z.string().trim(),
+
+  itemType: z
+    .string()
+    .trim()
+    .max(120, {message: 'itemTypeTooLong'}),
+
+  specificationsPt: z.string().trim(),
+  specificationsEn: z.string().trim(),
 
   isFeatured: z.boolean(),
   isActive: z.boolean(),

@@ -12,8 +12,12 @@ export type SectionItemResponse = {
   fullDescriptionPt?: string | null;
   fullDescriptionEn?: string | null;
 
-  imageUrl?: string | null;
+  coverImageUrl?: string | null;
   videoUrl?: string | null;
+
+  itemType?: string | null;
+  specificationsPt?: string | null;
+  specificationsEn?: string | null;
 
   isFeatured: boolean;
   isActive: boolean;
@@ -36,8 +40,12 @@ export type SectionItemPayload = {
   fullDescriptionPt?: string | null;
   fullDescriptionEn?: string | null;
 
-  imageUrl?: string | null;
+  coverImageUrl?: string | null;
   videoUrl?: string | null;
+
+  itemType?: string | null;
+  specificationsPt?: string | null;
+  specificationsEn?: string | null;
 
   isFeatured: boolean;
   isActive: boolean;

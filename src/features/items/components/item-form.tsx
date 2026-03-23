@@ -163,21 +163,24 @@ export default function ItemForm({mode, itemId}: Props) {
     formState: {errors, touchedFields}
   } = useForm<ItemFormValues>({
     resolver: zodResolver(itemSchema),
-    defaultValues: {
-      sectionId: 0,
-      categoryId: undefined,
-      titlePt: '',
-      titleEn: '',
-      shortDescriptionPt: '',
-      shortDescriptionEn: '',
-      fullDescriptionPt: '',
-      fullDescriptionEn: '',
-      imageUrl: '',
-      videoUrl: '',
-      isFeatured: false,
-      isActive: true,
-      sortOrder: 0
-    }
+   defaultValues: {
+  sectionId: 0,
+  categoryId: undefined,
+  titlePt: '',
+  titleEn: '',
+  shortDescriptionPt: '',
+  shortDescriptionEn: '',
+  fullDescriptionPt: '',
+  fullDescriptionEn: '',
+  coverImageUrl: '',
+  videoUrl: '',
+  itemType: '',
+  specificationsPt: '',
+  specificationsEn: '',
+  isFeatured: false,
+  isActive: true,
+  sortOrder: 0
+}
   });
 
   const sectionsQuery = useQuery({
@@ -220,21 +223,24 @@ export default function ItemForm({mode, itemId}: Props) {
         return;
       }
 
-      reset({
-        sectionId: savedItem.sectionId,
-        categoryId: savedItem.categoryId ?? undefined,
-        titlePt: savedItem.titlePt,
-        titleEn: savedItem.titleEn,
-        shortDescriptionPt: savedItem.shortDescriptionPt ?? '',
-        shortDescriptionEn: savedItem.shortDescriptionEn ?? '',
-        fullDescriptionPt: savedItem.fullDescriptionPt ?? '',
-        fullDescriptionEn: savedItem.fullDescriptionEn ?? '',
-        imageUrl: savedItem.imageUrl ?? '',
-        videoUrl: savedItem.videoUrl ?? '',
-        isFeatured: savedItem.isFeatured,
-        isActive: savedItem.isActive,
-        sortOrder: savedItem.sortOrder
-      });
+     reset({
+  sectionId: savedItem.sectionId,
+  categoryId: savedItem.categoryId ?? undefined,
+  titlePt: savedItem.titlePt,
+  titleEn: savedItem.titleEn,
+  shortDescriptionPt: savedItem.shortDescriptionPt ?? '',
+  shortDescriptionEn: savedItem.shortDescriptionEn ?? '',
+  fullDescriptionPt: savedItem.fullDescriptionPt ?? '',
+  fullDescriptionEn: savedItem.fullDescriptionEn ?? '',
+  coverImageUrl: savedItem.coverImageUrl ?? '',
+  videoUrl: savedItem.videoUrl ?? '',
+  itemType: savedItem.itemType ?? '',
+  specificationsPt: savedItem.specificationsPt ?? '',
+  specificationsEn: savedItem.specificationsEn ?? '',
+  isFeatured: savedItem.isFeatured,
+  isActive: savedItem.isActive,
+  sortOrder: savedItem.sortOrder
+});
     },
     onError: (error) => {
       setSuccessMessage('');
@@ -247,21 +253,24 @@ export default function ItemForm({mode, itemId}: Props) {
 
     const item = itemQuery.data;
 
-    reset({
-      sectionId: item.sectionId,
-      categoryId: item.categoryId ?? undefined,
-      titlePt: item.titlePt,
-      titleEn: item.titleEn,
-      shortDescriptionPt: item.shortDescriptionPt ?? '',
-      shortDescriptionEn: item.shortDescriptionEn ?? '',
-      fullDescriptionPt: item.fullDescriptionPt ?? '',
-      fullDescriptionEn: item.fullDescriptionEn ?? '',
-      imageUrl: item.imageUrl ?? '',
-      videoUrl: item.videoUrl ?? '',
-      isFeatured: item.isFeatured,
-      isActive: item.isActive,
-      sortOrder: item.sortOrder
-    });
+   reset({
+  sectionId: item.sectionId,
+  categoryId: item.categoryId ?? undefined,
+  titlePt: item.titlePt,
+  titleEn: item.titleEn,
+  shortDescriptionPt: item.shortDescriptionPt ?? '',
+  shortDescriptionEn: item.shortDescriptionEn ?? '',
+  fullDescriptionPt: item.fullDescriptionPt ?? '',
+  fullDescriptionEn: item.fullDescriptionEn ?? '',
+  coverImageUrl: item.coverImageUrl ?? '',
+  videoUrl: item.videoUrl ?? '',
+  itemType: item.itemType ?? '',
+  specificationsPt: item.specificationsPt ?? '',
+  specificationsEn: item.specificationsEn ?? '',
+  isFeatured: item.isFeatured,
+  isActive: item.isActive,
+  sortOrder: item.sortOrder
+});
   }, [itemQuery.data, reset]);
 
   const itemSections = useMemo(
@@ -320,42 +329,47 @@ export default function ItemForm({mode, itemId}: Props) {
   }, [mode, itemsQuery.data, touchedFields.sortOrder, getValues, setValue]);
 
   const fieldErrors = useMemo(
-    () => ({
-      sectionId: errors.sectionId?.message
-        ? t(errors.sectionId.message as never)
-        : undefined,
-      titlePt: errors.titlePt?.message
-        ? t(errors.titlePt.message as never)
-        : undefined,
-      titleEn: errors.titleEn?.message
-        ? t(errors.titleEn.message as never)
-        : undefined,
-      sortOrder: errors.sortOrder?.message
-        ? t(errors.sortOrder.message as never)
-        : undefined
-    }),
-    [errors, t]
-  );
-
+  () => ({
+    sectionId: errors.sectionId?.message
+      ? t(errors.sectionId.message as never)
+      : undefined,
+    titlePt: errors.titlePt?.message
+      ? t(errors.titlePt.message as never)
+      : undefined,
+    titleEn: errors.titleEn?.message
+      ? t(errors.titleEn.message as never)
+      : undefined,
+    itemType: errors.itemType?.message
+      ? t(errors.itemType.message as never)
+      : undefined,
+    sortOrder: errors.sortOrder?.message
+      ? t(errors.sortOrder.message as never)
+      : undefined
+  }),
+  [errors, t]
+);
   async function onSubmit(values: ItemFormValues) {
     setServerError('');
     setSuccessMessage('');
 
     const payload: SectionItemPayload = {
-      sectionId: values.sectionId,
-      categoryId: isCategoryMode ? (values.categoryId ?? null) : null,
-      titlePt: values.titlePt.trim(),
-      titleEn: values.titleEn.trim(),
-      shortDescriptionPt: emptyToNull(values.shortDescriptionPt),
-      shortDescriptionEn: emptyToNull(values.shortDescriptionEn),
-      fullDescriptionPt: emptyToNull(values.fullDescriptionPt),
-      fullDescriptionEn: emptyToNull(values.fullDescriptionEn),
-      imageUrl: emptyToNull(values.imageUrl),
-      videoUrl: emptyToNull(values.videoUrl),
-      isFeatured: values.isFeatured,
-      isActive: values.isActive,
-      sortOrder: values.sortOrder
-    };
+  sectionId: values.sectionId,
+  categoryId: isCategoryMode ? (values.categoryId ?? null) : null,
+  titlePt: values.titlePt.trim(),
+  titleEn: values.titleEn.trim(),
+  shortDescriptionPt: emptyToNull(values.shortDescriptionPt),
+  shortDescriptionEn: emptyToNull(values.shortDescriptionEn),
+  fullDescriptionPt: emptyToNull(values.fullDescriptionPt),
+  fullDescriptionEn: emptyToNull(values.fullDescriptionEn),
+  coverImageUrl: emptyToNull(values.coverImageUrl),
+  videoUrl: emptyToNull(values.videoUrl),
+  itemType: emptyToNull(values.itemType),
+  specificationsPt: emptyToNull(values.specificationsPt),
+  specificationsEn: emptyToNull(values.specificationsEn),
+  isFeatured: values.isFeatured,
+  isActive: values.isActive,
+  sortOrder: values.sortOrder
+};
 
     await saveMutation.mutateAsync(payload);
   }
@@ -487,6 +501,18 @@ export default function ItemForm({mode, itemId}: Props) {
           title={t('contentCardTitle')}
           description={t('contentCardDescription')}
         >
+          <SettingsCard
+  title={t('metadataCardTitle')}
+  description={t('metadataCardDescription')}
+>
+  <Input
+    id="itemType"
+    label={t('itemTypeLabel')}
+    {...register('itemType')}
+    error={fieldErrors.itemType}
+    hint={t('itemTypeHint')}
+  />
+</SettingsCard>
           <BilingualFieldGroup
             title={t('titlesGroupTitle')}
             description={t('titlesGroupDescription')}
@@ -569,6 +595,7 @@ export default function ItemForm({mode, itemId}: Props) {
           title={t('fullDescriptionCardTitle')}
           description={t('fullDescriptionCardDescription')}
         >
+          
           <BilingualFieldGroup
             title={t('fullDescriptionGroupTitle')}
             description={t('fullDescriptionGroupDescription')}
@@ -608,22 +635,64 @@ export default function ItemForm({mode, itemId}: Props) {
         </SettingsCard>
 
         <SettingsCard
+  title={t('specificationsCardTitle')}
+  description={t('specificationsCardDescription')}
+>
+  <BilingualFieldGroup
+    title={t('specificationsGroupTitle')}
+    description={t('specificationsGroupDescription')}
+    ptLabel={t('ptLabel')}
+    enLabel={t('enLabel')}
+    copyPtToEnLabel={t('copyPtToEn')}
+    copyEnToPtLabel={t('copyEnToPt')}
+    onCopyPtToEn={() =>
+      setValue('specificationsEn', getValues('specificationsPt'), {
+        shouldDirty: true
+      })
+    }
+    onCopyEnToPt={() =>
+      setValue('specificationsPt', getValues('specificationsEn'), {
+        shouldDirty: true
+      })
+    }
+    ptField={
+      <Textarea
+        id="specificationsPt"
+        label={t('specificationsPtLabel')}
+        {...register('specificationsPt')}
+        hint={t('specificationsPtHint')}
+        rows={5}
+      />
+    }
+    enField={
+      <Textarea
+        id="specificationsEn"
+        label={t('specificationsEnLabel')}
+        {...register('specificationsEn')}
+        hint={t('specificationsEnHint')}
+        rows={5}
+      />
+    }
+  />
+</SettingsCard>
+
+        <SettingsCard
           title={t('mediaCardTitle')}
           description={t('mediaCardDescription')}
         >
           <div className="grid gap-5 md:grid-cols-2">
             <Controller
-              name="imageUrl"
-              control={control}
-              render={({field}) => (
-                <MediaUploadField
-                  label={t('imageLabel')}
-                  value={field.value || ''}
-                  type="IMAGE"
-                  onChange={field.onChange}
-                />
-              )}
-            />
+  name="coverImageUrl"
+  control={control}
+  render={({field}) => (
+    <MediaUploadField
+      label={t('imageLabel')}
+      value={field.value || ''}
+      type="IMAGE"
+      onChange={field.onChange}
+    />
+  )}
+/>
 
             <Input
               id="videoUrl"

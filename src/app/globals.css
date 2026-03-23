@@ -8,6 +8,51 @@
   --color-background: #f8fafc;
   --color-text: #0f172a;
   --color-hero-overlay: rgba(15, 23, 42, 0.65);
+
+  --color-surface: color-mix(in srgb, white 78%, var(--color-background));
+  --color-surface-muted: color-mix(
+    in srgb,
+    var(--color-background) 88%,
+    var(--color-secondary) 12%
+  );
+  --color-surface-soft: color-mix(in srgb, white 92%, var(--color-background));
+  --color-border: color-mix(in srgb, var(--color-text) 12%, transparent);
+  --color-text-muted: color-mix(in srgb, var(--color-text) 72%, transparent);
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 10%, white);
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 14%, white);
+  --color-contrast: #ffffff;
+}
+
+.theme-surface {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.theme-surface-muted {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.theme-text-muted {
+  color: var(--color-text-muted);
+}
+
+.theme-pill {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.theme-primary-button {
+  background: var(--color-primary);
+  color: var(--color-contrast);
+}
+
+.theme-accent-button {
+  background: var(--color-accent);
+  color: var(--color-contrast);
 }
 
 .PhoneInput {

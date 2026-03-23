@@ -476,6 +476,19 @@
   }
 },
 "ItemForm": {
+  "metadataCardTitle": "Item metadata",
+"metadataCardDescription": "Store lightweight structured details for the item.",
+"itemTypeLabel": "Item type",
+"itemTypeHint": "Optional type such as banner, stand, acrylic sign, printing service, etc.",
+"itemTypeTooLong": "Item type must not exceed 120 characters.",
+"specificationsCardTitle": "Specifications",
+"specificationsCardDescription": "Use these fields for technical details, materials, sizes, finishes or setup notes.",
+"specificationsGroupTitle": "Bilingual specifications",
+"specificationsGroupDescription": "Keep these practical and structured for future public detail views.",
+"specificationsPtLabel": "Specifications (PT)",
+"specificationsPtHint": "Optional Portuguese specifications.",
+"specificationsEnLabel": "Specifications (EN)",
+"specificationsEnHint": "Optional English specifications.",
   "backToItems": "Back to items",
   "createButton": "Create item",
   "saveButton": "Save item",
@@ -770,6 +783,11 @@
   "mediaTypeRequired": "Please choose a media type."
 },
 "PublicSite": {
+  "primaryContacts": "Primary contacts",
+"socialLinks": "Social links",
+"followUs": "Follow us",
+  "loadingMedia": "Loading media...",
+"noMedia": "No media available yet",
   "backHome": "Back to home",
 "featured": "Featured",
 "details": "Details",

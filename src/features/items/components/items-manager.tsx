@@ -100,21 +100,24 @@ export default function ItemsManager() {
 
   const toggleStatusMutation = useMutation({
     mutationFn: async (item: SectionItemResponse) => {
-      const payload: SectionItemPayload = {
-        sectionId: item.sectionId,
-        categoryId: item.categoryId ?? null,
-        titlePt: item.titlePt,
-        titleEn: item.titleEn,
-        shortDescriptionPt: emptyToNull(item.shortDescriptionPt),
-        shortDescriptionEn: emptyToNull(item.shortDescriptionEn),
-        fullDescriptionPt: emptyToNull(item.fullDescriptionPt),
-        fullDescriptionEn: emptyToNull(item.fullDescriptionEn),
-        imageUrl: emptyToNull(item.imageUrl),
-        videoUrl: emptyToNull(item.videoUrl),
-        isFeatured: item.isFeatured,
-        isActive: !item.isActive,
-        sortOrder: item.sortOrder
-      };
+    const payload: SectionItemPayload = {
+  sectionId: item.sectionId,
+  categoryId: item.categoryId ?? null,
+  titlePt: item.titlePt,
+  titleEn: item.titleEn,
+  shortDescriptionPt: emptyToNull(item.shortDescriptionPt),
+  shortDescriptionEn: emptyToNull(item.shortDescriptionEn),
+  fullDescriptionPt: emptyToNull(item.fullDescriptionPt),
+  fullDescriptionEn: emptyToNull(item.fullDescriptionEn),
+  coverImageUrl: emptyToNull(item.coverImageUrl),
+  videoUrl: emptyToNull(item.videoUrl),
+  itemType: emptyToNull(item.itemType),
+  specificationsPt: emptyToNull(item.specificationsPt),
+  specificationsEn: emptyToNull(item.specificationsEn),
+  isFeatured: item.isFeatured,
+  isActive: !item.isActive,
+  sortOrder: item.sortOrder
+};
 
       return updateItem(item.id, payload);
     },

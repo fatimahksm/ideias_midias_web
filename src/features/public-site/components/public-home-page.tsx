@@ -3,45 +3,27 @@
 import Image from 'next/image';
 import {motion} from 'framer-motion';
 import {useTranslations} from 'next-intl';
-import {
-  ArrowDown,
-  ArrowUpRight,
-  Globe,
-  Mail,
-  MapPinned,
-  MessageCircle,
-  Phone,
-  Play
-} from 'lucide-react';
+import {ArrowDown, ArrowUpRight, MapPinned, Play} from 'lucide-react';
 import LanguageSwitcher from '@/components/common/language-switcher';
 import {Link} from '@/i18n/navigation';
 import {getContactHref} from '@/features/contact-methods/utils';
-import type {ContactMethodResponse} from '@/features/contact-methods/types';
 import type {PublicHomeData} from '../types';
 import {
   buildMapsUrl,
   getLocalizedValue,
-  isEmbeddableVideoUrl
+  isEmbeddableVideoUrl,
+  toEmbeddableVideoUrl
 } from '../utils';
+import {
+  PublicContactIcon,
+  getPublicContactDisplayValue
+} from '../contact-visuals';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 
 type Props = {
   locale: string;
   data: PublicHomeData;
 };
-
-function getContactIcon(type: ContactMethodResponse['type']) {
-  switch (type) {
-    case 'PHONE':
-      return <Phone className="h-5 w-5" />;
-    case 'WHATSAPP':
-      return <MessageCircle className="h-5 w-5" />;
-    case 'EMAIL':
-      return <Mail className="h-5 w-5" />;
-    default:
-      return <Globe className="h-5 w-5" />;
-  }
-}
 
 const fadeUp = {
   hidden: {opacity: 0, y: 28},
@@ -99,6 +81,14 @@ export default function PublicHomePage({locale, data}: Props) {
   const logoUrl = resolveMediaUrl(site?.logoUrl);
   const companyVideoUrl = resolveMediaUrl(site?.companyVideoUrl);
   const mapEmbedUrl = site?.mapEmbedUrl?.trim() || '';
+
+  const primaryContactMethods = data.contactMethods.filter(
+    (item) => item.type !== 'SOCIAL'
+  );
+
+  const socialContactMethods = data.contactMethods.filter(
+    (item) => item.type === 'SOCIAL'
+  );
 
   return (
     <main className="overflow-x-hidden bg-[var(--color-background)] text-[var(--color-text)]">
@@ -261,15 +251,15 @@ export default function PublicHomePage({locale, data}: Props) {
             transition={{duration: 0.7}}
             className="mx-auto mb-14 max-w-3xl text-center"
           >
-            <span className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+            <span className="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
               {t('quickLinks')}
             </span>
 
-            <h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-slate-950 md:text-6xl">
+            <h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-6xl">
               {t('exploreSections')}
             </h2>
 
-            <p className="mt-4 text-lg leading-8 text-slate-600 md:text-xl">
+            <p className="mt-4 text-lg leading-8 text-[var(--color-text-muted)] md:text-xl">
               {t('exploreSectionsDescription')}
             </p>
           </motion.div>
@@ -307,9 +297,9 @@ export default function PublicHomePage({locale, data}: Props) {
                 >
                   <Link
                     href={href}
-                    className="group block overflow-hidden rounded-[30px] border border-slate-200/80 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_20px_60px_rgba(15,23,42,0.14)]"
+                    className="group block overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_10px_35px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_20px_60px_rgba(15,23,42,0.14)]"
                   >
-                    <div className="relative h-72 overflow-hidden bg-slate-200">
+                    <div className="relative h-72 overflow-hidden bg-[var(--color-surface-muted)]">
                       {cardImageUrl ? (
                         <>
                           <Image
@@ -321,7 +311,7 @@ export default function PublicHomePage({locale, data}: Props) {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent opacity-90" />
                         </>
                       ) : (
-                        <div className="flex h-full items-center justify-center bg-slate-200 text-slate-500">
+                        <div className="flex h-full items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
                           {t('noImage')}
                         </div>
                       )}
@@ -332,18 +322,18 @@ export default function PublicHomePage({locale, data}: Props) {
                     </div>
 
                     <div className="space-y-4 p-7">
-                      <h3 className="text-3xl font-black tracking-[-0.03em] text-slate-950 transition group-hover:text-slate-800">
+                      <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)] transition group-hover:opacity-85">
                         {title}
                       </h3>
 
                       {description ? (
-                        <p className="line-clamp-3 text-base leading-8 text-slate-600">
+                        <p className="line-clamp-3 text-base leading-8 text-[var(--color-text-muted)]">
                           {description}
                         </p>
                       ) : null}
 
                       <div className="pt-2">
-                        <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                           {t('exploreSections')}
                           <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </span>
@@ -367,15 +357,15 @@ export default function PublicHomePage({locale, data}: Props) {
               transition={{duration: 0.7}}
               className="mx-auto max-w-3xl text-center"
             >
-              <span className="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">
+              <span className="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
                 {t('companyStory')}
               </span>
 
-              <h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-slate-950 md:text-6xl">
+              <h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-6xl">
                 {t('companyStory')}
               </h2>
 
-              <p className="mt-4 text-lg leading-8 text-slate-600 md:text-xl">
+              <p className="mt-4 text-lg leading-8 text-[var(--color-text-muted)] md:text-xl">
                 {t('companyStoryDescription')}
               </p>
             </motion.div>
@@ -385,7 +375,7 @@ export default function PublicHomePage({locale, data}: Props) {
               whileInView={{opacity: 1, y: 0}}
               viewport={{once: true, amount: 0.18}}
               transition={{duration: 0.8}}
-              className="mx-auto mt-12 max-w-6xl overflow-hidden rounded-[34px] border border-slate-200 bg-black shadow-[0_24px_80px_rgba(15,23,42,0.18)]"
+              className="mx-auto mt-12 max-w-6xl overflow-hidden rounded-[34px] border border-[var(--color-border)] bg-black shadow-[0_24px_80px_rgba(15,23,42,0.18)]"
             >
               <div className="flex items-center gap-3 border-b border-white/10 bg-slate-950 px-5 py-4 text-white/70">
                 <div className="flex gap-2">
@@ -402,7 +392,7 @@ export default function PublicHomePage({locale, data}: Props) {
               <div className="aspect-video w-full">
                 {isEmbeddableVideoUrl(companyVideoUrl) ? (
                   <iframe
-                    src={companyVideoUrl}
+                    src={toEmbeddableVideoUrl(companyVideoUrl) ?? companyVideoUrl}
                     title={t('companyStory')}
                     className="h-full w-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -454,13 +444,81 @@ export default function PublicHomePage({locale, data}: Props) {
               initial="hidden"
               whileInView="visible"
               viewport={{once: true, amount: 0.15}}
-              className="space-y-5"
+              className="space-y-6"
             >
-              {data.contactMethods.map((item) => {
+              {socialContactMethods.length ? (
+                <motion.div
+                  variants={fadeUp}
+                  transition={{duration: 0.55}}
+                  className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl"
+                >
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+                    {t('followUs')}
+                  </p>
+
+                  <h3 className="mt-2 text-2xl font-black text-white">
+                    {t('socialLinks')}
+                  </h3>
+
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    {socialContactMethods.map((item) => {
+                      const href = getContactHref(item.type, item.value);
+
+                      if (!href) return null;
+
+                      const label =
+                        getLocalizedValue(locale, item.labelPt, item.labelEn) ||
+                        getPublicContactDisplayValue(item);
+
+                      return (
+                        <a
+                          key={item.id}
+                          href={href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-3 rounded-2xl border border-white/12 bg-white/8 px-4 py-3 text-white transition hover:bg-white/15"
+                        >
+                          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/10">
+                            <PublicContactIcon
+                              type={item.type}
+                              iconName={item.iconName}
+                              className="h-5 w-5"
+                            />
+                          </span>
+
+                          <span className="min-w-0 text-left">
+                            <span className="block text-sm font-semibold">
+                              {label}
+                            </span>
+                            <span className="block text-xs text-white/65">
+                              {getPublicContactDisplayValue(item)}
+                            </span>
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              ) : null}
+
+              {primaryContactMethods.length ? (
+                <motion.div
+                  variants={fadeUp}
+                  transition={{duration: 0.55}}
+                  className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-xl"
+                >
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/60">
+                    {t('primaryContacts')}
+                  </p>
+                </motion.div>
+              ) : null}
+
+              {primaryContactMethods.map((item) => {
                 const href = getContactHref(item.type, item.value);
                 const label =
                   getLocalizedValue(locale, item.labelPt, item.labelEn) ||
                   item.type;
+                const displayValue = getPublicContactDisplayValue(item);
 
                 return (
                   <motion.div
@@ -471,11 +529,21 @@ export default function PublicHomePage({locale, data}: Props) {
                   >
                     <div className="flex items-start gap-4">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-white shadow-lg transition duration-300 group-hover:scale-105">
-                        {getContactIcon(item.type)}
+                        <PublicContactIcon
+                          type={item.type}
+                          iconName={item.iconName}
+                          className="h-5 w-5"
+                        />
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="text-lg font-bold text-white">{label}</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
+                          {item.type}
+                        </p>
+
+                        <p className="mt-1 text-lg font-bold text-white">
+                          {label}
+                        </p>
 
                         {href ? (
                           <a
@@ -484,11 +552,11 @@ export default function PublicHomePage({locale, data}: Props) {
                             rel={item.type === 'SOCIAL' ? 'noreferrer' : undefined}
                             className="mt-2 block break-all text-base leading-7 text-white/70 transition hover:text-white"
                           >
-                            {item.value}
+                            {displayValue}
                           </a>
                         ) : (
                           <p className="mt-2 break-all text-base leading-7 text-white/70">
-                            {item.value}
+                            {displayValue}
                           </p>
                         )}
                       </div>
@@ -504,7 +572,7 @@ export default function PublicHomePage({locale, data}: Props) {
                   href={whatsappHref}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl bg-emerald-500 px-6 text-base font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-xl"
+                  className="theme-accent-button inline-flex min-h-14 w-full items-center justify-center rounded-2xl px-6 text-base font-semibold shadow-lg transition hover:-translate-y-0.5 hover:opacity-90 hover:shadow-xl"
                 >
                   {t('contactUs')}
                 </motion.a>
@@ -545,16 +613,16 @@ export default function PublicHomePage({locale, data}: Props) {
                   ) : null}
                 </div>
               ) : (
-                <div className="flex h-[520px] flex-col items-center justify-center gap-5 bg-slate-50 p-8 text-center text-slate-700">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg">
+                <div className="flex h-[520px] flex-col items-center justify-center gap-5 bg-[var(--color-surface-soft)] p-8 text-center text-[var(--color-text-muted)]">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white shadow-lg">
                     <MapPinned className="h-7 w-7" />
                   </div>
 
                   <div className="space-y-3">
-                    <h3 className="text-2xl font-black text-slate-950">
+                    <h3 className="text-2xl font-black text-[var(--color-text)]">
                       {t('location')}
                     </h3>
-                    <p className="mx-auto max-w-md text-base leading-7 text-slate-600">
+                    <p className="mx-auto max-w-md text-base leading-7 text-[var(--color-text-muted)]">
                       {address || t('locationNotAvailable')}
                     </p>
                   </div>
@@ -564,7 +632,7 @@ export default function PublicHomePage({locale, data}: Props) {
                       href={mapsUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center justify-center rounded-2xl bg-[var(--color-accent)] px-5 py-3 font-semibold text-white transition hover:opacity-90"
+                      className="theme-accent-button inline-flex items-center justify-center rounded-2xl px-5 py-3 font-semibold transition hover:opacity-90"
                     >
                       {t('openInMaps')}
                     </a>
@@ -576,7 +644,7 @@ export default function PublicHomePage({locale, data}: Props) {
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="mx-auto max-w-7xl px-6 py-16 md:px-8">
           <div className="grid gap-12 md:grid-cols-3">
             <motion.div
@@ -587,7 +655,7 @@ export default function PublicHomePage({locale, data}: Props) {
               className="space-y-5"
             >
               {logoUrl ? (
-                <div className="relative h-20 w-20 overflow-hidden rounded-full border border-slate-200 bg-slate-50 shadow-sm">
+                <div className="relative h-20 w-20 overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] shadow-sm">
                   <Image
                     src={logoUrl}
                     alt={companyName}
@@ -598,11 +666,11 @@ export default function PublicHomePage({locale, data}: Props) {
               ) : null}
 
               <div>
-                <h3 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
+                <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
                   {companyName}
                 </h3>
                 {intro ? (
-                  <p className="mt-4 max-w-md text-base leading-8 text-slate-600">
+                  <p className="mt-4 max-w-md text-base leading-8 text-[var(--color-text-muted)]">
                     {intro}
                   </p>
                 ) : null}
@@ -615,7 +683,7 @@ export default function PublicHomePage({locale, data}: Props) {
               viewport={{once: true, amount: 0.2}}
               transition={{duration: 0.65}}
             >
-              <h4 className="text-xl font-black text-slate-950">
+              <h4 className="text-xl font-black text-[var(--color-text)]">
                 {t('quickLinks')}
               </h4>
 
@@ -629,13 +697,16 @@ export default function PublicHomePage({locale, data}: Props) {
                     <Link
                       key={card.id}
                       href={`/sections/${card.sectionSlug}`}
-                      className="group inline-flex items-center gap-2 text-base text-slate-600 transition hover:text-slate-950"
+                      className="group inline-flex items-center gap-2 text-base text-[var(--color-text-muted)] transition hover:text-[var(--color-text)]"
                     >
                       <span>{title}</span>
                       <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                     </Link>
                   ) : (
-                    <p key={card.id} className="text-base text-slate-500">
+                    <p
+                      key={card.id}
+                      className="text-base text-[var(--color-text-muted)]"
+                    >
                       {title}
                     </p>
                   );
@@ -648,34 +719,75 @@ export default function PublicHomePage({locale, data}: Props) {
               whileInView={{opacity: 1, y: 0}}
               viewport={{once: true, amount: 0.2}}
               transition={{duration: 0.7}}
+              className="space-y-6"
             >
-              <h4 className="text-xl font-black text-slate-950">
-                {t('contactUs')}
-              </h4>
+              <div>
+                <h4 className="text-xl font-black text-[var(--color-text)]">
+                  {t('contactUs')}
+                </h4>
 
-              <div className="mt-5 space-y-3 text-base text-slate-600">
-                {data.contactMethods.slice(0, 3).map((item) => {
-                  const href = getContactHref(item.type, item.value);
+                <div className="mt-5 space-y-3 text-base text-[var(--color-text-muted)]">
+                  {primaryContactMethods.slice(0, 3).map((item) => {
+                    const href = getContactHref(item.type, item.value);
+                    const displayValue = getPublicContactDisplayValue(item);
 
-                  return href ? (
-                    <a
-                      key={item.id}
-                      href={href}
-                      target={item.type === 'SOCIAL' ? '_blank' : undefined}
-                      rel={item.type === 'SOCIAL' ? 'noreferrer' : undefined}
-                      className="block break-all transition hover:text-slate-950"
-                    >
-                      {item.value}
-                    </a>
-                  ) : (
-                    <p key={item.id} className="break-all">
-                      {item.value}
-                    </p>
-                  );
-                })}
+                    return href ? (
+                      <a
+                        key={item.id}
+                        href={href}
+                        target={item.type === 'SOCIAL' ? '_blank' : undefined}
+                        rel={item.type === 'SOCIAL' ? 'noreferrer' : undefined}
+                        className="block break-all transition hover:text-[var(--color-text)]"
+                      >
+                        {displayValue}
+                      </a>
+                    ) : (
+                      <p key={item.id} className="break-all">
+                        {displayValue}
+                      </p>
+                    );
+                  })}
 
-                {address ? <p>{address}</p> : null}
+                  {address ? <p>{address}</p> : null}
+                </div>
               </div>
+
+              {socialContactMethods.length ? (
+                <div>
+                  <h5 className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                    {t('followUs')}
+                  </h5>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {socialContactMethods.map((item) => {
+                      const href = getContactHref(item.type, item.value);
+
+                      if (!href) return null;
+
+                      const label =
+                        getLocalizedValue(locale, item.labelPt, item.labelEn) ||
+                        getPublicContactDisplayValue(item);
+
+                      return (
+                        <a
+                          key={item.id}
+                          href={href}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={label}
+                          className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] text-[var(--color-text)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]"
+                        >
+                          <PublicContactIcon
+                            type={item.type}
+                            iconName={item.iconName}
+                            className="h-5 w-5"
+                          />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
             </motion.div>
           </div>
         </div>

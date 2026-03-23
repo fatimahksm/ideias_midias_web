@@ -44,6 +44,6 @@ export const endpoints = {
     contactMethods: '/api/admin/contact-methods',
     contentBlocks: '/api/admin/content-blocks',
     portfolioProjects: '/api/admin/portfolio-projects',
-    portfolioProjectMedia: '/api/admin/portfolio-project-media'
+    portfolioProjectMedia: '/api/admin/portfolio-media'
   }
 } as const;
