@@ -135,8 +135,14 @@ export function PortfolioProjectCard({
             </Button>
           </Link>
 
+          <Link href={`/admin/portfolio-projects/${item.id}/media`}>
+            <Button type="button" variant="outline" size="sm">
+              {t('manageMedia')}
+            </Button>
+          </Link>
+
           {linkedSection ? (
-            <Link href={`/admin/sections/${linkedSection.id}/edit`}>
+            <Link href={`/admin/sections/${linkedSection.id}`}>
               <Button type="button" variant="outline" size="sm">
                 {t('openSection')}
               </Button>
@@ -153,11 +159,6 @@ export function PortfolioProjectCard({
           >
             {item.isActive ? t('deactivate') : t('activate')}
           </Button>
-          <Link href={`/admin/portfolio-projects/${item.id}/media`}>
-  <Button type="button" variant="outline" size="sm">
-    {t('manageMedia')}
-  </Button>
-</Link>
 
           {canDelete ? (
             <Button
@@ -170,7 +171,6 @@ export function PortfolioProjectCard({
             >
               {common('delete')}
             </Button>
-
           ) : null}
         </div>
       </div>

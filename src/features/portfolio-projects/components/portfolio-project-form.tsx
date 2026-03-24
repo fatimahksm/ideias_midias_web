@@ -28,15 +28,13 @@ import {
   type PortfolioProjectFormValues
 } from '../schema';
 import type {PortfolioProjectPayload} from '../types';
-import {
-  emptyToNull,
-  getNextPortfolioProjectSortOrder
-} from '../utils';
+import {emptyToNull, getNextPortfolioProjectSortOrder} from '../utils';
 import {PortfolioProjectFormSidebar} from './portfolio-project-form-sidebar';
 
 type Props = {
   mode: 'create' | 'edit';
   projectId?: number;
+  initialSectionId?: number;
 };
 
 type BilingualFieldGroupProps = {
@@ -145,7 +143,11 @@ function BilingualFieldGroup({
   );
 }
 
-export default function PortfolioProjectForm({mode, projectId}: Props) {
+export default function PortfolioProjectForm({
+  mode,
+  projectId,
+  initialSectionId
+}: Props) {
   const t = useTranslations('PortfolioProjectForm');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
@@ -155,6 +157,12 @@ export default function PortfolioProjectForm({mode, projectId}: Props) {
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const isSectionLocked =
+    mode === 'create' &&
+    typeof initialSectionId === 'number' &&
+    Number.isFinite(initialSectionId) &&
+    initialSectionId > 0;
 
   const {
     register,
@@ -168,7 +176,7 @@ export default function PortfolioProjectForm({mode, projectId}: Props) {
   } = useForm<PortfolioProjectFormValues>({
     resolver: zodResolver(portfolioProjectSchema),
     defaultValues: {
-      sectionId: 0,
+      sectionId: initialSectionId ?? 0,
       titlePt: '',
       titleEn: '',
       shortDescriptionPt: '',
@@ -213,11 +221,18 @@ export default function PortfolioProjectForm({mode, projectId}: Props) {
     },
     onSuccess: async (savedProject) => {
       setServerError('');
-      setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
+      setSuccessMessage(
+        mode === 'edit' ? t('saveSuccess') : t('createSuccess')
+      );
 
       await queryClient.invalidateQueries({queryKey: ['portfolio-projects']});
 
       if (mode === 'create') {
+        if (isSectionLocked) {
+          router.replace(`/${locale}/admin/sections/${savedProject.sectionId}`);
+          return;
+        }
+
         router.replace(`/${locale}/admin/portfolio-projects/${savedProject.id}/edit`);
         return;
       }
@@ -279,6 +294,23 @@ export default function PortfolioProjectForm({mode, projectId}: Props) {
         .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id),
     [sectionsQuery.data]
   );
+
+  useEffect(() => {
+    if (mode !== 'create' || !isSectionLocked || !initialSectionId) return;
+    if (!portfolioSections.some((section) => section.id === initialSectionId)) {
+      return;
+    }
+    if (getValues('sectionId') === initialSectionId) return;
+
+    setValue('sectionId', initialSectionId, {shouldValidate: true});
+  }, [
+    mode,
+    isSectionLocked,
+    initialSectionId,
+    portfolioSections,
+    getValues,
+    setValue
+  ]);
 
   const watchedValues = watch();
 
@@ -382,9 +414,15 @@ export default function PortfolioProjectForm({mode, projectId}: Props) {
     >
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/admin/portfolio-projects">
+          <Link
+            href={
+              isSectionLocked
+                ? `/admin/sections/${initialSectionId}`
+                : '/admin/portfolio-projects'
+            }
+          >
             <Button type="button" variant="outline">
-              {t('backToProjects')}
+              {isSectionLocked ? t('backToWorkspace') : t('backToProjects')}
             </Button>
           </Link>
 
@@ -418,26 +456,49 @@ export default function PortfolioProjectForm({mode, projectId}: Props) {
           <Controller
             name="sectionId"
             control={control}
-            render={({field}) => (
-              <Select
-                label={t('sectionLabel')}
-                value={field.value ? String(field.value) : ''}
-                onChange={(event) =>
-                  field.onChange(
-                    event.target.value ? Number(event.target.value) : 0
-                  )
-                }
-                options={[
-                  {value: '', label: t('sectionPlaceholder')},
-                  ...portfolioSections.map((section) => ({
-                    value: String(section.id),
-                    label: `${section.nameEn} (${section.slug})`
-                  }))
-                ]}
-                error={fieldErrors.sectionId}
-                hint={t('sectionHint')}
-              />
-            )}
+            render={({field}) =>
+              isSectionLocked ? (
+                <Select
+                  label={t('sectionLabel')}
+                  value={
+                    field.value
+                      ? String(field.value)
+                      : String(initialSectionId ?? '')
+                  }
+                  onChange={() => undefined}
+                  options={portfolioSections
+                    .filter(
+                      (section) => section.id === (initialSectionId ?? field.value)
+                    )
+                    .map((section) => ({
+                      value: String(section.id),
+                      label: `${section.nameEn} (${section.slug})`
+                    }))}
+                  error={fieldErrors.sectionId}
+                  hint={t('sectionLockedHint')}
+                  disabled
+                />
+              ) : (
+                <Select
+                  label={t('sectionLabel')}
+                  value={field.value ? String(field.value) : ''}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value ? Number(event.target.value) : 0
+                    )
+                  }
+                  options={[
+                    {value: '', label: t('sectionPlaceholder')},
+                    ...portfolioSections.map((section) => ({
+                      value: String(section.id),
+                      label: `${section.nameEn} (${section.slug})`
+                    }))
+                  ]}
+                  error={fieldErrors.sectionId}
+                  hint={t('sectionHint')}
+                />
+              )
+            }
           />
         </SettingsCard>
 

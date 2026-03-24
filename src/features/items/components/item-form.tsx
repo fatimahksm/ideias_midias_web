@@ -19,12 +19,7 @@ import {getAllCategories} from '@/features/categories/api';
 import type {SectionCategoryResponse} from '@/features/categories/types';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
-import {
-  createItem,
-  getAllItems,
-  getItemById,
-  updateItem
-} from '../api';
+import {createItem, getAllItems, getItemById, updateItem} from '../api';
 import {itemSchema, type ItemFormValues} from '../schema';
 import type {SectionItemPayload} from '../types';
 import {emptyToNull, getNextItemSortOrder} from '../utils';
@@ -33,6 +28,8 @@ import {ItemFormSidebar} from './item-form-sidebar';
 type Props = {
   mode: 'create' | 'edit';
   itemId?: number;
+  initialSectionId?: number;
+  initialCategoryId?: number;
 };
 
 type BilingualFieldGroupProps = {
@@ -141,7 +138,12 @@ function BilingualFieldGroup({
   );
 }
 
-export default function ItemForm({mode, itemId}: Props) {
+export default function ItemForm({
+  mode,
+  itemId,
+  initialSectionId,
+  initialCategoryId
+}: Props) {
   const t = useTranslations('ItemForm');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
@@ -151,6 +153,18 @@ export default function ItemForm({mode, itemId}: Props) {
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const isSectionLocked =
+    mode === 'create' &&
+    typeof initialSectionId === 'number' &&
+    Number.isFinite(initialSectionId) &&
+    initialSectionId > 0;
+
+  const isCategoryLocked =
+    mode === 'create' &&
+    typeof initialCategoryId === 'number' &&
+    Number.isFinite(initialCategoryId) &&
+    initialCategoryId > 0;
 
   const {
     register,
@@ -163,24 +177,24 @@ export default function ItemForm({mode, itemId}: Props) {
     formState: {errors, touchedFields}
   } = useForm<ItemFormValues>({
     resolver: zodResolver(itemSchema),
-   defaultValues: {
-  sectionId: 0,
-  categoryId: undefined,
-  titlePt: '',
-  titleEn: '',
-  shortDescriptionPt: '',
-  shortDescriptionEn: '',
-  fullDescriptionPt: '',
-  fullDescriptionEn: '',
-  coverImageUrl: '',
-  videoUrl: '',
-  itemType: '',
-  specificationsPt: '',
-  specificationsEn: '',
-  isFeatured: false,
-  isActive: true,
-  sortOrder: 0
-}
+    defaultValues: {
+      sectionId: initialSectionId ?? 0,
+      categoryId: initialCategoryId ?? undefined,
+      titlePt: '',
+      titleEn: '',
+      shortDescriptionPt: '',
+      shortDescriptionEn: '',
+      fullDescriptionPt: '',
+      fullDescriptionEn: '',
+      coverImageUrl: '',
+      videoUrl: '',
+      itemType: '',
+      specificationsPt: '',
+      specificationsEn: '',
+      isFeatured: false,
+      isActive: true,
+      sortOrder: 0
+    }
   });
 
   const sectionsQuery = useQuery({
@@ -219,28 +233,33 @@ export default function ItemForm({mode, itemId}: Props) {
       await queryClient.invalidateQueries({queryKey: ['items']});
 
       if (mode === 'create') {
+        if (isSectionLocked) {
+          router.replace(`/${locale}/admin/sections/${savedItem.sectionId}`);
+          return;
+        }
+
         router.replace(`/${locale}/admin/items/${savedItem.id}/edit`);
         return;
       }
 
-     reset({
-  sectionId: savedItem.sectionId,
-  categoryId: savedItem.categoryId ?? undefined,
-  titlePt: savedItem.titlePt,
-  titleEn: savedItem.titleEn,
-  shortDescriptionPt: savedItem.shortDescriptionPt ?? '',
-  shortDescriptionEn: savedItem.shortDescriptionEn ?? '',
-  fullDescriptionPt: savedItem.fullDescriptionPt ?? '',
-  fullDescriptionEn: savedItem.fullDescriptionEn ?? '',
-  coverImageUrl: savedItem.coverImageUrl ?? '',
-  videoUrl: savedItem.videoUrl ?? '',
-  itemType: savedItem.itemType ?? '',
-  specificationsPt: savedItem.specificationsPt ?? '',
-  specificationsEn: savedItem.specificationsEn ?? '',
-  isFeatured: savedItem.isFeatured,
-  isActive: savedItem.isActive,
-  sortOrder: savedItem.sortOrder
-});
+      reset({
+        sectionId: savedItem.sectionId,
+        categoryId: savedItem.categoryId ?? undefined,
+        titlePt: savedItem.titlePt,
+        titleEn: savedItem.titleEn,
+        shortDescriptionPt: savedItem.shortDescriptionPt ?? '',
+        shortDescriptionEn: savedItem.shortDescriptionEn ?? '',
+        fullDescriptionPt: savedItem.fullDescriptionPt ?? '',
+        fullDescriptionEn: savedItem.fullDescriptionEn ?? '',
+        coverImageUrl: savedItem.coverImageUrl ?? '',
+        videoUrl: savedItem.videoUrl ?? '',
+        itemType: savedItem.itemType ?? '',
+        specificationsPt: savedItem.specificationsPt ?? '',
+        specificationsEn: savedItem.specificationsEn ?? '',
+        isFeatured: savedItem.isFeatured,
+        isActive: savedItem.isActive,
+        sortOrder: savedItem.sortOrder
+      });
     },
     onError: (error) => {
       setSuccessMessage('');
@@ -253,24 +272,24 @@ export default function ItemForm({mode, itemId}: Props) {
 
     const item = itemQuery.data;
 
-   reset({
-  sectionId: item.sectionId,
-  categoryId: item.categoryId ?? undefined,
-  titlePt: item.titlePt,
-  titleEn: item.titleEn,
-  shortDescriptionPt: item.shortDescriptionPt ?? '',
-  shortDescriptionEn: item.shortDescriptionEn ?? '',
-  fullDescriptionPt: item.fullDescriptionPt ?? '',
-  fullDescriptionEn: item.fullDescriptionEn ?? '',
-  coverImageUrl: item.coverImageUrl ?? '',
-  videoUrl: item.videoUrl ?? '',
-  itemType: item.itemType ?? '',
-  specificationsPt: item.specificationsPt ?? '',
-  specificationsEn: item.specificationsEn ?? '',
-  isFeatured: item.isFeatured,
-  isActive: item.isActive,
-  sortOrder: item.sortOrder
-});
+    reset({
+      sectionId: item.sectionId,
+      categoryId: item.categoryId ?? undefined,
+      titlePt: item.titlePt,
+      titleEn: item.titleEn,
+      shortDescriptionPt: item.shortDescriptionPt ?? '',
+      shortDescriptionEn: item.shortDescriptionEn ?? '',
+      fullDescriptionPt: item.fullDescriptionPt ?? '',
+      fullDescriptionEn: item.fullDescriptionEn ?? '',
+      coverImageUrl: item.coverImageUrl ?? '',
+      videoUrl: item.videoUrl ?? '',
+      itemType: item.itemType ?? '',
+      specificationsPt: item.specificationsPt ?? '',
+      specificationsEn: item.specificationsEn ?? '',
+      isFeatured: item.isFeatured,
+      isActive: item.isActive,
+      sortOrder: item.sortOrder
+    });
   }, [itemQuery.data, reset]);
 
   const itemSections = useMemo(
@@ -284,6 +303,14 @@ export default function ItemForm({mode, itemId}: Props) {
         .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id),
     [sectionsQuery.data]
   );
+
+  useEffect(() => {
+    if (mode !== 'create' || !isSectionLocked || !initialSectionId) return;
+    if (!itemSections.some((section) => section.id === initialSectionId)) return;
+    if (getValues('sectionId') === initialSectionId) return;
+
+    setValue('sectionId', initialSectionId, {shouldValidate: true});
+  }, [mode, isSectionLocked, initialSectionId, itemSections, getValues, setValue]);
 
   const watchedValues = watch();
 
@@ -301,6 +328,39 @@ export default function ItemForm({mode, itemId}: Props) {
     [categoriesQuery.data, watchedValues.sectionId]
   );
 
+  useEffect(() => {
+    if (!isCategoryMode) {
+      if (watchedValues.categoryId !== undefined) {
+        setValue('categoryId', undefined, {
+          shouldDirty: true,
+          shouldValidate: true
+        });
+      }
+      return;
+    }
+
+    if (
+      mode === 'create' &&
+      isCategoryLocked &&
+      initialCategoryId &&
+      availableCategories.some((category) => category.id === initialCategoryId) &&
+      watchedValues.categoryId !== initialCategoryId
+    ) {
+      setValue('categoryId', initialCategoryId, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  }, [
+    isCategoryMode,
+    watchedValues.categoryId,
+    setValue,
+    mode,
+    isCategoryLocked,
+    initialCategoryId,
+    availableCategories
+  ]);
+
   const linkedCategory = useMemo(() => {
     if (!watchedValues.categoryId) return undefined;
 
@@ -308,12 +368,6 @@ export default function ItemForm({mode, itemId}: Props) {
       (category) => category.id === watchedValues.categoryId
     );
   }, [availableCategories, watchedValues.categoryId]);
-
-  useEffect(() => {
-    if (!isCategoryMode && watchedValues.categoryId !== undefined) {
-      setValue('categoryId', undefined, {shouldDirty: true, shouldValidate: true});
-    }
-  }, [isCategoryMode, watchedValues.categoryId, setValue]);
 
   useEffect(() => {
     if (mode !== 'create') return;
@@ -329,47 +383,48 @@ export default function ItemForm({mode, itemId}: Props) {
   }, [mode, itemsQuery.data, touchedFields.sortOrder, getValues, setValue]);
 
   const fieldErrors = useMemo(
-  () => ({
-    sectionId: errors.sectionId?.message
-      ? t(errors.sectionId.message as never)
-      : undefined,
-    titlePt: errors.titlePt?.message
-      ? t(errors.titlePt.message as never)
-      : undefined,
-    titleEn: errors.titleEn?.message
-      ? t(errors.titleEn.message as never)
-      : undefined,
-    itemType: errors.itemType?.message
-      ? t(errors.itemType.message as never)
-      : undefined,
-    sortOrder: errors.sortOrder?.message
-      ? t(errors.sortOrder.message as never)
-      : undefined
-  }),
-  [errors, t]
-);
+    () => ({
+      sectionId: errors.sectionId?.message
+        ? t(errors.sectionId.message as never)
+        : undefined,
+      titlePt: errors.titlePt?.message
+        ? t(errors.titlePt.message as never)
+        : undefined,
+      titleEn: errors.titleEn?.message
+        ? t(errors.titleEn.message as never)
+        : undefined,
+      itemType: errors.itemType?.message
+        ? t(errors.itemType.message as never)
+        : undefined,
+      sortOrder: errors.sortOrder?.message
+        ? t(errors.sortOrder.message as never)
+        : undefined
+    }),
+    [errors, t]
+  );
+
   async function onSubmit(values: ItemFormValues) {
     setServerError('');
     setSuccessMessage('');
 
     const payload: SectionItemPayload = {
-  sectionId: values.sectionId,
-  categoryId: isCategoryMode ? (values.categoryId ?? null) : null,
-  titlePt: values.titlePt.trim(),
-  titleEn: values.titleEn.trim(),
-  shortDescriptionPt: emptyToNull(values.shortDescriptionPt),
-  shortDescriptionEn: emptyToNull(values.shortDescriptionEn),
-  fullDescriptionPt: emptyToNull(values.fullDescriptionPt),
-  fullDescriptionEn: emptyToNull(values.fullDescriptionEn),
-  coverImageUrl: emptyToNull(values.coverImageUrl),
-  videoUrl: emptyToNull(values.videoUrl),
-  itemType: emptyToNull(values.itemType),
-  specificationsPt: emptyToNull(values.specificationsPt),
-  specificationsEn: emptyToNull(values.specificationsEn),
-  isFeatured: values.isFeatured,
-  isActive: values.isActive,
-  sortOrder: values.sortOrder
-};
+      sectionId: values.sectionId,
+      categoryId: isCategoryMode ? (values.categoryId ?? null) : null,
+      titlePt: values.titlePt.trim(),
+      titleEn: values.titleEn.trim(),
+      shortDescriptionPt: emptyToNull(values.shortDescriptionPt),
+      shortDescriptionEn: emptyToNull(values.shortDescriptionEn),
+      fullDescriptionPt: emptyToNull(values.fullDescriptionPt),
+      fullDescriptionEn: emptyToNull(values.fullDescriptionEn),
+      coverImageUrl: emptyToNull(values.coverImageUrl),
+      videoUrl: emptyToNull(values.videoUrl),
+      itemType: emptyToNull(values.itemType),
+      specificationsPt: emptyToNull(values.specificationsPt),
+      specificationsEn: emptyToNull(values.specificationsEn),
+      isFeatured: values.isFeatured,
+      isActive: values.isActive,
+      sortOrder: values.sortOrder
+    };
 
     await saveMutation.mutateAsync(payload);
   }
@@ -399,9 +454,15 @@ export default function ItemForm({mode, itemId}: Props) {
     >
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/admin/items">
+          <Link
+            href={
+              isSectionLocked
+                ? `/admin/sections/${initialSectionId}`
+                : '/admin/items'
+            }
+          >
             <Button type="button" variant="outline">
-              {t('backToItems')}
+              {isSectionLocked ? t('backToWorkspace') : t('backToItems')}
             </Button>
           </Link>
 
@@ -436,53 +497,92 @@ export default function ItemForm({mode, itemId}: Props) {
             <Controller
               name="sectionId"
               control={control}
-              render={({field}) => (
-                <Select
-                  label={t('sectionLabel')}
-                  value={field.value ? String(field.value) : ''}
-                  onChange={(event) =>
-                    field.onChange(
-                      event.target.value ? Number(event.target.value) : 0
-                    )
-                  }
-                  options={[
-                    {value: '', label: t('sectionPlaceholder')},
-                    ...itemSections.map((section) => ({
-                      value: String(section.id),
-                      label: `${section.nameEn} (${section.slug})`
-                    }))
-                  ]}
-                  error={fieldErrors.sectionId}
-                  hint={t('sectionHint')}
-                />
-              )}
+              render={({field}) =>
+                isSectionLocked ? (
+                  <Select
+                    label={t('sectionLabel')}
+                    value={
+                      field.value
+                        ? String(field.value)
+                        : String(initialSectionId ?? '')
+                    }
+                    onChange={() => undefined}
+                    options={itemSections
+                      .filter(
+                        (section) => section.id === (initialSectionId ?? field.value)
+                      )
+                      .map((section) => ({
+                        value: String(section.id),
+                        label: `${section.nameEn} (${section.slug})`
+                      }))}
+                    error={fieldErrors.sectionId}
+                    hint={t('sectionLockedHint')}
+                    disabled
+                  />
+                ) : (
+                  <Select
+                    label={t('sectionLabel')}
+                    value={field.value ? String(field.value) : ''}
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value ? Number(event.target.value) : 0
+                      )
+                    }
+                    options={[
+                      {value: '', label: t('sectionPlaceholder')},
+                      ...itemSections.map((section) => ({
+                        value: String(section.id),
+                        label: `${section.nameEn} (${section.slug})`
+                      }))
+                    ]}
+                    error={fieldErrors.sectionId}
+                    hint={t('sectionHint')}
+                  />
+                )
+              }
             />
 
             {isCategoryMode ? (
               <Controller
                 name="categoryId"
                 control={control}
-                render={({field}) => (
-                  <Select
-                    label={t('categoryLabel')}
-                    value={field.value ? String(field.value) : ''}
-                    onChange={(event) =>
-                      field.onChange(
-                        event.target.value
-                          ? Number(event.target.value)
-                          : undefined
-                      )
-                    }
-                    options={[
-                      {value: '', label: t('categoryPlaceholder')},
-                      ...availableCategories.map((category) => ({
-                        value: String(category.id),
-                        label: category.nameEn
-                      }))
-                    ]}
-                    hint={t('categoryHint')}
-                  />
-                )}
+                render={({field}) =>
+                  isCategoryLocked && linkedCategory ? (
+                    <Select
+                      label={t('categoryLabel')}
+                      value={String(linkedCategory.id)}
+                      onChange={() => undefined}
+                      options={[
+                        {
+                          value: String(linkedCategory.id),
+                          label: linkedCategory.nameEn
+                        }
+                      ]}
+                      hint={t('categoryLockedHint')}
+                      disabled
+                    />
+                  ) : (
+                    <Select
+                      label={t('categoryLabel')}
+                      value={field.value ? String(field.value) : ''}
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value
+                            ? Number(event.target.value)
+                            : undefined
+                        )
+                      }
+                      options={[
+                        {value: '', label: t('categoryPlaceholder')},
+                        ...availableCategories.map((category) => ({
+                          value: String(category.id),
+                          label: category.nameEn
+                        }))
+                      ]}
+                      hint={t('categoryHint')}
+                    />
+                  )
+                }
               />
             ) : (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -502,17 +602,18 @@ export default function ItemForm({mode, itemId}: Props) {
           description={t('contentCardDescription')}
         >
           <SettingsCard
-  title={t('metadataCardTitle')}
-  description={t('metadataCardDescription')}
->
-  <Input
-    id="itemType"
-    label={t('itemTypeLabel')}
-    {...register('itemType')}
-    error={fieldErrors.itemType}
-    hint={t('itemTypeHint')}
-  />
-</SettingsCard>
+            title={t('metadataCardTitle')}
+            description={t('metadataCardDescription')}
+          >
+            <Input
+              id="itemType"
+              label={t('itemTypeLabel')}
+              {...register('itemType')}
+              error={fieldErrors.itemType}
+              hint={t('itemTypeHint')}
+            />
+          </SettingsCard>
+
           <BilingualFieldGroup
             title={t('titlesGroupTitle')}
             description={t('titlesGroupDescription')}
@@ -559,18 +660,14 @@ export default function ItemForm({mode, itemId}: Props) {
             copyPtToEnLabel={t('copyPtToEn')}
             copyEnToPtLabel={t('copyEnToPt')}
             onCopyPtToEn={() =>
-              setValue(
-                'shortDescriptionEn',
-                getValues('shortDescriptionPt'),
-                {shouldDirty: true}
-              )
+              setValue('shortDescriptionEn', getValues('shortDescriptionPt'), {
+                shouldDirty: true
+              })
             }
             onCopyEnToPt={() =>
-              setValue(
-                'shortDescriptionPt',
-                getValues('shortDescriptionEn'),
-                {shouldDirty: true}
-              )
+              setValue('shortDescriptionPt', getValues('shortDescriptionEn'), {
+                shouldDirty: true
+              })
             }
             ptField={
               <Textarea
@@ -595,7 +692,6 @@ export default function ItemForm({mode, itemId}: Props) {
           title={t('fullDescriptionCardTitle')}
           description={t('fullDescriptionCardDescription')}
         >
-          
           <BilingualFieldGroup
             title={t('fullDescriptionGroupTitle')}
             description={t('fullDescriptionGroupDescription')}
@@ -619,7 +715,6 @@ export default function ItemForm({mode, itemId}: Props) {
                 label={t('fullDescriptionPtLabel')}
                 {...register('fullDescriptionPt')}
                 hint={t('fullDescriptionPtHint')}
-                rows={6}
               />
             }
             enField={
@@ -628,53 +723,50 @@ export default function ItemForm({mode, itemId}: Props) {
                 label={t('fullDescriptionEnLabel')}
                 {...register('fullDescriptionEn')}
                 hint={t('fullDescriptionEnHint')}
-                rows={6}
               />
             }
           />
         </SettingsCard>
 
         <SettingsCard
-  title={t('specificationsCardTitle')}
-  description={t('specificationsCardDescription')}
->
-  <BilingualFieldGroup
-    title={t('specificationsGroupTitle')}
-    description={t('specificationsGroupDescription')}
-    ptLabel={t('ptLabel')}
-    enLabel={t('enLabel')}
-    copyPtToEnLabel={t('copyPtToEn')}
-    copyEnToPtLabel={t('copyEnToPt')}
-    onCopyPtToEn={() =>
-      setValue('specificationsEn', getValues('specificationsPt'), {
-        shouldDirty: true
-      })
-    }
-    onCopyEnToPt={() =>
-      setValue('specificationsPt', getValues('specificationsEn'), {
-        shouldDirty: true
-      })
-    }
-    ptField={
-      <Textarea
-        id="specificationsPt"
-        label={t('specificationsPtLabel')}
-        {...register('specificationsPt')}
-        hint={t('specificationsPtHint')}
-        rows={5}
-      />
-    }
-    enField={
-      <Textarea
-        id="specificationsEn"
-        label={t('specificationsEnLabel')}
-        {...register('specificationsEn')}
-        hint={t('specificationsEnHint')}
-        rows={5}
-      />
-    }
-  />
-</SettingsCard>
+          title={t('specificationsCardTitle')}
+          description={t('specificationsCardDescription')}
+        >
+          <BilingualFieldGroup
+            title={t('specificationsGroupTitle')}
+            description={t('specificationsGroupDescription')}
+            ptLabel={t('ptLabel')}
+            enLabel={t('enLabel')}
+            copyPtToEnLabel={t('copyPtToEn')}
+            copyEnToPtLabel={t('copyEnToPt')}
+            onCopyPtToEn={() =>
+              setValue('specificationsEn', getValues('specificationsPt'), {
+                shouldDirty: true
+              })
+            }
+            onCopyEnToPt={() =>
+              setValue('specificationsPt', getValues('specificationsEn'), {
+                shouldDirty: true
+              })
+            }
+            ptField={
+              <Textarea
+                id="specificationsPt"
+                label={t('specificationsPtLabel')}
+                {...register('specificationsPt')}
+                hint={t('specificationsPtHint')}
+              />
+            }
+            enField={
+              <Textarea
+                id="specificationsEn"
+                label={t('specificationsEnLabel')}
+                {...register('specificationsEn')}
+                hint={t('specificationsEnHint')}
+              />
+            }
+          />
+        </SettingsCard>
 
         <SettingsCard
           title={t('mediaCardTitle')}
@@ -682,17 +774,17 @@ export default function ItemForm({mode, itemId}: Props) {
         >
           <div className="grid gap-5 md:grid-cols-2">
             <Controller
-  name="coverImageUrl"
-  control={control}
-  render={({field}) => (
-    <MediaUploadField
-      label={t('imageLabel')}
-      value={field.value || ''}
-      type="IMAGE"
-      onChange={field.onChange}
-    />
-  )}
-/>
+              name="coverImageUrl"
+              control={control}
+              render={({field}) => (
+                <MediaUploadField
+                  label={t('imageLabel')}
+                  value={field.value || ''}
+                  type="IMAGE"
+                  onChange={field.onChange}
+                />
+              )}
+            />
 
             <Input
               id="videoUrl"
@@ -717,8 +809,8 @@ export default function ItemForm({mode, itemId}: Props) {
                   value={field.value ? 'true' : 'false'}
                   onChange={(event) => field.onChange(event.target.value === 'true')}
                   options={[
-                    {value: 'false', label: t('featuredNo')},
-                    {value: 'true', label: t('featuredYes')}
+                    {value: 'true', label: t('featuredYes')},
+                    {value: 'false', label: t('featuredNo')}
                   ]}
                   hint={t('featuredHint')}
                 />

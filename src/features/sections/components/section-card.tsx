@@ -143,11 +143,26 @@ export function SectionCard({
         </dl>
 
         <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/sections/${item.id}/edit`}>
+          <Link href={`/admin/sections/${item.id}`}>
             <Button type="button" size="sm">
-              {common('edit')}
+              {t('openWorkspace')}
             </Button>
           </Link>
+
+          <Link href={`/admin/sections/${item.id}/edit`}>
+            <Button type="button" variant="outline" size="sm">
+              {t('editSettings')}
+            </Button>
+          </Link>
+
+          <a
+            href={previewPath}
+            target="_blank"
+            rel="noreferrer"
+            className={linkButtonClass}
+          >
+            {t('preview')}
+          </a>
 
           <Button
             type="button"
@@ -170,15 +185,6 @@ export function SectionCard({
           >
             {item.isActive ? t('deactivate') : t('activate')}
           </Button>
-
-          <a
-            href={previewPath}
-            target="_blank"
-            rel="noreferrer"
-            className={linkButtonClass}
-          >
-            {t('preview')}
-          </a>
 
           {canDelete ? (
             <Button

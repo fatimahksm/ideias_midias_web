@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
@@ -11,9 +11,7 @@ import {hasAdminToken} from '@/lib/auth/token';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
-import {getAllSections, updateSection} from '@/features/sections/api';
-import type {SectionPayload, SectionResponse} from '@/features/sections/types';
-import {emptyToNull as emptySectionToNull} from '@/features/sections/utils';
+import {getAllSections} from '@/features/sections/api';
 import {
   deleteCategory,
   getAllCategories,
@@ -25,6 +23,11 @@ import {CategoryCard} from './category-card';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type SortBy = 'sortOrder' | 'nameEn' | 'updatedAt';
+
+type Props = {
+  sectionId?: number;
+  compact?: boolean;
+};
 
 function StatCard({
   label,
@@ -51,20 +54,33 @@ function StatCard({
   );
 }
 
-export default function CategoriesManager() {
+export default function CategoriesManager({
+  sectionId,
+  compact = false
+}: Props) {
   const t = useTranslations('CategoriesManager');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
   const queryClient = useQueryClient();
 
+  const isSectionScoped = typeof sectionId === 'number';
+
   const [search, setSearch] = useState('');
-  const [sectionFilter, setSectionFilter] = useState('ALL');
+  const [sectionFilter, setSectionFilter] = useState(
+    isSectionScoped ? String(sectionId) : 'ALL'
+  );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [sortBy, setSortBy] = useState<SortBy>('sortOrder');
   const [feedback, setFeedback] = useState('');
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+
+  useEffect(() => {
+    if (isSectionScoped && sectionId) {
+      setSectionFilter(String(sectionId));
+    }
+  }, [isSectionScoped, sectionId]);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -127,20 +143,32 @@ export default function CategoriesManager() {
     [sectionsQuery.data]
   );
 
+  const selectedSection = useMemo(
+    () => categorySections.find((section) => section.id === sectionId),
+    [categorySections, sectionId]
+  );
+
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
+  const scopedBase = useMemo(() => {
+    const all = categoriesQuery.data ?? [];
+    if (!isSectionScoped || !sectionId) return all;
+    return all.filter((item) => item.sectionId === sectionId);
+  }, [categoriesQuery.data, isSectionScoped, sectionId]);
+
   const items = useMemo(() => {
-    const base = categoriesQuery.data ?? [];
     const searchValue = search.trim().toLowerCase();
 
-    const filtered = base.filter((item) => {
+    const filtered = scopedBase.filter((item) => {
       const matchesSearch =
         !searchValue ||
         item.nameEn.toLowerCase().includes(searchValue) ||
         item.namePt.toLowerCase().includes(searchValue);
 
       const matchesSection =
-        sectionFilter === 'ALL' || String(item.sectionId) === sectionFilter;
+        isSectionScoped ||
+        sectionFilter === 'ALL' ||
+        String(item.sectionId) === sectionFilter;
 
       const matchesStatus =
         statusFilter === 'ALL' ||
@@ -163,7 +191,7 @@ export default function CategoriesManager() {
 
       return a.sortOrder - b.sortOrder || a.id - b.id;
     });
-  }, [categoriesQuery.data, search, sectionFilter, statusFilter, sortBy]);
+  }, [scopedBase, search, isSectionScoped, sectionFilter, statusFilter, sortBy]);
 
   function getLinkedSection(item: SectionCategoryResponse) {
     return categorySections.find((section) => section.id === item.sectionId);
@@ -182,39 +210,61 @@ export default function CategoriesManager() {
     await toggleStatusMutation.mutateAsync(item);
   }
 
+  const createHref =
+    isSectionScoped && sectionId
+      ? `/admin/categories/new?sectionId=${sectionId}`
+      : '/admin/categories/new';
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <StatCard
-          label={t('stats.total')}
-          value={(categoriesQuery.data ?? []).length}
-        />
-        <StatCard
-          label={t('stats.active')}
-          value={(categoriesQuery.data ?? []).filter((item) => item.isActive).length}
-          tone="emerald"
-        />
-        <StatCard
-          label={t('stats.linkedSections')}
-          value={categorySections.length}
-          tone="blue"
-        />
-      </div>
+      {!compact ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <StatCard label={t('stats.total')} value={scopedBase.length} />
+          <StatCard
+            label={t('stats.active')}
+            value={scopedBase.filter((item) => item.isActive).length}
+            tone="emerald"
+          />
+          <StatCard
+            label={t('stats.linkedSections')}
+            value={isSectionScoped ? 1 : categorySections.length}
+            tone="blue"
+          />
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div>
           <p className="text-sm font-semibold text-slate-900">
             {t('studioTitle')}
           </p>
-          <p className="mt-1 text-sm text-slate-500">{t('studioSubtitle')}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {isSectionScoped && selectedSection
+              ? `${t('scopedSubtitlePrefix')}: ${selectedSection.nameEn}`
+              : t('studioSubtitle')}
+          </p>
         </div>
 
-        <Link href="/admin/categories/new">
-          <Button type="button">{t('createCategory')}</Button>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {isSectionScoped && selectedSection ? (
+            <Link href={`/admin/sections/${selectedSection.id}`}>
+              <Button type="button" variant="outline">
+                {t('backToWorkspace')}
+              </Button>
+            </Link>
+          ) : null}
+
+          <Link href={createHref}>
+            <Button type="button">{t('createCategory')}</Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-4">
+      <div
+        className={`grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm ${
+          isSectionScoped ? 'lg:grid-cols-3' : 'lg:grid-cols-4'
+        }`}
+      >
         <Input
           id="categorySearch"
           label={t('searchLabel')}
@@ -223,19 +273,21 @@ export default function CategoriesManager() {
           placeholder={t('searchPlaceholder')}
         />
 
-        <Select
-          id="sectionFilter"
-          label={t('sectionFilterLabel')}
-          value={sectionFilter}
-          onChange={(event) => setSectionFilter(event.target.value)}
-          options={[
-            {value: 'ALL', label: t('allSections')},
-            ...categorySections.map((section) => ({
-              value: String(section.id),
-              label: section.nameEn
-            }))
-          ]}
-        />
+        {!isSectionScoped ? (
+          <Select
+            id="sectionFilter"
+            label={t('sectionFilterLabel')}
+            value={sectionFilter}
+            onChange={(event) => setSectionFilter(event.target.value)}
+            options={[
+              {value: 'ALL', label: t('allSections')},
+              ...categorySections.map((section) => ({
+                value: String(section.id),
+                label: section.nameEn
+              }))
+            ]}
+          />
+        ) : null}
 
         <Select
           id="statusFilter"

@@ -4,10 +4,7 @@ import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import LanguageSwitcher from '@/components/common/language-switcher';
 import {Button} from '@/components/ui/button';
-import {
-  hasAdminToken,
-  removeAdminToken
-} from '@/lib/auth/token';
+import {hasAdminToken, removeAdminToken} from '@/lib/auth/token';
 import {useAdminSession} from '../hooks/use-admin-session';
 
 export function AdminHeader() {

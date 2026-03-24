@@ -1,16 +1,11 @@
 export type AdminNavigationKey =
   | 'dashboard'
   | 'siteSettings'
-  | 'themeSettings'
-  | 'media'
-  | 'sections'
-  | 'contentBlocks'
-  | 'portfolioProjects'
-  | 'categories'
-  | 'items'
   | 'homeCards'
-  | 'contactMethods';
-  
+  | 'sections'
+  | 'media'
+  | 'contactMethods'
+  | 'themeSettings';
 
 export type AdminNavigationItem = {
   key: AdminNavigationKey;
@@ -18,15 +13,11 @@ export type AdminNavigationItem = {
   href:
     | '/admin'
     | '/admin/site-settings'
-    | '/admin/theme-settings'
-    | '/admin/media'
-    | '/admin/sections'
-    | '/admin/categories'
-    | '/admin/items'
-    | '/admin/content-blocks'
-    | '/admin/portfolio-projects'
     | '/admin/home-cards'
-    | '/admin/contact-methods';
+    | '/admin/sections'
+    | '/admin/media'
+    | '/admin/contact-methods'
+    | '/admin/theme-settings';
 };
 
 export const adminNavigation: AdminNavigationItem[] = [
@@ -41,14 +32,9 @@ export const adminNavigation: AdminNavigationItem[] = [
     href: '/admin/site-settings'
   },
   {
-    key: 'themeSettings',
-    labelKey: 'themeSettings',
-    href: '/admin/theme-settings'
-  },
-  {
-    key: 'media',
-    labelKey: 'media',
-    href: '/admin/media'
+    key: 'homeCards',
+    labelKey: 'homeCards',
+    href: '/admin/home-cards'
   },
   {
     key: 'sections',
@@ -56,35 +42,18 @@ export const adminNavigation: AdminNavigationItem[] = [
     href: '/admin/sections'
   },
   {
-    key: 'categories',
-    labelKey: 'categories',
-    href: '/admin/categories'
+    key: 'media',
+    labelKey: 'media',
+    href: '/admin/media'
   },
-   {
-  key: 'items',
-  labelKey: 'items',
-  href: '/admin/items'
-},
-  {
-  key: 'contentBlocks',
-  labelKey: 'contentBlocks',
-  href: '/admin/content-blocks'
-},
-{
-  key: 'portfolioProjects',
-  labelKey: 'portfolioProjects',
-  href: '/admin/portfolio-projects'
-},
-  {
-    key: 'homeCards',
-    labelKey: 'homeCards',
-    href: '/admin/home-cards'
-  },
-
   {
     key: 'contactMethods',
     labelKey: 'contactMethods',
     href: '/admin/contact-methods'
   },
- 
+  {
+    key: 'themeSettings',
+    labelKey: 'themeSettings',
+    href: '/admin/theme-settings'
+  }
 ];

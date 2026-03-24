@@ -32,20 +32,11 @@ export default async function AdminHomePage({params}: Props) {
         </SettingsCard>
 
         <SettingsCard
-          title={t('themeSettingsCardTitle')}
-          description={t('themeSettingsCardDescription')}
+          title={t('homeCardsCardTitle')}
+          description={t('homeCardsCardDescription')}
         >
-          <Link href="/admin/theme-settings" className={actionLinkClass}>
-            {t('themeSettingsCardAction')}
-          </Link>
-        </SettingsCard>
-
-        <SettingsCard
-          title={t('mediaCardTitle')}
-          description={t('mediaCardDescription')}
-        >
-          <Link href="/admin/media" className={actionLinkClass}>
-            {t('mediaCardAction')}
+          <Link href="/admin/home-cards" className={actionLinkClass}>
+            {t('homeCardsCardAction')}
           </Link>
         </SettingsCard>
 
@@ -59,11 +50,11 @@ export default async function AdminHomePage({params}: Props) {
         </SettingsCard>
 
         <SettingsCard
-          title={t('homeCardsCardTitle')}
-          description={t('homeCardsCardDescription')}
+          title={t('mediaCardTitle')}
+          description={t('mediaCardDescription')}
         >
-          <Link href="/admin/home-cards" className={actionLinkClass}>
-            {t('homeCardsCardAction')}
+          <Link href="/admin/media" className={actionLinkClass}>
+            {t('mediaCardAction')}
           </Link>
         </SettingsCard>
 
@@ -73,6 +64,15 @@ export default async function AdminHomePage({params}: Props) {
         >
           <Link href="/admin/contact-methods" className={actionLinkClass}>
             {t('contactMethodsCardAction')}
+          </Link>
+        </SettingsCard>
+
+        <SettingsCard
+          title={t('themeSettingsCardTitle')}
+          description={t('themeSettingsCardDescription')}
+        >
+          <Link href="/admin/theme-settings" className={actionLinkClass}>
+            {t('themeSettingsCardAction')}
           </Link>
         </SettingsCard>
       </div>

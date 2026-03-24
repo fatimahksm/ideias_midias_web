@@ -197,17 +197,25 @@ export default function PortfolioProjectMediaManager({projectId}: Props) {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/portfolio-projects/${projectId}/edit`}>
-            <Button type="button" variant="outline">
-              {t('backToProject')}
-            </Button>
-          </Link>
+       <div className="flex flex-wrap gap-2">
+  {projectQuery.data?.sectionId ? (
+    <Link href={`/admin/sections/${projectQuery.data.sectionId}`}>
+      <Button type="button" variant="outline">
+        {t('backToWorkspace')}
+      </Button>
+    </Link>
+  ) : null}
 
-          <Link href={`/admin/portfolio-projects/${projectId}/media/new`}>
-            <Button type="button">{t('createMedia')}</Button>
-          </Link>
-        </div>
+  <Link href={`/admin/portfolio-projects/${projectId}/edit`}>
+    <Button type="button" variant="outline">
+      {t('backToProject')}
+    </Button>
+  </Link>
+
+  <Link href={`/admin/portfolio-projects/${projectId}/media/new`}>
+    <Button type="button">{t('createMedia')}</Button>
+  </Link>
+</div>
       </div>
 
       <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-3">

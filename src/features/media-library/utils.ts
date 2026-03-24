@@ -1,34 +1,9 @@
 import {MediaLibraryItem} from './types';
-
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  ''
-).replace(/\/$/, '');
-
-function isAbsoluteUrl(url: string) {
-  return /^https?:\/\//i.test(url);
-}
-
-function isBlobOrDataUrl(url: string) {
-  return url.startsWith('blob:') || url.startsWith('data:');
-}
+import {resolveMediaUrl as resolveSharedMediaUrl} from '@/lib/media/resolve-media-url';
 
 export function resolveMediaUrl(url?: string | null) {
-  if (!url) return null;
-
-  const trimmed = url.trim();
-  if (!trimmed) return null;
-
-  if (isAbsoluteUrl(trimmed) || isBlobOrDataUrl(trimmed)) {
-    return trimmed;
-  }
-
-  if (trimmed.startsWith('/')) {
-    return API_BASE_URL ? `${API_BASE_URL}${trimmed}` : trimmed;
-  }
-
-  return API_BASE_URL ? `${API_BASE_URL}/${trimmed}` : `/${trimmed}`;
+  const resolved = resolveSharedMediaUrl(url);
+  return resolved || null;
 }
 
 export function formatFileSize(bytes?: number | null) {
@@ -45,10 +20,7 @@ export function formatFileSize(bytes?: number | null) {
   return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
 }
 
-export function formatMediaDate(
-  value?: string,
-  locale: string = 'en'
-) {
+export function formatMediaDate(value?: string, locale: string = 'en') {
   if (!value) return '—';
 
   const date = new Date(value);

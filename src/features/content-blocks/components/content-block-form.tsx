@@ -32,6 +32,7 @@ import {ContentBlockFormSidebar} from './content-block-form-sidebar';
 type Props = {
   mode: 'create' | 'edit';
   blockId?: number;
+  initialSectionId?: number;
 };
 
 type BilingualFieldGroupProps = {
@@ -140,7 +141,11 @@ function BilingualFieldGroup({
   );
 }
 
-export default function ContentBlockForm({mode, blockId}: Props) {
+export default function ContentBlockForm({
+  mode,
+  blockId,
+  initialSectionId
+}: Props) {
   const t = useTranslations('ContentBlockForm');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
@@ -150,6 +155,12 @@ export default function ContentBlockForm({mode, blockId}: Props) {
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const isSectionLocked =
+    mode === 'create' &&
+    typeof initialSectionId === 'number' &&
+    Number.isFinite(initialSectionId) &&
+    initialSectionId > 0;
 
   const {
     register,
@@ -163,7 +174,7 @@ export default function ContentBlockForm({mode, blockId}: Props) {
   } = useForm<ContentBlockFormValues>({
     resolver: zodResolver(contentBlockSchema),
     defaultValues: {
-      sectionId: 0,
+      sectionId: initialSectionId ?? 0,
       blockType: 'TEXT',
       titlePt: '',
       titleEn: '',
@@ -209,6 +220,11 @@ export default function ContentBlockForm({mode, blockId}: Props) {
       await queryClient.invalidateQueries({queryKey: ['content-blocks']});
 
       if (mode === 'create') {
+        if (isSectionLocked) {
+          router.replace(`/${locale}/admin/sections/${savedBlock.sectionId}`);
+          return;
+        }
+
         router.replace(`/${locale}/admin/content-blocks/${savedBlock.id}/edit`);
         return;
       }
@@ -263,6 +279,23 @@ export default function ContentBlockForm({mode, blockId}: Props) {
     [sectionsQuery.data]
   );
 
+  useEffect(() => {
+    if (mode !== 'create' || !isSectionLocked || !initialSectionId) return;
+    if (!contentSections.some((section) => section.id === initialSectionId)) {
+      return;
+    }
+    if (getValues('sectionId') === initialSectionId) return;
+
+    setValue('sectionId', initialSectionId, {shouldValidate: true});
+  }, [
+    mode,
+    isSectionLocked,
+    initialSectionId,
+    contentSections,
+    getValues,
+    setValue
+  ]);
+
   const watchedValues = watch();
 
   const selectedSection = useMemo(() => {
@@ -275,12 +308,8 @@ export default function ContentBlockForm({mode, blockId}: Props) {
   const isTextImageBlock = watchedValues.blockType === 'TEXT_IMAGE';
   const isGalleryBlock = watchedValues.blockType === 'GALLERY';
 
-  const needsTextContent =
-    isTextBlock || isTextImageBlock || isGalleryBlock;
-
-  const needsImage =
-    isImageBlock || isTextImageBlock || isGalleryBlock;
-
+  const needsTextContent = isTextBlock || isTextImageBlock || isGalleryBlock;
+  const needsImage = isImageBlock || isTextImageBlock || isGalleryBlock;
   const needsVideo = isVideoBlock;
 
   useEffect(() => {
@@ -331,10 +360,10 @@ export default function ContentBlockForm({mode, blockId}: Props) {
       titleEn: emptyToNull(values.titleEn),
       subtitlePt: emptyToNull(values.subtitlePt),
       subtitleEn: emptyToNull(values.subtitleEn),
-      contentPt: needsTextContent ? emptyToNull(values.contentPt) : null,
-      contentEn: needsTextContent ? emptyToNull(values.contentEn) : null,
-      imageUrl: needsImage ? emptyToNull(values.imageUrl) : null,
-      videoUrl: needsVideo ? emptyToNull(values.videoUrl) : null,
+      contentPt: emptyToNull(values.contentPt),
+      contentEn: emptyToNull(values.contentEn),
+      imageUrl: emptyToNull(values.imageUrl),
+      videoUrl: emptyToNull(values.videoUrl),
       isActive: values.isActive,
       sortOrder: values.sortOrder
     };
@@ -367,9 +396,15 @@ export default function ContentBlockForm({mode, blockId}: Props) {
     >
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/admin/content-blocks">
+          <Link
+            href={
+              isSectionLocked
+                ? `/admin/sections/${initialSectionId}`
+                : '/admin/content-blocks'
+            }
+          >
             <Button type="button" variant="outline">
-              {t('backToBlocks')}
+              {isSectionLocked ? t('backToWorkspace') : t('backToBlocks')}
             </Button>
           </Link>
 
@@ -404,26 +439,49 @@ export default function ContentBlockForm({mode, blockId}: Props) {
             <Controller
               name="sectionId"
               control={control}
-              render={({field}) => (
-                <Select
-                  label={t('sectionLabel')}
-                  value={field.value ? String(field.value) : ''}
-                  onChange={(event) =>
-                    field.onChange(
-                      event.target.value ? Number(event.target.value) : 0
-                    )
-                  }
-                  options={[
-                    {value: '', label: t('sectionPlaceholder')},
-                    ...contentSections.map((section) => ({
-                      value: String(section.id),
-                      label: `${section.nameEn} (${section.slug})`
-                    }))
-                  ]}
-                  error={fieldErrors.sectionId}
-                  hint={t('sectionHint')}
-                />
-              )}
+              render={({field}) =>
+                isSectionLocked ? (
+                  <Select
+                    label={t('sectionLabel')}
+                    value={
+                      field.value
+                        ? String(field.value)
+                        : String(initialSectionId ?? '')
+                    }
+                    onChange={() => undefined}
+                    options={contentSections
+                      .filter(
+                        (section) => section.id === (initialSectionId ?? field.value)
+                      )
+                      .map((section) => ({
+                        value: String(section.id),
+                        label: `${section.nameEn} (${section.slug})`
+                      }))}
+                    error={fieldErrors.sectionId}
+                    hint={t('sectionLockedHint')}
+                    disabled
+                  />
+                ) : (
+                  <Select
+                    label={t('sectionLabel')}
+                    value={field.value ? String(field.value) : ''}
+                    onChange={(event) =>
+                      field.onChange(
+                        event.target.value ? Number(event.target.value) : 0
+                      )
+                    }
+                    options={[
+                      {value: '', label: t('sectionPlaceholder')},
+                      ...contentSections.map((section) => ({
+                        value: String(section.id),
+                        label: `${section.nameEn} (${section.slug})`
+                      }))
+                    ]}
+                    error={fieldErrors.sectionId}
+                    hint={t('sectionHint')}
+                  />
+                )
+              }
             />
 
             <Controller
@@ -434,7 +492,9 @@ export default function ContentBlockForm({mode, blockId}: Props) {
                   label={t('blockTypeLabel')}
                   value={field.value}
                   onChange={(event) =>
-                    field.onChange(event.target.value as ContentBlockFormValues['blockType'])
+                    field.onChange(
+                      event.target.value as ContentBlockFormValues['blockType']
+                    )
                   }
                   options={CONTENT_BLOCK_TYPE_OPTIONS.map((option) => ({
                     value: option.value,

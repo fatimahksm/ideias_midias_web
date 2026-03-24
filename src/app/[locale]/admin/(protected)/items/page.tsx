@@ -4,19 +4,36 @@ import ItemsManager from '@/features/items/components/items-manager';
 
 type Props = {
   params: Promise<{locale: string}>;
+  searchParams: Promise<{sectionId?: string; categoryId?: string}>;
 };
 
-export default async function ItemsPage({params}: Props) {
+export default async function ItemsPage({params, searchParams}: Props) {
   const {locale} = await params;
+  const query = await searchParams;
 
   setRequestLocale(locale);
 
   const t = await getTranslations('ItemsPage');
 
+  const parsedSectionId = query.sectionId ? Number(query.sectionId) : undefined;
+  const initialSectionId =
+    parsedSectionId && Number.isFinite(parsedSectionId) && parsedSectionId > 0
+      ? parsedSectionId
+      : undefined;
+
+  const parsedCategoryId = query.categoryId ? Number(query.categoryId) : undefined;
+  const initialCategoryId =
+    parsedCategoryId && Number.isFinite(parsedCategoryId) && parsedCategoryId > 0
+      ? parsedCategoryId
+      : undefined;
+
   return (
     <section className="space-y-6">
       <PageHeader title={t('title')} description={t('subtitle')} />
-      <ItemsManager />
+      <ItemsManager
+        initialSectionId={initialSectionId}
+        initialCategoryId={initialCategoryId}
+      />
     </section>
   );
 }

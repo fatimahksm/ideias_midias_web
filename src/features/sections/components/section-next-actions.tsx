@@ -127,28 +127,30 @@ export function SectionNextActions({
 
       <div className="mt-5 rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
         <p className="text-sm font-semibold text-slate-900">
-          {t('safeActionsTitle')}
+          {t('workspaceReadyTitle')}
         </p>
         <p className="mt-1 text-sm text-slate-600">
-          {t('safeActionsDescription')}
+          {t('workspaceReadyDescription')}
         </p>
 
         <div className="mt-4 flex flex-wrap gap-3">
+          <Link href={`/admin/sections/${sectionId}`}>
+            <Button type="button" size="sm">
+              {t('goToWorkspace')}
+            </Button>
+          </Link>
+
+          <Link href={`/admin/sections/${sectionId}/edit`}>
+            <Button type="button" variant="outline" size="sm">
+              {t('editSectionSettings')}
+            </Button>
+          </Link>
+
           <Link href="/admin/sections">
             <Button type="button" variant="outline" size="sm">
               {t('backToStudio')}
             </Button>
           </Link>
-
-          <Link href="/admin/home-cards">
-            <Button type="button" size="sm">
-              {t('manageHomeCards')}
-            </Button>
-          </Link>
-
-          <Button type="button" variant="ghost" size="sm" disabled>
-            {t('nextModuleLocked')}
-          </Button>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
@@ -14,7 +14,6 @@ import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
 import {getAllSections} from '@/features/sections/api';
 import type {SectionResponse} from '@/features/sections/types';
 import {
-  createContentBlock,
   deleteContentBlock,
   getAllContentBlocks,
   updateContentBlock
@@ -31,6 +30,11 @@ import {ContentBlockCard} from './content-block-card';
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type TypeFilter = 'ALL' | ContentBlockType;
 type SortBy = 'sortOrder' | 'updatedAt' | 'titleEn';
+
+type Props = {
+  sectionId?: number;
+  compact?: boolean;
+};
 
 function StatCard({
   label,
@@ -57,14 +61,21 @@ function StatCard({
   );
 }
 
-export default function ContentBlocksManager() {
+export default function ContentBlocksManager({
+  sectionId,
+  compact = false
+}: Props) {
   const t = useTranslations('ContentBlocksManager');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
   const queryClient = useQueryClient();
 
+  const isSectionScoped = typeof sectionId === 'number';
+
   const [search, setSearch] = useState('');
-  const [sectionFilter, setSectionFilter] = useState('ALL');
+  const [sectionFilter, setSectionFilter] = useState(
+    isSectionScoped ? String(sectionId) : 'ALL'
+  );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
   const [sortBy, setSortBy] = useState<SortBy>('sortOrder');
@@ -72,6 +83,12 @@ export default function ContentBlocksManager() {
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+
+  useEffect(() => {
+    if (isSectionScoped && sectionId) {
+      setSectionFilter(String(sectionId));
+    }
+  }, [isSectionScoped, sectionId]);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -138,20 +155,32 @@ export default function ContentBlocksManager() {
     [sectionsQuery.data]
   );
 
+  const selectedSection = useMemo(
+    () => contentSections.find((section) => section.id === sectionId),
+    [contentSections, sectionId]
+  );
+
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
+  const scopedBase = useMemo(() => {
+    const all = contentBlocksQuery.data ?? [];
+    if (!isSectionScoped || !sectionId) return all;
+    return all.filter((item) => item.sectionId === sectionId);
+  }, [contentBlocksQuery.data, isSectionScoped, sectionId]);
+
   const items = useMemo(() => {
-    const base = contentBlocksQuery.data ?? [];
     const searchValue = search.trim().toLowerCase();
 
-    const filtered = base.filter((item) => {
+    const filtered = scopedBase.filter((item) => {
       const text =
         `${item.titleEn || ''} ${item.titlePt || ''} ${item.contentEn || ''} ${item.contentPt || ''}`.toLowerCase();
 
       const matchesSearch = !searchValue || text.includes(searchValue);
 
       const matchesSection =
-        sectionFilter === 'ALL' || String(item.sectionId) === sectionFilter;
+        isSectionScoped ||
+        sectionFilter === 'ALL' ||
+        String(item.sectionId) === sectionFilter;
 
       const matchesStatus =
         statusFilter === 'ALL' ||
@@ -177,20 +206,27 @@ export default function ContentBlocksManager() {
       return a.sortOrder - b.sortOrder || a.id - b.id;
     });
   }, [
-    contentBlocksQuery.data,
+    scopedBase,
     search,
+    isSectionScoped,
     sectionFilter,
     statusFilter,
     typeFilter,
     sortBy
   ]);
 
-  function getLinkedSection(item: SectionContentBlockResponse): SectionResponse | undefined {
+  function getLinkedSection(
+    item: SectionContentBlockResponse
+  ): SectionResponse | undefined {
     return contentSections.find((section) => section.id === item.sectionId);
   }
 
   async function handleDelete(item: SectionContentBlockResponse) {
-    const confirmed = window.confirm(t('deleteConfirm', {name: item.titleEn || item.titlePt || t('untitledBlock')}));
+    const confirmed = window.confirm(
+      t('deleteConfirm', {
+        name: item.titleEn || item.titlePt || t('untitledBlock')
+      })
+    );
     if (!confirmed) return;
 
     setFeedback('');
@@ -202,43 +238,65 @@ export default function ContentBlocksManager() {
     await toggleStatusMutation.mutateAsync(item);
   }
 
+  const createHref =
+    isSectionScoped && sectionId
+      ? `/admin/content-blocks/new?sectionId=${sectionId}`
+      : '/admin/content-blocks/new';
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label={t('stats.total')}
-          value={(contentBlocksQuery.data ?? []).length}
-        />
-        <StatCard
-          label={t('stats.active')}
-          value={(contentBlocksQuery.data ?? []).filter((item) => item.isActive).length}
-          tone="emerald"
-        />
-        <StatCard
-          label={t('stats.contentSections')}
-          value={contentSections.length}
-          tone="blue"
-        />
-        <StatCard
-          label={t('stats.textBlocks')}
-          value={(contentBlocksQuery.data ?? []).filter((item) => item.blockType === 'TEXT').length}
-        />
-      </div>
+      {!compact ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard label={t('stats.total')} value={scopedBase.length} />
+          <StatCard
+            label={t('stats.active')}
+            value={scopedBase.filter((item) => item.isActive).length}
+            tone="emerald"
+          />
+          <StatCard
+            label={t('stats.contentSections')}
+            value={isSectionScoped ? 1 : contentSections.length}
+            tone="blue"
+          />
+          <StatCard
+            label={t('stats.textBlocks')}
+            value={scopedBase.filter((item) => item.blockType === 'TEXT').length}
+          />
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div>
           <p className="text-sm font-semibold text-slate-900">
             {t('studioTitle')}
           </p>
-          <p className="mt-1 text-sm text-slate-500">{t('studioSubtitle')}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {isSectionScoped && selectedSection
+              ? `${t('scopedSubtitlePrefix')}: ${selectedSection.nameEn}`
+              : t('studioSubtitle')}
+          </p>
         </div>
 
-        <Link href="/admin/content-blocks/new">
-          <Button type="button">{t('createBlock')}</Button>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          {isSectionScoped && selectedSection ? (
+            <Link href={`/admin/sections/${selectedSection.id}`}>
+              <Button type="button" variant="outline">
+                {t('backToWorkspace')}
+              </Button>
+            </Link>
+          ) : null}
+
+          <Link href={createHref}>
+            <Button type="button">{t('createBlock')}</Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-5">
+      <div
+        className={`grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm ${
+          isSectionScoped ? 'lg:grid-cols-4' : 'lg:grid-cols-5'
+        }`}
+      >
         <Input
           id="contentBlockSearch"
           label={t('searchLabel')}
@@ -247,19 +305,21 @@ export default function ContentBlocksManager() {
           placeholder={t('searchPlaceholder')}
         />
 
-        <Select
-          id="sectionFilter"
-          label={t('sectionFilterLabel')}
-          value={sectionFilter}
-          onChange={(event) => setSectionFilter(event.target.value)}
-          options={[
-            {value: 'ALL', label: t('allSections')},
-            ...contentSections.map((section) => ({
-              value: String(section.id),
-              label: section.nameEn
-            }))
-          ]}
-        />
+        {!isSectionScoped ? (
+          <Select
+            id="sectionFilter"
+            label={t('sectionFilterLabel')}
+            value={sectionFilter}
+            onChange={(event) => setSectionFilter(event.target.value)}
+            options={[
+              {value: 'ALL', label: t('allSections')},
+              ...contentSections.map((section) => ({
+                value: String(section.id),
+                label: section.nameEn
+              }))
+            ]}
+          />
+        ) : null}
 
         <Select
           id="statusFilter"

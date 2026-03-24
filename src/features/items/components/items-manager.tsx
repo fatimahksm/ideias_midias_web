@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
@@ -23,6 +23,15 @@ import {ItemCard} from './item-card';
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type FeaturedFilter = 'ALL' | 'FEATURED' | 'REGULAR';
 type SortBy = 'sortOrder' | 'titleEn' | 'updatedAt';
+
+type Props = {
+  sectionId?: number;
+  categoryId?: number;
+  initialSectionId?: number;
+  initialCategoryId?: number;
+  compact?: boolean;
+  forceDirectMode?: boolean;
+};
 
 function StatCard({
   label,
@@ -50,15 +59,37 @@ function StatCard({
   );
 }
 
-export default function ItemsManager() {
+export default function ItemsManager({
+  sectionId,
+  categoryId,
+  initialSectionId,
+  initialCategoryId,
+  compact = false,
+  forceDirectMode = false
+}: Props) {
   const t = useTranslations('ItemsManager');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
   const queryClient = useQueryClient();
 
+  const isSectionScoped = typeof sectionId === 'number';
+  const isCategoryScoped = typeof categoryId === 'number';
+
   const [search, setSearch] = useState('');
-  const [sectionFilter, setSectionFilter] = useState('ALL');
-  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [sectionFilter, setSectionFilter] = useState(
+    isSectionScoped
+      ? String(sectionId)
+      : initialSectionId
+        ? String(initialSectionId)
+        : 'ALL'
+  );
+  const [categoryFilter, setCategoryFilter] = useState(
+    isCategoryScoped
+      ? String(categoryId)
+      : initialCategoryId
+        ? String(initialCategoryId)
+        : 'ALL'
+  );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [featuredFilter, setFeaturedFilter] =
     useState<FeaturedFilter>('ALL');
@@ -67,6 +98,18 @@ export default function ItemsManager() {
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+
+  useEffect(() => {
+    if (isSectionScoped && sectionId) {
+      setSectionFilter(String(sectionId));
+    }
+  }, [isSectionScoped, sectionId]);
+
+  useEffect(() => {
+    if (isCategoryScoped && categoryId) {
+      setCategoryFilter(String(categoryId));
+    }
+  }, [isCategoryScoped, categoryId]);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -100,24 +143,24 @@ export default function ItemsManager() {
 
   const toggleStatusMutation = useMutation({
     mutationFn: async (item: SectionItemResponse) => {
-    const payload: SectionItemPayload = {
-  sectionId: item.sectionId,
-  categoryId: item.categoryId ?? null,
-  titlePt: item.titlePt,
-  titleEn: item.titleEn,
-  shortDescriptionPt: emptyToNull(item.shortDescriptionPt),
-  shortDescriptionEn: emptyToNull(item.shortDescriptionEn),
-  fullDescriptionPt: emptyToNull(item.fullDescriptionPt),
-  fullDescriptionEn: emptyToNull(item.fullDescriptionEn),
-  coverImageUrl: emptyToNull(item.coverImageUrl),
-  videoUrl: emptyToNull(item.videoUrl),
-  itemType: emptyToNull(item.itemType),
-  specificationsPt: emptyToNull(item.specificationsPt),
-  specificationsEn: emptyToNull(item.specificationsEn),
-  isFeatured: item.isFeatured,
-  isActive: !item.isActive,
-  sortOrder: item.sortOrder
-};
+      const payload: SectionItemPayload = {
+        sectionId: item.sectionId,
+        categoryId: item.categoryId ?? null,
+        titlePt: item.titlePt,
+        titleEn: item.titleEn,
+        shortDescriptionPt: emptyToNull(item.shortDescriptionPt),
+        shortDescriptionEn: emptyToNull(item.shortDescriptionEn),
+        fullDescriptionPt: emptyToNull(item.fullDescriptionPt),
+        fullDescriptionEn: emptyToNull(item.fullDescriptionEn),
+        coverImageUrl: emptyToNull(item.coverImageUrl),
+        videoUrl: emptyToNull(item.videoUrl),
+        itemType: emptyToNull(item.itemType),
+        specificationsPt: emptyToNull(item.specificationsPt),
+        specificationsEn: emptyToNull(item.specificationsEn),
+        isFeatured: item.isFeatured,
+        isActive: !item.isActive,
+        sortOrder: item.sortOrder
+      };
 
       return updateItem(item.id, payload);
     },
@@ -146,8 +189,19 @@ export default function ItemsManager() {
     [sectionsQuery.data]
   );
 
+  const selectedSection = useMemo(
+    () => itemSections.find((section) => section.id === Number(sectionFilter)),
+    [itemSections, sectionFilter]
+  );
+
   const filteredCategories = useMemo(() => {
     const all = categoriesQuery.data ?? [];
+
+    if (isSectionScoped && sectionId) {
+      return all
+        .filter((category) => category.sectionId === sectionId)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+    }
 
     if (sectionFilter === 'ALL') {
       return all.sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
@@ -156,24 +210,51 @@ export default function ItemsManager() {
     return all
       .filter((category) => String(category.sectionId) === sectionFilter)
       .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
-  }, [categoriesQuery.data, sectionFilter]);
+  }, [categoriesQuery.data, isSectionScoped, sectionId, sectionFilter]);
+
+  const selectedCategory = useMemo(
+    () => filteredCategories.find((category) => category.id === Number(categoryFilter)),
+    [filteredCategories, categoryFilter]
+  );
+
+  const isDirectMode =
+    forceDirectMode || selectedSection?.sectionType === 'DIRECT_ITEMS';
 
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
+  const scopedBase = useMemo(() => {
+    const all = itemsQuery.data ?? [];
+
+    let current = all;
+
+    if (isSectionScoped && sectionId) {
+      current = current.filter((item) => item.sectionId === sectionId);
+    }
+
+    if (isCategoryScoped && categoryId) {
+      current = current.filter((item) => item.categoryId === categoryId);
+    }
+
+    return current;
+  }, [itemsQuery.data, isSectionScoped, sectionId, isCategoryScoped, categoryId]);
+
   const items = useMemo(() => {
-    const base = itemsQuery.data ?? [];
     const searchValue = search.trim().toLowerCase();
 
-    const filtered = base.filter((item) => {
+    const filtered = scopedBase.filter((item) => {
       const matchesSearch =
         !searchValue ||
         item.titleEn.toLowerCase().includes(searchValue) ||
         item.titlePt.toLowerCase().includes(searchValue);
 
       const matchesSection =
-        sectionFilter === 'ALL' || String(item.sectionId) === sectionFilter;
+        isSectionScoped ||
+        sectionFilter === 'ALL' ||
+        String(item.sectionId) === sectionFilter;
 
       const matchesCategory =
+        isDirectMode ||
+        isCategoryScoped ||
         categoryFilter === 'ALL' ||
         String(item.categoryId ?? '') === categoryFilter;
 
@@ -210,13 +291,16 @@ export default function ItemsManager() {
       return a.sortOrder - b.sortOrder || a.id - b.id;
     });
   }, [
-    itemsQuery.data,
+    scopedBase,
     search,
+    isSectionScoped,
     sectionFilter,
+    isCategoryScoped,
     categoryFilter,
     statusFilter,
     featuredFilter,
-    sortBy
+    sortBy,
+    isDirectMode
   ]);
 
   function getLinkedSection(item: SectionItemResponse): SectionResponse | undefined {
@@ -245,41 +329,64 @@ export default function ItemsManager() {
     await toggleStatusMutation.mutateAsync(item);
   }
 
+  const createHref =
+    selectedSection && !isDirectMode
+      ? `/admin/items/new?sectionId=${selectedSection.id}${selectedCategory ? `&categoryId=${selectedCategory.id}` : ''}`
+      : selectedSection
+        ? `/admin/items/new?sectionId=${selectedSection.id}`
+        : '/admin/items/new';
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard label={t('stats.total')} value={(itemsQuery.data ?? []).length} />
-        <StatCard
-          label={t('stats.active')}
-          value={(itemsQuery.data ?? []).filter((item) => item.isActive).length}
-          tone="emerald"
-        />
-        <StatCard
-          label={t('stats.featured')}
-          value={(itemsQuery.data ?? []).filter((item) => item.isFeatured).length}
-          tone="amber"
-        />
-        <StatCard
-          label={t('stats.linkedSections')}
-          value={itemSections.length}
-          tone="blue"
-        />
-      </div>
+      {!compact ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard label={t('stats.total')} value={scopedBase.length} />
+          <StatCard
+            label={t('stats.active')}
+            value={scopedBase.filter((item) => item.isActive).length}
+            tone="emerald"
+          />
+          <StatCard
+            label={t('stats.featured')}
+            value={scopedBase.filter((item) => item.isFeatured).length}
+            tone="amber"
+          />
+          <StatCard
+            label={t('stats.linkedSections')}
+            value={isSectionScoped ? 1 : itemSections.length}
+            tone="blue"
+          />
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <div>
           <p className="text-sm font-semibold text-slate-900">
             {t('studioTitle')}
           </p>
-          <p className="mt-1 text-sm text-slate-500">{t('studioSubtitle')}</p>
+          <p className="mt-1 text-sm text-slate-500">
+            {selectedCategory
+              ? `${t('linkedCategory')}: ${selectedCategory.nameEn}`
+              : selectedSection
+                ? `${t('linkedSection')}: ${selectedSection.nameEn}`
+                : t('studioSubtitle')}
+          </p>
         </div>
 
-        <Link href="/admin/items/new">
+        <Link href={createHref}>
           <Button type="button">{t('createItem')}</Button>
         </Link>
       </div>
 
-      <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-5">
+      <div
+        className={`grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm ${
+          isSectionScoped
+            ? isDirectMode
+              ? 'lg:grid-cols-4'
+              : 'lg:grid-cols-5'
+            : 'lg:grid-cols-5'
+        }`}
+      >
         <Input
           id="itemSearch"
           label={t('searchLabel')}
@@ -288,36 +395,40 @@ export default function ItemsManager() {
           placeholder={t('searchPlaceholder')}
         />
 
-        <Select
-          id="sectionFilter"
-          label={t('sectionFilterLabel')}
-          value={sectionFilter}
-          onChange={(event) => {
-            setSectionFilter(event.target.value);
-            setCategoryFilter('ALL');
-          }}
-          options={[
-            {value: 'ALL', label: t('allSections')},
-            ...itemSections.map((section) => ({
-              value: String(section.id),
-              label: section.nameEn
-            }))
-          ]}
-        />
+        {!isSectionScoped ? (
+          <Select
+            id="sectionFilter"
+            label={t('sectionFilterLabel')}
+            value={sectionFilter}
+            onChange={(event) => {
+              setSectionFilter(event.target.value);
+              setCategoryFilter('ALL');
+            }}
+            options={[
+              {value: 'ALL', label: t('allSections')},
+              ...itemSections.map((section) => ({
+                value: String(section.id),
+                label: section.nameEn
+              }))
+            ]}
+          />
+        ) : null}
 
-        <Select
-          id="categoryFilter"
-          label={t('categoryFilterLabel')}
-          value={categoryFilter}
-          onChange={(event) => setCategoryFilter(event.target.value)}
-          options={[
-            {value: 'ALL', label: t('allCategories')},
-            ...filteredCategories.map((category) => ({
-              value: String(category.id),
-              label: category.nameEn
-            }))
-          ]}
-        />
+        {!isDirectMode && !isCategoryScoped ? (
+          <Select
+            id="categoryFilter"
+            label={t('categoryFilterLabel')}
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            options={[
+              {value: 'ALL', label: t('allCategories')},
+              ...filteredCategories.map((category) => ({
+                value: String(category.id),
+                label: category.nameEn
+              }))
+            ]}
+          />
+        ) : null}
 
         <Select
           id="statusFilter"
@@ -346,9 +457,7 @@ export default function ItemsManager() {
             {value: 'REGULAR', label: t('regularOnly')}
           ]}
         />
-      </div>
 
-      <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-1">
         <Select
           id="sortBy"
           label={t('sortByLabel')}
@@ -374,15 +483,21 @@ export default function ItemsManager() {
         </div>
       ) : null}
 
-      {itemsQuery.isPending || sectionsQuery.isPending || categoriesQuery.isPending ? (
+      {itemsQuery.isPending ||
+      sectionsQuery.isPending ||
+      categoriesQuery.isPending ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <p className="text-sm text-slate-600">{common('loading')}</p>
         </div>
-      ) : itemsQuery.isError || sectionsQuery.isError || categoriesQuery.isError ? (
+      ) : itemsQuery.isError ||
+        sectionsQuery.isError ||
+        categoriesQuery.isError ? (
         <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
           <p className="text-sm text-red-700">
             {getErrorMessage(
-              toAppError(itemsQuery.error || sectionsQuery.error || categoriesQuery.error),
+              toAppError(
+                itemsQuery.error || sectionsQuery.error || categoriesQuery.error
+              ),
               (key) => errorT(key)
             )}
           </p>

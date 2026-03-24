@@ -1,3 +1,5 @@
+import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
+
 type MediaPreviewProps = {
   label: string;
   url?: string | null;
@@ -11,7 +13,8 @@ export function MediaPreview({
   type,
   emptyText
 }: MediaPreviewProps) {
-  const hasUrl = Boolean(url?.trim());
+  const resolvedUrl = resolveMediaUrl(url);
+  const hasUrl = Boolean(resolvedUrl);
 
   return (
     <div className="space-y-2">
@@ -21,13 +24,13 @@ export function MediaPreview({
         {hasUrl ? (
           type === 'image' ? (
             <img
-              src={url!}
+              src={resolvedUrl}
               alt={label}
               className="h-52 w-full object-cover"
             />
           ) : (
             <video
-              src={url!}
+              src={resolvedUrl}
               controls
               className="h-52 w-full bg-black object-cover"
             />

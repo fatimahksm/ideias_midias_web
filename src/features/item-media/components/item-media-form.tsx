@@ -198,30 +198,30 @@ export default function ItemMediaForm({mode, itemId, mediaId}: Props) {
       return createItemMedia(payload);
     },
     onSuccess: async (savedMedia) => {
-      setServerError('');
-      setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
+  setServerError('');
+  setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
-      await Promise.all([
-        queryClient.invalidateQueries({queryKey: ['item-media', 'item', itemId]}),
-        queryClient.invalidateQueries({queryKey: ['item-media']})
-      ]);
+  await Promise.all([
+    queryClient.invalidateQueries({queryKey: ['item-media', 'item', itemId]}),
+    queryClient.invalidateQueries({queryKey: ['item-media']})
+  ]);
 
-      if (mode === 'create') {
-        router.replace(`/${locale}/admin/items/${itemId}/media/${savedMedia.id}/edit`);
-        return;
-      }
+  if (mode === 'create') {
+    router.replace(`/${locale}/admin/items/${itemId}/media`);
+    return;
+  }
 
-      reset({
-        itemId: savedMedia.itemId,
-        mediaType: savedMedia.mediaType,
-        mediaUrl: savedMedia.mediaUrl,
-        thumbnailUrl: savedMedia.thumbnailUrl ?? '',
-        altTextPt: savedMedia.altTextPt ?? '',
-        altTextEn: savedMedia.altTextEn ?? '',
-        isActive: savedMedia.isActive,
-        sortOrder: savedMedia.sortOrder
-      });
-    },
+  reset({
+    itemId: savedMedia.itemId,
+    mediaType: savedMedia.mediaType,
+    mediaUrl: savedMedia.mediaUrl,
+    thumbnailUrl: savedMedia.thumbnailUrl ?? '',
+    altTextPt: savedMedia.altTextPt ?? '',
+    altTextEn: savedMedia.altTextEn ?? '',
+    isActive: savedMedia.isActive,
+    sortOrder: savedMedia.sortOrder
+  });
+},
     onError: (error) => {
       setSuccessMessage('');
       setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));

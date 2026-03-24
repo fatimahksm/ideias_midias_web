@@ -189,17 +189,25 @@ export default function ItemMediaManager({itemId}: Props) {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/items/${itemId}/edit`}>
-            <Button type="button" variant="outline">
-              {t('backToItem')}
-            </Button>
-          </Link>
+       <div className="flex flex-wrap gap-2">
+  {itemQuery.data?.sectionId ? (
+    <Link href={`/admin/sections/${itemQuery.data.sectionId}`}>
+      <Button type="button" variant="outline">
+        {t('backToWorkspace')}
+      </Button>
+    </Link>
+  ) : null}
 
-          <Link href={`/admin/items/${itemId}/media/new`}>
-            <Button type="button">{t('createMedia')}</Button>
-          </Link>
-        </div>
+  <Link href={`/admin/items/${itemId}/edit`}>
+    <Button type="button" variant="outline">
+      {t('backToItem')}
+    </Button>
+  </Link>
+
+  <Link href={`/admin/items/${itemId}/media/new`}>
+    <Button type="button">{t('createMedia')}</Button>
+  </Link>
+</div>
       </div>
 
       <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-3">

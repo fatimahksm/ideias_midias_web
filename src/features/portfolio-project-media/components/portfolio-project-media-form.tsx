@@ -207,35 +207,33 @@ export default function PortfolioProjectMediaForm({
 
       return createPortfolioProjectMedia(payload);
     },
-    onSuccess: async (savedMedia) => {
-      setServerError('');
-      setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
+  onSuccess: async (savedMedia) => {
+  setServerError('');
+  setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ['portfolio-project-media', 'project', projectId]
-        }),
-        queryClient.invalidateQueries({queryKey: ['portfolio-project-media']})
-      ]);
+  await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: ['portfolio-project-media', 'project', projectId]
+    }),
+    queryClient.invalidateQueries({queryKey: ['portfolio-project-media']})
+  ]);
 
-      if (mode === 'create') {
-        router.replace(
-          `/${locale}/admin/portfolio-projects/${projectId}/media/${savedMedia.id}/edit`
-        );
-        return;
-      }
+  if (mode === 'create') {
+    router.replace(`/${locale}/admin/portfolio-projects/${projectId}/media`);
+    return;
+  }
 
-      reset({
-        projectId: savedMedia.projectId,
-        mediaType: savedMedia.mediaType,
-        mediaUrl: savedMedia.mediaUrl,
-        thumbnailUrl: savedMedia.thumbnailUrl ?? '',
-        altTextPt: savedMedia.altTextPt ?? '',
-        altTextEn: savedMedia.altTextEn ?? '',
-        isActive: savedMedia.isActive,
-        sortOrder: savedMedia.sortOrder
-      });
-    },
+  reset({
+    projectId: savedMedia.projectId,
+    mediaType: savedMedia.mediaType,
+    mediaUrl: savedMedia.mediaUrl,
+    thumbnailUrl: savedMedia.thumbnailUrl ?? '',
+    altTextPt: savedMedia.altTextPt ?? '',
+    altTextEn: savedMedia.altTextEn ?? '',
+    isActive: savedMedia.isActive,
+    sortOrder: savedMedia.sortOrder
+  });
+},
     onError: (error) => {
       setSuccessMessage('');
       setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));

@@ -32,6 +32,9 @@ export function CategoryCard({
   const locale = useLocale();
   const imageUrl = resolveMediaUrl(item.imageUrl);
 
+  const manageItemsHref = `/admin/items?sectionId=${item.sectionId}&categoryId=${item.id}`;
+  const createItemHref = `/admin/items/new?sectionId=${item.sectionId}&categoryId=${item.id}`;
+
   return (
     <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="relative h-56 overflow-hidden bg-slate-100">
@@ -109,8 +112,20 @@ export function CategoryCard({
             </Button>
           </Link>
 
+          <Link href={manageItemsHref}>
+            <Button type="button" variant="outline" size="sm">
+              {t('manageItems')}
+            </Button>
+          </Link>
+
+          <Link href={createItemHref}>
+            <Button type="button" variant="outline" size="sm">
+              {t('addItem')}
+            </Button>
+          </Link>
+
           {linkedSection ? (
-            <Link href={`/admin/sections/${linkedSection.id}/edit`}>
+            <Link href={`/admin/sections/${linkedSection.id}`}>
               <Button type="button" variant="outline" size="sm">
                 {t('openSection')}
               </Button>

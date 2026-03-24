@@ -31,6 +31,7 @@ import {CategoryFormSidebar} from './category-form-sidebar';
 type Props = {
   mode: 'create' | 'edit';
   categoryId?: number;
+  initialSectionId?: number;
 };
 
 type BilingualFieldGroupProps = {
@@ -139,7 +140,11 @@ function BilingualFieldGroup({
   );
 }
 
-export default function CategoryForm({mode, categoryId}: Props) {
+export default function CategoryForm({
+  mode,
+  categoryId,
+  initialSectionId
+}: Props) {
   const t = useTranslations('CategoryForm');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
@@ -149,6 +154,11 @@ export default function CategoryForm({mode, categoryId}: Props) {
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const isSectionLocked =
+    mode === 'create' &&
+    typeof initialSectionId === 'number' &&
+    Number.isFinite(initialSectionId) &&
+    initialSectionId > 0;
 
   const {
     register,
@@ -162,7 +172,7 @@ export default function CategoryForm({mode, categoryId}: Props) {
   } = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
-      sectionId: 0,
+      sectionId: initialSectionId ?? 0,
       namePt: '',
       nameEn: '',
       descriptionPt: '',
@@ -204,6 +214,11 @@ export default function CategoryForm({mode, categoryId}: Props) {
       await queryClient.invalidateQueries({queryKey: ['categories']});
 
       if (mode === 'create') {
+        if (isSectionLocked) {
+          router.replace(`/${locale}/admin/sections/${savedCategory.sectionId}`);
+          return;
+        }
+
         router.replace(`/${locale}/admin/categories/${savedCategory.id}/edit`);
         return;
       }
@@ -249,6 +264,23 @@ export default function CategoryForm({mode, categoryId}: Props) {
         .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id),
     [sectionsQuery.data]
   );
+
+  useEffect(() => {
+    if (mode !== 'create' || !isSectionLocked || !initialSectionId) return;
+    if (!categorySections.some((section) => section.id === initialSectionId)) {
+      return;
+    }
+    if (getValues('sectionId') === initialSectionId) return;
+
+    setValue('sectionId', initialSectionId, {shouldValidate: true});
+  }, [
+    mode,
+    isSectionLocked,
+    initialSectionId,
+    categorySections,
+    getValues,
+    setValue
+  ]);
 
   useEffect(() => {
     if (mode !== 'create') return;
@@ -332,9 +364,15 @@ export default function CategoryForm({mode, categoryId}: Props) {
     >
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href="/admin/categories">
+          <Link
+            href={
+              isSectionLocked
+                ? `/admin/sections/${initialSectionId}`
+                : '/admin/categories'
+            }
+          >
             <Button type="button" variant="outline">
-              {t('backToCategories')}
+              {isSectionLocked ? t('backToWorkspace') : t('backToCategories')}
             </Button>
           </Link>
 
@@ -368,26 +406,49 @@ export default function CategoryForm({mode, categoryId}: Props) {
           <Controller
             name="sectionId"
             control={control}
-            render={({field}) => (
-              <Select
-                label={t('sectionLabel')}
-                value={field.value ? String(field.value) : ''}
-                onChange={(event) =>
-                  field.onChange(
-                    event.target.value ? Number(event.target.value) : 0
-                  )
-                }
-                options={[
-                  {value: '', label: t('sectionPlaceholder')},
-                  ...categorySections.map((section) => ({
-                    value: String(section.id),
-                    label: `${section.nameEn} (${section.slug})`
-                  }))
-                ]}
-                error={fieldErrors.sectionId}
-                hint={t('sectionHint')}
-              />
-            )}
+            render={({field}) =>
+              isSectionLocked ? (
+                <Select
+                  label={t('sectionLabel')}
+                  value={
+                    field.value
+                      ? String(field.value)
+                      : String(initialSectionId ?? '')
+                  }
+                  onChange={() => undefined}
+                  options={categorySections
+                    .filter(
+                      (section) => section.id === (initialSectionId ?? field.value)
+                    )
+                    .map((section) => ({
+                      value: String(section.id),
+                      label: `${section.nameEn} (${section.slug})`
+                    }))}
+                  error={fieldErrors.sectionId}
+                  hint={t('sectionLockedHint')}
+                  disabled
+                />
+              ) : (
+                <Select
+                  label={t('sectionLabel')}
+                  value={field.value ? String(field.value) : ''}
+                  onChange={(event) =>
+                    field.onChange(
+                      event.target.value ? Number(event.target.value) : 0
+                    )
+                  }
+                  options={[
+                    {value: '', label: t('sectionPlaceholder')},
+                    ...categorySections.map((section) => ({
+                      value: String(section.id),
+                      label: `${section.nameEn} (${section.slug})`
+                    }))
+                  ]}
+                  error={fieldErrors.sectionId}
+                  hint={t('sectionHint')}
+                />
+              )
+            }
           />
         </SettingsCard>
 

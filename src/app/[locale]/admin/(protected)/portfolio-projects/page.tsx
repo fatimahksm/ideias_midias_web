@@ -4,19 +4,30 @@ import PortfolioProjectsManager from '@/features/portfolio-projects/components/p
 
 type Props = {
   params: Promise<{locale: string}>;
+  searchParams: Promise<{sectionId?: string}>;
 };
 
-export default async function PortfolioProjectsPage({params}: Props) {
+export default async function PortfolioProjectsPage({
+  params,
+  searchParams
+}: Props) {
   const {locale} = await params;
+  const query = await searchParams;
 
   setRequestLocale(locale);
 
   const t = await getTranslations('PortfolioProjectsPage');
 
+  const parsedSectionId = query.sectionId ? Number(query.sectionId) : undefined;
+  const sectionId =
+    parsedSectionId && Number.isFinite(parsedSectionId) && parsedSectionId > 0
+      ? parsedSectionId
+      : undefined;
+
   return (
     <section className="space-y-6">
       <PageHeader title={t('title')} description={t('subtitle')} />
-      <PortfolioProjectsManager />
+      <PortfolioProjectsManager sectionId={sectionId} />
     </section>
   );
 }

@@ -128,8 +128,14 @@ export function ItemCard({
             </Button>
           </Link>
 
+          <Link href={`/admin/items/${item.id}/media`}>
+            <Button type="button" variant="outline" size="sm">
+              {t('manageMedia')}
+            </Button>
+          </Link>
+
           {linkedSection ? (
-            <Link href={`/admin/sections/${linkedSection.id}/edit`}>
+            <Link href={`/admin/sections/${linkedSection.id}`}>
               <Button type="button" variant="outline" size="sm">
                 {t('openSection')}
               </Button>
@@ -147,12 +153,6 @@ export function ItemCard({
             {item.isActive ? t('deactivate') : t('activate')}
           </Button>
 
-          <Link href={`/admin/items/${item.id}/media`}>
-  <Button type="button" variant="outline" size="sm">
-    {t('manageMedia')}
-  </Button>
-</Link>
-
           {canDelete ? (
             <Button
               type="button"
@@ -164,7 +164,6 @@ export function ItemCard({
             >
               {common('delete')}
             </Button>
-            
           ) : null}
         </div>
       </div>
