@@ -22,7 +22,6 @@ export const categorySchema = z.object({
 
   descriptionPt: z.string().trim(),
   descriptionEn: z.string().trim(),
-  imageUrl: z.string().trim(),
 
   isActive: z.boolean(),
 

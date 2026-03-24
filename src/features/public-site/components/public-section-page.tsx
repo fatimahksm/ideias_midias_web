@@ -58,6 +58,10 @@ const staggerContainer = {
   }
 };
 
+function hasMeaningfulText(value?: string | null) {
+  return Boolean(value && value.trim().length > 0);
+}
+
 function SectionHero({
   title,
   description,
@@ -163,11 +167,13 @@ function SectionHero({
 function BlockMedia({
   title,
   imageUrl,
-  videoUrl
+  videoUrl,
+  fallbackVideoTitle
 }: {
   title: string;
   imageUrl?: string | null;
   videoUrl?: string | null;
+  fallbackVideoTitle: string;
 }) {
   const resolvedImageUrl = resolveMediaUrl(imageUrl);
   const resolvedVideoUrl = resolveMediaUrl(videoUrl);
@@ -190,13 +196,13 @@ function BlockMedia({
       {resolvedVideoUrl ? (
         <div className="aspect-video w-full bg-black">
           {isEmbeddableVideoUrl(resolvedVideoUrl) ? (
-           <iframe
-  src={toEmbeddableVideoUrl(resolvedVideoUrl) ?? resolvedVideoUrl}
-  title={title || 'Video'}
-  className="h-full w-full"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-  allowFullScreen
-/>
+            <iframe
+              src={toEmbeddableVideoUrl(resolvedVideoUrl) ?? resolvedVideoUrl}
+              title={title || fallbackVideoTitle}
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           ) : (
             <video className="h-full w-full" controls playsInline preload="metadata">
               <source src={resolvedVideoUrl} />
@@ -210,10 +216,12 @@ function BlockMedia({
 
 function ContentBlocksSection({
   locale,
-  blocks
+  blocks,
+  t
 }: {
   locale: string;
   blocks: SectionContentBlockResponse[];
+  t: TranslateFn;
 }) {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
@@ -239,9 +247,10 @@ function ContentBlocksSection({
               className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm"
             >
               <BlockMedia
-                title={title || subtitle || 'Content'}
+                title={title || subtitle || t('contentLabel')}
                 imageUrl={block.imageUrl}
                 videoUrl={block.videoUrl}
+                fallbackVideoTitle={t('videoLabel')}
               />
 
               <div className="p-8 md:p-10">
@@ -277,7 +286,9 @@ function ItemCard({
   onOpen,
   featuredLabel,
   detailsLabel,
-  noImageLabel
+  noImageLabel,
+  itemLabel,
+  untitledLabel
 }: {
   locale: string;
   item: PublicSectionItemResponse;
@@ -285,9 +296,11 @@ function ItemCard({
   featuredLabel: string;
   detailsLabel: string;
   noImageLabel: string;
+  itemLabel: string;
+  untitledLabel: string;
 }) {
   const title =
-    getLocalizedValue(locale, item.titlePt, item.titleEn) || 'Untitled';
+    getLocalizedValue(locale, item.titlePt, item.titleEn) || untitledLabel;
 
   const shortDescription =
     getLocalizedValue(
@@ -302,44 +315,64 @@ function ItemCard({
     <button
       type="button"
       onClick={() => onOpen(item)}
-      className="group block w-full overflow-hidden rounded-[28px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+      className="group block w-full overflow-hidden rounded-[30px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative h-72 overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {itemImageUrl ? (
-          <Image
-            src={itemImageUrl}
-            alt={title}
-            fill
-            className="object-cover transition duration-700 group-hover:scale-110"
-          />
+          <>
+            <Image
+              src={itemImageUrl}
+              alt={title}
+              fill
+              className="object-cover transition duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+          </>
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-500">
+          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
             {noImageLabel}
           </div>
         )}
 
-        {item.isFeatured ? (
-          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-slate-950/90 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-lg">
-            <Star className="h-3.5 w-3.5" />
-            {featuredLabel}
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
+          {item.isFeatured ? (
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
+              <Star className="h-3.5 w-3.5" />
+              {featuredLabel}
+            </div>
+          ) : (
+            <div />
+          )}
+
+          <div className="rounded-full bg-slate-950/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur">
+            {detailsLabel}
           </div>
-        ) : null}
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 p-5">
+          <h3 className="text-2xl font-black tracking-[-0.03em] text-white drop-shadow-sm">
+            {title}
+          </h3>
+        </div>
       </div>
 
       <div className="space-y-4 p-6">
-        <h3 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
-          {title}
-        </h3>
-
         {shortDescription ? (
           <p className="line-clamp-3 text-base leading-7 text-slate-600">
             {shortDescription}
           </p>
-        ) : null}
+        ) : (
+          <p className="text-sm text-slate-400">{detailsLabel}</p>
+        )}
 
-        <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-          {detailsLabel}
-        </span>
+        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+            {itemLabel}
+          </span>
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+            {detailsLabel}
+          </span>
+        </div>
       </div>
     </button>
   );
@@ -351,7 +384,12 @@ function ProjectCard({
   onOpen,
   featuredLabel,
   detailsLabel,
-  noImageLabel
+  noImageLabel,
+  untitledLabel,
+  portfolioLabel,
+  portfolioProjectLabel,
+  visitProjectLabel,
+  notAvailableLabel
 }: {
   locale: string;
   project: PortfolioProjectResponse;
@@ -359,9 +397,14 @@ function ProjectCard({
   featuredLabel: string;
   detailsLabel: string;
   noImageLabel: string;
+  untitledLabel: string;
+  portfolioLabel: string;
+  portfolioProjectLabel: string;
+  visitProjectLabel: string;
+  notAvailableLabel: string;
 }) {
   const title =
-    getLocalizedValue(locale, project.titlePt, project.titleEn) || 'Untitled';
+    getLocalizedValue(locale, project.titlePt, project.titleEn) || untitledLabel;
 
   const shortDescription =
     getLocalizedValue(
@@ -376,44 +419,65 @@ function ProjectCard({
     <button
       type="button"
       onClick={() => onOpen(project)}
-      className="group block w-full overflow-hidden rounded-[30px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+      className="group block w-full overflow-hidden rounded-[30px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative h-80 overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {projectImageUrl ? (
-          <Image
-            src={projectImageUrl}
-            alt={title}
-            fill
-            className="object-cover transition duration-700 group-hover:scale-110"
-          />
+          <>
+            <Image
+              src={projectImageUrl}
+              alt={title}
+              fill
+              className="object-cover transition duration-700 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+          </>
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-500">
+          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
             {noImageLabel}
           </div>
         )}
 
-        {project.isFeatured ? (
-          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-slate-950/90 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-lg">
-            <Star className="h-3.5 w-3.5" />
-            {featuredLabel}
+        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
+          {project.isFeatured ? (
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
+              <Star className="h-3.5 w-3.5" />
+              {featuredLabel}
+            </div>
+          ) : (
+            <div />
+          )}
+
+          <div className="rounded-full bg-slate-950/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur">
+            {detailsLabel}
           </div>
-        ) : null}
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 p-5">
+          <h3 className="text-2xl font-black tracking-[-0.03em] text-white drop-shadow-sm">
+            {title}
+          </h3>
+        </div>
       </div>
 
       <div className="space-y-4 p-6">
-        <h3 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
-          {title}
-        </h3>
-
         {shortDescription ? (
           <p className="line-clamp-3 text-base leading-7 text-slate-600">
             {shortDescription}
           </p>
-        ) : null}
+        ) : (
+          <p className="text-sm text-slate-400">{portfolioProjectLabel}</p>
+        )}
 
-        <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
-          {detailsLabel}
-        </span>
+        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+            {portfolioLabel}
+          </span>
+
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+            {project.projectUrl ? visitProjectLabel : notAvailableLabel}
+          </span>
+        </div>
       </div>
     </button>
   );
@@ -426,7 +490,11 @@ function CategorySection({
   noImageLabel,
   featuredLabel,
   detailsLabel,
-  onOpenItem
+  onOpenItem,
+  categoryLabel,
+  itemLabel,
+  untitledLabel,
+  emptyCategoryItemsLabel
 }: {
   locale: string;
   category: SectionCategoryResponse;
@@ -435,9 +503,13 @@ function CategorySection({
   featuredLabel: string;
   detailsLabel: string;
   onOpenItem: (item: PublicSectionItemResponse) => void;
+  categoryLabel: string;
+  itemLabel: string;
+  untitledLabel: string;
+  emptyCategoryItemsLabel: string;
 }) {
   const title =
-    getLocalizedValue(locale, category.namePt, category.nameEn) || 'Category';
+    getLocalizedValue(locale, category.namePt, category.nameEn) || categoryLabel;
 
   const description =
     getLocalizedValue(
@@ -446,30 +518,18 @@ function CategorySection({
       category.descriptionEn
     ) || '';
 
-  const categoryImageUrl = resolveMediaUrl(category.imageUrl);
-
   return (
     <motion.div variants={fadeUp} className="space-y-7">
-      <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
-        <div className="grid gap-0 lg:grid-cols-[320px_1fr]">
-          <div className="relative min-h-[220px] bg-slate-100">
-            {categoryImageUrl ? (
-              <Image
-                src={categoryImageUrl}
-                alt={title}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-slate-500">
-                {noImageLabel}
-              </div>
-            )}
-          </div>
+      <div className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm md:p-10">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
+              <Layers3 className="h-4 w-4" />
+              {categoryLabel}
+            </div>
 
-          <div className="p-8">
             <h3 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
-              {title}
+              {title || untitledLabel}
             </h3>
 
             {description ? (
@@ -477,6 +537,10 @@ function CategorySection({
                 {description}
               </p>
             ) : null}
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+            {items.length}
           </div>
         </div>
       </div>
@@ -492,10 +556,16 @@ function CategorySection({
               featuredLabel={featuredLabel}
               detailsLabel={detailsLabel}
               noImageLabel={noImageLabel}
+              itemLabel={itemLabel}
+              untitledLabel={untitledLabel}
             />
           ))}
         </div>
-      ) : null}
+      ) : (
+        <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
+          {emptyCategoryItemsLabel}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -567,6 +637,10 @@ function ItemModal({
       item.specificationsEn
     ) || '';
 
+  const hasShortDescription = hasMeaningfulText(shortDescription);
+  const hasFullDescription = hasMeaningfulText(fullDescription);
+  const hasSpecifications = hasMeaningfulText(specifications);
+
   return (
     <AnimatePresence>
       <motion.div
@@ -589,6 +663,7 @@ function ItemModal({
             <button
               type="button"
               onClick={onClose}
+              aria-label={t('close') }
               className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
             >
               <CircleX className="h-5 w-5" />
@@ -624,45 +699,45 @@ function ItemModal({
                 ) : null}
               </div>
 
-              {shortDescription ? (
-                <p className="text-lg leading-8 text-slate-700">
+              {hasShortDescription ? (
+                <p className="break-words text-lg leading-8 text-slate-700 [overflow-wrap:anywhere]">
                   {shortDescription}
                 </p>
               ) : null}
 
-              <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-                <div>
-                  <h4 className="text-2xl font-black text-slate-950">
-                    {t('details')}
-                  </h4>
+              {hasFullDescription || hasSpecifications ? (
+                <div
+                  className={`grid gap-8 ${
+                    hasFullDescription && hasSpecifications
+                      ? 'lg:grid-cols-[minmax(0,1.2fr)_320px]'
+                      : ''
+                  }`}
+                >
+                  {hasFullDescription ? (
+                    <div className="min-w-0">
+                      <h4 className="text-2xl font-black text-slate-950">
+                        {t('details')}
+                      </h4>
 
-                  {fullDescription ? (
-                    <div className="mt-4 whitespace-pre-line text-base leading-8 text-slate-600">
-                      {fullDescription}
+                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-slate-600 [overflow-wrap:anywhere]">
+                        {fullDescription}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="mt-4 text-base leading-8 text-slate-500">
-                      {t('noContentYet')}
-                    </p>
-                  )}
-                </div>
+                  ) : null}
 
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                  <h4 className="text-xl font-black text-slate-950">
-                    {t('specifications')}
-                  </h4>
+                  {hasSpecifications ? (
+                    <div className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+                      <h4 className="text-xl font-black text-slate-950">
+                        {t('specifications')}
+                      </h4>
 
-                  {specifications ? (
-                    <div className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
-                      {specifications}
+                      <div className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-slate-600 [overflow-wrap:anywhere]">
+                        {specifications}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="mt-4 text-sm leading-7 text-slate-500">
-                      {t('specificationsNotAvailable')}
-                    </p>
-                  )}
+                  ) : null}
                 </div>
-              </div>
+              ) : null}
             </div>
           </div>
         </motion.div>
@@ -706,6 +781,12 @@ function ProjectModal({
     ? new Date(project.projectDate).toLocaleDateString()
     : '';
 
+  const hasShortDescription = hasMeaningfulText(shortDescription);
+  const hasFullDescription = hasMeaningfulText(fullDescription);
+  const hasClient = hasMeaningfulText(project.clientName);
+  const hasProjectDate = hasMeaningfulText(projectDate);
+  const hasLocation = hasMeaningfulText(location);
+
   const projectImageUrl = resolveMediaUrl(project.coverImageUrl);
   const projectVideoUrl = resolveMediaUrl(project.videoUrl);
 
@@ -731,6 +812,7 @@ function ProjectModal({
             <button
               type="button"
               onClick={onClose}
+              aria-label={t('close') }
               className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
             >
               <CircleX className="h-5 w-5" />
@@ -753,7 +835,7 @@ function ProjectModal({
               <div className="aspect-video w-full bg-black">
                 {isEmbeddableVideoUrl(projectVideoUrl) ? (
                   <iframe
-                    src={projectVideoUrl}
+                    src={toEmbeddableVideoUrl(projectVideoUrl) ?? projectVideoUrl}
                     title={title}
                     className="h-full w-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -782,65 +864,75 @@ function ProjectModal({
                 ) : null}
               </div>
 
-              {shortDescription ? (
-                <p className="text-lg leading-8 text-slate-700">
+              {hasShortDescription ? (
+                <p className="break-words text-lg leading-8 text-slate-700 [overflow-wrap:anywhere]">
                   {shortDescription}
                 </p>
               ) : null}
 
-              <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-                <div>
-                  <h4 className="text-2xl font-black text-slate-950">
-                    {t('details')}
-                  </h4>
+              {hasFullDescription || hasClient || hasProjectDate || hasLocation ? (
+                <div
+                  className={`grid gap-8 ${
+                    hasFullDescription && (hasClient || hasProjectDate || hasLocation)
+                      ? 'lg:grid-cols-[minmax(0,1.2fr)_320px]'
+                      : ''
+                  }`}
+                >
+                  {hasFullDescription ? (
+                    <div className="min-w-0">
+                      <h4 className="text-2xl font-black text-slate-950">
+                        {t('details')}
+                      </h4>
 
-                  {fullDescription ? (
-                    <div className="mt-4 whitespace-pre-line text-base leading-8 text-slate-600">
-                      {fullDescription}
+                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-slate-600 [overflow-wrap:anywhere]">
+                        {fullDescription}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="mt-4 text-base leading-8 text-slate-500">
-                      {t('noContentYet')}
-                    </p>
-                  )}
+                  ) : null}
+
+                  {hasClient || hasProjectDate || hasLocation ? (
+                    <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+                      <h4 className="text-xl font-black text-slate-950">
+                        {t('projectInfo')}
+                      </h4>
+
+                      {hasClient ? (
+                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
+                          <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-800">{t('client')}</p>
+                            <p className="break-words [overflow-wrap:anywhere]">
+                              {project.clientName}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {hasProjectDate ? (
+                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
+                          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-800">{t('date')}</p>
+                            <p>{projectDate}</p>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {hasLocation ? (
+                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-800">{t('location')}</p>
+                            <p className="break-words [overflow-wrap:anywhere]">
+                              {location}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
-
-                <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                  <h4 className="text-xl font-black text-slate-950">
-                    {t('projectInfo')}
-                  </h4>
-
-                  {project.clientName ? (
-                    <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                      <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-                      <div>
-                        <p className="font-semibold text-slate-800">{t('client')}</p>
-                        <p>{project.clientName}</p>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {projectDate ? (
-                    <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                      <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-                      <div>
-                        <p className="font-semibold text-slate-800">{t('date')}</p>
-                        <p>{projectDate}</p>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {location ? (
-                    <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
-                      <div>
-                        <p className="font-semibold text-slate-800">{t('location')}</p>
-                        <p>{location}</p>
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+              ) : null}
             </div>
           </div>
         </motion.div>
@@ -852,6 +944,7 @@ function ProjectModal({
 export default function PublicSectionPage({locale, data}: Props) {
   const t = useTranslations('PublicSite');
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | 'uncategorized' | null>(null);
 
   const sectionTitle = useMemo(
     () =>
@@ -875,6 +968,42 @@ export default function PublicSectionPage({locale, data}: Props) {
     [data.items]
   );
 
+  const effectiveSelectedCategoryId = useMemo(() => {
+    if (selectedCategoryId !== null) {
+      return selectedCategoryId;
+    }
+
+    if (data.categories.length > 0) {
+      return data.categories[0].id;
+    }
+
+    if (uncategorizedItems.length > 0) {
+      return 'uncategorized';
+    }
+
+    return null;
+  }, [selectedCategoryId, data.categories, uncategorizedItems]);
+
+  const selectedCategory = useMemo(() => {
+    if (typeof effectiveSelectedCategoryId !== 'number') {
+      return null;
+    }
+
+    return data.categories.find((category) => category.id === effectiveSelectedCategoryId) ?? null;
+  }, [data.categories, effectiveSelectedCategoryId]);
+
+  const selectedCategoryItems = useMemo(() => {
+    if (effectiveSelectedCategoryId === 'uncategorized') {
+      return uncategorizedItems;
+    }
+
+    if (typeof effectiveSelectedCategoryId === 'number') {
+      return data.items.filter((item) => item.categoryId === effectiveSelectedCategoryId);
+    }
+
+    return [];
+  }, [effectiveSelectedCategoryId, data.items, uncategorizedItems]);
+
   return (
     <main className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
       <SectionHero
@@ -887,17 +1016,8 @@ export default function PublicSectionPage({locale, data}: Props) {
 
       {data.section.sectionType === 'CONTENT' ? (
         data.contentBlocks.length ? (
-          <ContentBlocksSection locale={locale} blocks={data.contentBlocks} />
-        ) : (
-          <section className="mx-auto max-w-4xl px-6 py-20">
-            <div className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-              <FileText className="mx-auto h-10 w-10 text-slate-400" />
-              <h2 className="mt-5 text-3xl font-black text-slate-950">
-                {t('noContentYet')}
-              </h2>
-            </div>
-          </section>
-        )
+          <ContentBlocksSection locale={locale} blocks={data.contentBlocks} t={t} />
+        ) : null
       ) : null}
 
       {data.section.sectionType === 'CATEGORY_ITEMS' ? (
@@ -907,63 +1027,144 @@ export default function PublicSectionPage({locale, data}: Props) {
             whileInView={{opacity: 1, y: 0}}
             viewport={{once: true, amount: 0.2}}
             transition={{duration: 0.6}}
-            className="mb-12 flex items-center gap-3"
+            className="mb-10 flex items-center gap-3"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-text)] text-[var(--color-background)]">
               <Layers3 className="h-5 w-5" />
             </div>
+
             <div>
-              <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
+              <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
                 {t('categoriesAndItems')}
               </h2>
-              <p className="mt-1 text-slate-600">
+              <p className="mt-1 text-[var(--color-text-muted)]">
                 {t('categoriesAndItemsDescription')}
               </p>
             </div>
           </motion.div>
 
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{once: true, amount: 0.12}}
-            className="space-y-14"
-          >
-            {data.categories.map((category) => (
-              <CategorySection
-                key={category.id}
-                locale={locale}
-                category={category}
-                items={data.items.filter((item) => item.categoryId === category.id)}
-                noImageLabel={t('noImage')}
-                featuredLabel={t('featured')}
-                detailsLabel={t('details')}
-                onOpenItem={(item) => setActiveModal({type: 'item', item})}
-              />
-            ))}
+          {(data.categories.length > 0 || uncategorizedItems.length > 0) ? (
+            <motion.div
+              initial={{opacity: 0, y: 20}}
+              whileInView={{opacity: 1, y: 0}}
+              viewport={{once: true, amount: 0.2}}
+              transition={{duration: 0.5}}
+              className="mb-10 flex flex-wrap gap-3"
+            >
+              {data.categories.map((category) => {
+                const label =
+                  getLocalizedValue(locale, category.namePt, category.nameEn) ||
+                  t('categoryLabel');
 
-            {uncategorizedItems.length ? (
-              <motion.div variants={fadeUp} className="space-y-7">
-                <h3 className="text-2xl font-black text-slate-950">
-                  {t('uncategorized')}
-                </h3>
+                const isActive = effectiveSelectedCategoryId === category.id;
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {uncategorizedItems.map((item) => (
-                    <ItemCard
-                      key={item.id}
-                      locale={locale}
-                      item={item}
-                      onOpen={(value) => setActiveModal({type: 'item', item: value})}
-                      featuredLabel={t('featured')}
-                      detailsLabel={t('details')}
-                      noImageLabel={t('noImage')}
-                    />
-                  ))}
+                return (
+                 <button
+  key={category.id}
+  type="button"
+  onClick={() => setSelectedCategoryId(category.id)}
+  className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-5 py-3 text-base font-semibold transition ${
+    isActive
+      ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]'
+      : 'border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
+  }`}
+>
+  <span>{label}</span>
+</button>
+                );
+              })}
+
+              {uncategorizedItems.length ? (
+                <button
+  type="button"
+  onClick={() => setSelectedCategoryId('uncategorized')}
+  className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-5 py-3 text-base font-semibold transition ${
+    effectiveSelectedCategoryId === 'uncategorized'
+      ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]'
+      : 'border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
+  }`}
+>
+  <span>{t('uncategorized')}</span>
+</button>
+              ) : null}
+            </motion.div>
+          ) : null}
+
+          {selectedCategory ? (
+            <motion.div
+  initial={{opacity: 0, y: 20}}
+  whileInView={{opacity: 1, y: 0}}
+  viewport={{once: true, amount: 0.2}}
+  transition={{duration: 0.5}}
+  className="mb-8 flex flex-wrap gap-3"
+>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                    <Layers3 className="h-3.5 w-3.5" />
+                    {t('categoryLabel')}
+                  </div>
+
+                  <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
+                    {getLocalizedValue(
+                      locale,
+                      selectedCategory.namePt,
+                      selectedCategory.nameEn
+                    ) || t('categoryLabel')}
+                  </h3>
+
+                  {hasMeaningfulText(
+                    getLocalizedValue(
+                      locale,
+                      selectedCategory.descriptionPt,
+                      selectedCategory.descriptionEn
+                    )
+                  ) ? (
+                    <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--color-text-muted)]">
+                      {getLocalizedValue(
+                        locale,
+                        selectedCategory.descriptionPt,
+                        selectedCategory.descriptionEn
+                      )}
+                    </p>
+                  ) : null}
                 </div>
-              </motion.div>
-            ) : null}
-          </motion.div>
+
+                <div className="inline-flex h-12 min-w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 text-sm font-bold text-[var(--color-text)]">
+                  {selectedCategoryItems.length}
+                </div>
+              </div>
+            </motion.div>
+          ) : null}
+
+          {selectedCategoryItems.length ? (
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+            >
+              {selectedCategoryItems.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  locale={locale}
+                  item={item}
+                  onOpen={(value) => setActiveModal({type: 'item', item: value})}
+                  featuredLabel={t('featured')}
+                  detailsLabel={t('details')}
+                  noImageLabel={t('noImage')}
+                  itemLabel={t('itemLabel')}
+                  untitledLabel={t('untitled')}
+                />
+              ))}
+            </motion.div>
+          ) : selectedCategory || effectiveSelectedCategoryId === 'uncategorized' ? (
+            <div className="rounded-[28px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-10 text-center">
+              <h3 className="text-2xl font-black text-[var(--color-text)]">
+                {t('noItemsYet')}
+              </h3>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -1004,6 +1205,8 @@ export default function PublicSectionPage({locale, data}: Props) {
                     featuredLabel={t('featured')}
                     detailsLabel={t('details')}
                     noImageLabel={t('noImage')}
+                    itemLabel={t('itemLabel')}
+                    untitledLabel={t('untitled')}
                   />
                 </motion.div>
               ))}
@@ -1060,6 +1263,11 @@ export default function PublicSectionPage({locale, data}: Props) {
                     featuredLabel={t('featured')}
                     detailsLabel={t('details')}
                     noImageLabel={t('noImage')}
+                    untitledLabel={t('untitled')}
+                    portfolioLabel={t('portfolioLabel')}
+                    portfolioProjectLabel={t('portfolioProjectLabel')}
+                    visitProjectLabel={t('visitProject')}
+                    notAvailableLabel={t('notAvailable')}
                   />
                 </motion.div>
               ))}

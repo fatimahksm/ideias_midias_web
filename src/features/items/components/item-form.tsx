@@ -777,12 +777,14 @@ export default function ItemForm({
               name="coverImageUrl"
               control={control}
               render={({field}) => (
-                <MediaUploadField
-                  label={t('imageLabel')}
-                  value={field.value || ''}
-                  type="IMAGE"
-                  onChange={field.onChange}
-                />
+            <MediaUploadField
+  label={t('imagePreview')}
+  value={field.value}
+  type="IMAGE"
+  onChange={field.onChange}
+  cropAspect={4 / 3}
+  cropShape="rect"
+/>
               )}
             />
 

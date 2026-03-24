@@ -5,7 +5,6 @@ export type SectionCategoryResponse = {
   nameEn: string;
   descriptionPt?: string | null;
   descriptionEn?: string | null;
-  imageUrl?: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt?: string;
@@ -18,7 +17,6 @@ export type SectionCategoryPayload = {
   nameEn: string;
   descriptionPt?: string | null;
   descriptionEn?: string | null;
-  imageUrl?: string | null;
   isActive: boolean;
   sortOrder: number;
 };

@@ -422,11 +422,13 @@ export default function SiteSettingsForm() {
               name="logoUrl"
               render={({field}) => (
                 <MediaUploadField
-                  label={sectionsT('logoPreview')}
-                  value={field.value}
-                  type="IMAGE"
-                  onChange={field.onChange}
-                />
+  label={sectionsT('logoPreview')}
+  value={field.value}
+  type="IMAGE"
+  onChange={field.onChange}
+  cropAspect={1}
+  cropShape="rect"
+/>
               )}
             />
           </div>
@@ -551,12 +553,14 @@ export default function SiteSettingsForm() {
               control={control}
               name="heroBackgroundUrl"
               render={({field}) => (
-                <MediaUploadField
-                  label={sectionsT('heroPreview')}
-                  value={field.value}
-                  type={heroBackgroundType === 'VIDEO' ? 'VIDEO' : 'IMAGE'}
-                  onChange={field.onChange}
-                />
+              <MediaUploadField
+  label={sectionsT('heroPreview')}
+  value={field.value}
+  type={heroBackgroundType === 'VIDEO' ? 'VIDEO' : 'IMAGE'}
+  onChange={field.onChange}
+  cropAspect={16 / 9}
+  cropShape="rect"
+/>
               )}
             />
           </div>

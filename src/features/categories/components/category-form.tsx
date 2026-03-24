@@ -12,9 +12,7 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {Textarea} from '@/components/ui/textarea';
-import {MediaUploadField} from '@/features/media-library/components/media-upload-field';
 import {getAllSections} from '@/features/sections/api';
-import type {SectionResponse} from '@/features/sections/types';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {
@@ -177,7 +175,6 @@ export default function CategoryForm({
       nameEn: '',
       descriptionPt: '',
       descriptionEn: '',
-      imageUrl: '',
       isActive: true,
       sortOrder: 0
     }
@@ -229,7 +226,6 @@ export default function CategoryForm({
         nameEn: savedCategory.nameEn,
         descriptionPt: savedCategory.descriptionPt ?? '',
         descriptionEn: savedCategory.descriptionEn ?? '',
-        imageUrl: savedCategory.imageUrl ?? '',
         isActive: savedCategory.isActive,
         sortOrder: savedCategory.sortOrder
       });
@@ -251,7 +247,6 @@ export default function CategoryForm({
       nameEn: category.nameEn,
       descriptionPt: category.descriptionPt ?? '',
       descriptionEn: category.descriptionEn ?? '',
-      imageUrl: category.imageUrl ?? '',
       isActive: category.isActive,
       sortOrder: category.sortOrder
     });
@@ -331,7 +326,6 @@ export default function CategoryForm({
       nameEn: values.nameEn.trim(),
       descriptionPt: emptyToNull(values.descriptionPt),
       descriptionEn: emptyToNull(values.descriptionEn),
-      imageUrl: emptyToNull(values.imageUrl),
       isActive: values.isActive,
       sortOrder: values.sortOrder
     };
@@ -527,24 +521,6 @@ export default function CategoryForm({
                 hint={t('descriptionEnHint')}
               />
             }
-          />
-        </SettingsCard>
-
-        <SettingsCard
-          title={t('mediaCardTitle')}
-          description={t('mediaCardDescription')}
-        >
-          <Controller
-            name="imageUrl"
-            control={control}
-            render={({field}) => (
-              <MediaUploadField
-                label={t('imageLabel')}
-                value={field.value || ''}
-                type="IMAGE"
-                onChange={field.onChange}
-              />
-            )}
           />
         </SettingsCard>
 

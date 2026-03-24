@@ -1,4 +1,7 @@
 export type PortfolioProjectResponse = {
+  summaryPt(locale: string, summaryPt: any, summaryEn: any): unknown;
+  summaryEn(locale: string, summaryPt: any, summaryEn: any): unknown;
+  projectUrl: any;
   id: number;
   sectionId: number;
 

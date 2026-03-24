@@ -12,11 +12,7 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
 import {getAllSections} from '@/features/sections/api';
-import {
-  deleteCategory,
-  getAllCategories,
-  updateCategory
-} from '../api';
+import {deleteCategory, getAllCategories, updateCategory} from '../api';
 import type {SectionCategoryPayload, SectionCategoryResponse} from '../types';
 import {emptyToNull} from '../utils';
 import {CategoryCard} from './category-card';
@@ -115,7 +111,6 @@ export default function CategoriesManager({
         nameEn: item.nameEn,
         descriptionPt: emptyToNull(item.descriptionPt),
         descriptionEn: emptyToNull(item.descriptionEn),
-        imageUrl: emptyToNull(item.imageUrl),
         isActive: !item.isActive,
         sortOrder: item.sortOrder
       };

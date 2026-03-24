@@ -10,21 +10,34 @@ import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {uploadMedia} from '../api';
 import type {MediaFileType} from '../types';
 import {resolveMediaUrl} from '../utils';
+import {ImageCropModal} from './image-crop-modal';
 
 type Props = {
   label: string;
   value?: string | null;
   type: MediaFileType;
   onChange: (value: string | null) => void;
+  cropAspect?: number;
+  cropShape?: 'rect' | 'round';
 };
 
-export function MediaUploadField({label, value, type, onChange}: Props) {
+export function MediaUploadField({
+  label,
+  value,
+  type,
+  onChange,
+  cropAspect = 4 / 3,
+  cropShape = 'rect'
+}: Props) {
   const t = useTranslations('MediaUploadField');
+  const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [localError, setLocalError] = useState('');
   const [tempPreviewUrl, setTempPreviewUrl] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [isCropOpen, setIsCropOpen] = useState(false);
 
   const uploadMutation = useMutation({
     mutationFn: uploadMedia
@@ -34,6 +47,8 @@ export function MediaUploadField({label, value, type, onChange}: Props) {
     return tempPreviewUrl || resolveMediaUrl(value);
   }, [tempPreviewUrl, value]);
 
+  const hasPreview = Boolean(previewUrl);
+
   useEffect(() => {
     return () => {
       if (tempPreviewUrl?.startsWith('blob:')) {
@@ -41,6 +56,21 @@ export function MediaUploadField({label, value, type, onChange}: Props) {
       }
     };
   }, [tempPreviewUrl]);
+
+  function resetInputValue() {
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
+  }
+
+  function replaceTempPreview(nextUrl: string | null) {
+    setTempPreviewUrl((previous) => {
+      if (previous?.startsWith('blob:')) {
+        URL.revokeObjectURL(previous);
+      }
+      return nextUrl;
+    });
+  }
 
   function validateFile(file: File) {
     if (type === 'IMAGE' && !file.type.startsWith('image/')) {
@@ -54,30 +84,12 @@ export function MediaUploadField({label, value, type, onChange}: Props) {
     return '';
   }
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const validationError = validateFile(file);
-
-    if (validationError) {
-      setLocalError(validationError);
-      if (inputRef.current) {
-        inputRef.current.value = '';
-      }
-      return;
-    }
-
+  async function uploadSelectedFile(file: File, optimisticPreviewUrl?: string | null) {
     setLocalError('');
 
-    const blobUrl = URL.createObjectURL(file);
-
-    setTempPreviewUrl((previous) => {
-      if (previous?.startsWith('blob:')) {
-        URL.revokeObjectURL(previous);
-      }
-      return blobUrl;
-    });
+    if (optimisticPreviewUrl) {
+      replaceTempPreview(optimisticPreviewUrl);
+    }
 
     try {
       const uploaded = await uploadMutation.mutateAsync(file);
@@ -87,87 +99,132 @@ export function MediaUploadField({label, value, type, onChange}: Props) {
       }
 
       onChange(uploaded.fileUrl);
-
-      setTempPreviewUrl((previous) => {
-        if (previous?.startsWith('blob:')) {
-          URL.revokeObjectURL(previous);
-        }
-        return null;
-      });
+      replaceTempPreview(null);
     } catch (error) {
       const appError = toAppError(error);
       setLocalError(
         getErrorMessage(appError, (key) => errorT(key)) || t('uploadFailed')
       );
     } finally {
-      if (inputRef.current) {
-        inputRef.current.value = '';
-      }
+      resetInputValue();
     }
+  }
+
+  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validationError = validateFile(file);
+
+    if (validationError) {
+      setLocalError(validationError);
+      resetInputValue();
+      return;
+    }
+
+    setLocalError('');
+
+    if (type === 'IMAGE') {
+      setCropFile(file);
+      setIsCropOpen(true);
+      return;
+    }
+
+    const blobUrl = URL.createObjectURL(file);
+    await uploadSelectedFile(file, blobUrl);
+  }
+
+  async function handleApplyCrop(croppedFile: File, croppedPreviewUrl: string) {
+    await uploadSelectedFile(croppedFile, croppedPreviewUrl);
+    setCropFile(null);
+    setIsCropOpen(false);
+  }
+
+  function handleCloseCrop() {
+    setCropFile(null);
+    setIsCropOpen(false);
+    resetInputValue();
   }
 
   function handleRemove() {
     setLocalError('');
-
-    setTempPreviewUrl((previous) => {
-      if (previous?.startsWith('blob:')) {
-        URL.revokeObjectURL(previous);
-      }
-      return null;
-    });
-
+    setCropFile(null);
+    setIsCropOpen(false);
+    replaceTempPreview(null);
     onChange(null);
-
-    if (inputRef.current) {
-      inputRef.current.value = '';
-    }
+    resetInputValue();
   }
 
   return (
-    <div className="space-y-3">
-      <MediaPreview
-        label={label}
-        url={previewUrl}
-        type={type === 'VIDEO' ? 'video' : 'image'}
-        emptyText={t('noFileSelected')}
-      />
-
-      <div className="flex flex-wrap gap-3">
-        <input
-          ref={inputRef}
-          type="file"
-          accept={type === 'IMAGE' ? 'image/*' : 'video/*'}
-          onChange={handleFileChange}
-          className="hidden"
-          id={`${label}-${type}-upload`}
+    <>
+      <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <MediaPreview
+          label={label}
+          url={previewUrl}
+          type={type === 'VIDEO' ? 'video' : 'image'}
+          emptyText={t('noFileSelected')}
         />
 
-        <Button
-          type="button"
-          variant="outline"
-          isLoading={uploadMutation.isPending}
-          loadingText={t('uploading')}
-          onClick={() => inputRef.current?.click()}
-        >
-          {value || tempPreviewUrl
-            ? type === 'IMAGE'
-              ? t('replaceImage')
-              : t('replaceVideo')
-            : type === 'IMAGE'
-              ? t('uploadImage')
-              : t('uploadVideo')}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <input
+            ref={inputRef}
+            type="file"
+            accept={type === 'IMAGE' ? 'image/*' : 'video/*'}
+            onChange={handleFileChange}
+            className="hidden"
+            id={`${label}-${type}-upload`}
+          />
 
-        {value || tempPreviewUrl ? (
-          <Button type="button" variant="ghost" onClick={handleRemove}>
-            {t('remove')}
+          <Button
+            type="button"
+            variant="outline"
+            isLoading={uploadMutation.isPending}
+            loadingText={t('uploading')}
+            onClick={() => inputRef.current?.click()}
+          >
+            {hasPreview
+              ? type === 'IMAGE'
+                ? t('replaceImage')
+                : t('replaceVideo')
+              : type === 'IMAGE'
+                ? t('uploadImage')
+                : t('uploadVideo')}
           </Button>
+
+          {hasPreview ? (
+            <Button type="button" variant="ghost" onClick={handleRemove}>
+              {t('remove')}
+            </Button>
+          ) : null}
+        </div>
+
+        {localError ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {localError}
+          </div>
         ) : null}
       </div>
 
-      {localError ? (
-        <p className="text-sm text-red-600">{localError}</p>
-      ) : null}
-    </div>
+      <ImageCropModal
+        open={isCropOpen}
+        file={cropFile}
+        title={t('cropTitle')}
+        description={t('cropDescription')}
+        zoomLabel={t('cropZoomLabel')}
+        resetLabel={t('cropReset')}
+        cancelLabel={common('cancel')}
+        confirmLabel={t('cropConfirm')}
+        helperText={t('cropHelperText')}
+        loadImageErrorText={t('cropLoadImageError')}
+        cropCanvasErrorText={t('cropCanvasError')}
+        generateBlobErrorText={t('cropGenerateBlobError')}
+        cropFailedErrorText={t('cropFailed')}
+        aspect={cropAspect}
+        cropShape={cropShape}
+        isApplying={uploadMutation.isPending}
+        onClose={handleCloseCrop}
+        onApply={handleApplyCrop}
+      />
+    </>
   );
 }

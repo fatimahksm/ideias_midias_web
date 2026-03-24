@@ -23,6 +23,7 @@ import type {
   PortfolioProjectMediaType
 } from '../types';
 import {emptyToNull} from '../utils';
+import {PortfolioProjectMediaBulkUploader} from './portfolio-project-media-bulk-uploader';
 import {PortfolioProjectMediaCard} from './portfolio-project-media-card';
 
 type Props = {
@@ -131,10 +132,15 @@ export default function PortfolioProjectMediaManager({projectId}: Props) {
 
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
-  const items = useMemo(() => {
-    const base = mediaQuery.data ?? [];
+  const allMedia = mediaQuery.data ?? [];
 
-    const filtered = base.filter((item) => {
+  const nextSortOrder = useMemo(() => {
+    if (!allMedia.length) return 0;
+    return Math.max(...allMedia.map((item) => item.sortOrder ?? 0)) + 1;
+  }, [allMedia]);
+
+  const items = useMemo(() => {
+    const filtered = allMedia.filter((item) => {
       const matchesStatus =
         statusFilter === 'ALL' ||
         (statusFilter === 'ACTIVE' && item.isActive) ||
@@ -154,7 +160,7 @@ export default function PortfolioProjectMediaManager({projectId}: Props) {
 
       return a.sortOrder - b.sortOrder || a.id - b.id;
     });
-  }, [mediaQuery.data, statusFilter, typeFilter, sortBy]);
+  }, [allMedia, statusFilter, typeFilter, sortBy]);
 
   async function handleDelete(item: PortfolioProjectMediaResponse) {
     const confirmed = window.confirm(t('deleteConfirm'));
@@ -169,18 +175,26 @@ export default function PortfolioProjectMediaManager({projectId}: Props) {
     await toggleStatusMutation.mutateAsync(item);
   }
 
+  async function handleBulkCompleted() {
+    setFeedbackTone('success');
+    setFeedback(t('bulkUploadSuccess'));
+    await queryClient.invalidateQueries({
+      queryKey: ['portfolio-project-media', 'project', projectId]
+    });
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <StatCard label={t('stats.total')} value={(mediaQuery.data ?? []).length} />
+        <StatCard label={t('stats.total')} value={allMedia.length} />
         <StatCard
           label={t('stats.active')}
-          value={(mediaQuery.data ?? []).filter((item) => item.isActive).length}
+          value={allMedia.filter((item) => item.isActive).length}
           tone="emerald"
         />
         <StatCard
           label={t('stats.images')}
-          value={(mediaQuery.data ?? []).filter((item) => item.mediaType === 'IMAGE').length}
+          value={allMedia.filter((item) => item.mediaType === 'IMAGE').length}
           tone="blue"
         />
       </div>
@@ -192,31 +206,39 @@ export default function PortfolioProjectMediaManager({projectId}: Props) {
           </p>
           <p className="mt-1 text-sm text-slate-500">
             {projectQuery.data
-              ? t('studioSubtitleWithProject', {project: projectQuery.data.titleEn})
+              ? t('studioSubtitleWithProject', {
+                  project: projectQuery.data.titleEn
+                })
               : t('studioSubtitle')}
           </p>
         </div>
 
-       <div className="flex flex-wrap gap-2">
-  {projectQuery.data?.sectionId ? (
-    <Link href={`/admin/sections/${projectQuery.data.sectionId}`}>
-      <Button type="button" variant="outline">
-        {t('backToWorkspace')}
-      </Button>
-    </Link>
-  ) : null}
+        <div className="flex flex-wrap gap-2">
+          {projectQuery.data?.sectionId ? (
+            <Link href={`/admin/sections/${projectQuery.data.sectionId}`}>
+              <Button type="button" variant="outline">
+                {t('backToWorkspace')}
+              </Button>
+            </Link>
+          ) : null}
 
-  <Link href={`/admin/portfolio-projects/${projectId}/edit`}>
-    <Button type="button" variant="outline">
-      {t('backToProject')}
-    </Button>
-  </Link>
+          <Link href={`/admin/portfolio-projects/${projectId}/edit`}>
+            <Button type="button" variant="outline">
+              {t('backToProject')}
+            </Button>
+          </Link>
 
-  <Link href={`/admin/portfolio-projects/${projectId}/media/new`}>
-    <Button type="button">{t('createMedia')}</Button>
-  </Link>
-</div>
+          <Link href={`/admin/portfolio-projects/${projectId}/media/new`}>
+            <Button type="button">{t('createMedia')}</Button>
+          </Link>
+        </div>
       </div>
+
+      <PortfolioProjectMediaBulkUploader
+        projectId={projectId}
+        nextSortOrder={nextSortOrder}
+        onCompleted={handleBulkCompleted}
+      />
 
       <div className="grid gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:grid-cols-3">
         <Select
@@ -295,7 +317,9 @@ export default function PortfolioProjectMediaManager({projectId}: Props) {
             <PortfolioProjectMediaCard
               key={item.id}
               item={item}
-              linkedProject={projectQuery.data as PortfolioProjectResponse | undefined}
+              linkedProject={
+                projectQuery.data as PortfolioProjectResponse | undefined
+              }
               canDelete={canDelete}
               isDeleting={
                 deleteMutation.isPending && deleteMutation.variables === item.id

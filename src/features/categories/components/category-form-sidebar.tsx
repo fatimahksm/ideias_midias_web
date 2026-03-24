@@ -1,7 +1,6 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
-import {resolveMediaUrl} from '@/features/media-library/utils';
 import type {SectionResponse} from '@/features/sections/types';
 import type {CategoryFormValues} from '../schema';
 
@@ -12,7 +11,6 @@ type Props = {
 
 export function CategoryFormSidebar({values, linkedSection}: Props) {
   const t = useTranslations('CategoryForm');
-  const imageUrl = resolveMediaUrl(values.imageUrl);
 
   return (
     <div className="space-y-5 xl:sticky xl:top-6">
@@ -66,33 +64,43 @@ export function CategoryFormSidebar({values, linkedSection}: Props) {
         </div>
 
         <div className="p-5">
-          <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-50">
-            <div className="h-44 bg-slate-100">
-              {imageUrl ? (
-                <img
-                  src={imageUrl}
-                  alt={values.nameEn || t('untitledCategory')}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center px-6 text-center text-sm text-slate-500">
-                  {t('noImageSelected')}
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+            <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h4 className="truncate text-base font-semibold text-slate-900">
+                    {values.nameEn || t('untitledCategory')}
+                  </h4>
+                  <p className="mt-1 truncate text-sm text-slate-500">
+                    {values.namePt || t('untitledCategoryPt')}
+                  </p>
                 </div>
-              )}
-            </div>
 
-            <div className="space-y-2 p-4">
-              <h4 className="text-base font-semibold text-slate-900">
-                {values.nameEn || t('untitledCategory')}
-              </h4>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                    values.isActive
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {values.isActive ? t('statusActive') : t('statusInactive')}
+                </span>
+              </div>
+
               <p className="line-clamp-3 text-sm leading-6 text-slate-600">
                 {values.descriptionEn ||
                   values.descriptionPt ||
                   t('noDescriptionYet')}
               </p>
-              <p className="text-xs font-medium text-slate-500">
-                {linkedSection?.nameEn || t('noSectionLinked')}
-              </p>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+                  {linkedSection?.nameEn || t('noSectionLinked')}
+                </span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
+                  #{values.sortOrder}
+                </span>
+              </div>
             </div>
           </div>
         </div>

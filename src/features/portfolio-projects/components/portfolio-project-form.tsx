@@ -701,6 +701,8 @@ export default function PortfolioProjectForm({
                   label={t('coverImageLabel')}
                   value={field.value || ''}
                   type="IMAGE"
+                  cropAspect={4 / 3}
+cropShape="rect"
                   onChange={field.onChange}
                 />
               )}
