@@ -1,15 +1,14 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
-import type {LeafletMouseEvent, LatLngExpression} from 'leaflet';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {
-  CircleMarker,
-  MapContainer,
-  Popup,
-  TileLayer,
-  useMap,
-  useMapEvents
-} from 'react-leaflet';
+  LoaderCircle,
+  LocateFixed,
+  MapPin,
+  Search,
+  X
+} from 'lucide-react';
+import maplibregl from 'maplibre-gl';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
 
@@ -26,10 +25,25 @@ type Props = {
   onChange: (value: MapPickerValue) => void;
 };
 
-const DEFAULT_CENTER: LatLngExpression = [33.8938, 35.5018]; // Beirut
+type SearchPlaceResult = {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+};
+
+const DEFAULT_CENTER = {
+  lat: 33.8938,
+  lng: 35.5018
+}; // Beirut
+
+const DEFAULT_ZOOM = 14.5;
+const SELECTED_ZOOM = 17;
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/bright';
+const SEARCH_MIN_CHARS = 3;
 
 function buildMapUrl(lat: number, lng: number) {
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
+  return `https://www.google.com/maps?q=${lat},${lng}`;
 }
 
 async function reverseGeocode(lat: number, lng: number) {
@@ -52,72 +66,364 @@ async function reverseGeocode(lat: number, lng: number) {
   return data.display_name || '';
 }
 
-function RecenterMap({lat, lng}: {lat?: number; lng?: number}) {
-  const map = useMap();
+async function searchPlaces(query: string, signal?: AbortSignal) {
+  const url = new URL('https://nominatim.openstreetmap.org/search');
+  url.searchParams.set('q', query);
+  url.searchParams.set('format', 'jsonv2');
+  url.searchParams.set('limit', '6');
+  url.searchParams.set('addressdetails', '1');
 
-  useEffect(() => {
-    if (lat == null || lng == null) return;
-    map.setView([lat, lng], 16);
-  }, [lat, lng, map]);
-
-  return null;
-}
-
-function ClickHandler({
-  onPick
-}: {
-  onPick: (lat: number, lng: number) => void;
-}) {
-  useMapEvents({
-    click(event: LeafletMouseEvent) {
-      onPick(event.latlng.lat, event.latlng.lng);
-    }
+  const response = await fetch(url.toString(), {
+    headers: {
+      Accept: 'application/json'
+    },
+    signal
   });
 
-  return null;
+  if (!response.ok) {
+    throw new Error('Place search failed');
+  }
+
+  return (await response.json()) as SearchPlaceResult[];
+}
+
+function createMarkerElement() {
+  const wrapper = document.createElement('div');
+  wrapper.style.width = '38px';
+  wrapper.style.height = '52px';
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.justifyContent = 'center';
+  wrapper.style.position = 'relative';
+
+  wrapper.innerHTML = `
+    <div style="
+      position: relative;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      background: #ef4444;
+      border: 4px solid #ffffff;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.28);
+    ">
+      <div style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 6px;
+        height: 6px;
+        border-radius: 9999px;
+        background: #ffffff;
+        transform: translate(-50%, -50%);
+      "></div>
+
+      <div style="
+        position: absolute;
+        left: 50%;
+        bottom: -8px;
+        width: 12px;
+        height: 12px;
+        background: #ef4444;
+        transform: translateX(-50%) rotate(45deg);
+        border-bottom-right-radius: 3px;
+        z-index: -1;
+      "></div>
+    </div>
+  `;
+
+  return wrapper;
+}
+
+function createPopupContent(label: string, lat: number, lng: number) {
+  const container = document.createElement('div');
+  container.style.minWidth = '170px';
+  container.style.padding = '2px 0';
+
+  const title = document.createElement('p');
+  title.style.margin = '0 0 6px';
+  title.style.fontSize = '12px';
+  title.style.fontWeight = '700';
+  title.style.color = '#0f172a';
+  title.textContent = label;
+
+  const coords = document.createElement('p');
+  coords.style.margin = '0';
+  coords.style.fontSize = '12px';
+  coords.style.color = '#475569';
+  coords.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+
+  container.appendChild(title);
+  container.appendChild(coords);
+
+  return container;
 }
 
 export default function MapPickerField({lat, lng, onChange}: Props) {
   const t = useTranslations('MapPickerField');
   const common = useTranslations('Common');
 
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
+  const handlePickRef = useRef<
+    (nextLat: number, nextLng: number, addressOverride?: string) => Promise<void>
+  >(async () => {});
+  const lastResolvedCoordsRef = useRef('');
+  const searchAbortRef = useRef<AbortController | null>(null);
+
   const [isLocating, setIsLocating] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [localError, setLocalError] = useState('');
   const [selectedAddress, setSelectedAddress] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchPlaceResult[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const center = useMemo<LatLngExpression>(() => {
-    if (lat != null && lng != null) {
-      return [lat, lng];
+  const isBusy = isLocating || isResolving;
+
+  const updateMarker = useCallback(
+    (nextLat?: number, nextLng?: number) => {
+      const map = mapRef.current;
+      if (!map) return;
+
+      if (nextLat == null || nextLng == null) {
+        popupRef.current?.remove();
+        popupRef.current = null;
+
+        markerRef.current?.remove();
+        markerRef.current = null;
+        return;
+      }
+
+      const popupContent = createPopupContent(
+        t('selectedCoordinates'),
+        nextLat,
+        nextLng
+      );
+
+      if (!popupRef.current) {
+        popupRef.current = new maplibregl.Popup({
+          offset: 28,
+          closeButton: false,
+          closeOnClick: true
+        });
+      }
+
+      popupRef.current.setDOMContent(popupContent);
+
+      if (!markerRef.current) {
+        markerRef.current = new maplibregl.Marker({
+          element: createMarkerElement(),
+          anchor: 'bottom'
+        })
+          .setLngLat([nextLng, nextLat])
+          .setPopup(popupRef.current)
+          .addTo(map);
+      } else {
+        markerRef.current
+          .setLngLat([nextLng, nextLat])
+          .setPopup(popupRef.current);
+      }
+
+      map.easeTo({
+        center: [nextLng, nextLat],
+        zoom: Math.max(map.getZoom(), SELECTED_ZOOM),
+        duration: 700
+      });
+    },
+    [t]
+  );
+
+  const handlePick = useCallback(
+    async (nextLat: number, nextLng: number, addressOverride?: string) => {
+      setLocalError('');
+      updateMarker(nextLat, nextLng);
+
+      const coordsKey = `${nextLat.toFixed(6)},${nextLng.toFixed(6)}`;
+      lastResolvedCoordsRef.current = coordsKey;
+
+      if (addressOverride) {
+        setSelectedAddress(addressOverride);
+        setSearchQuery(addressOverride);
+
+        onChange({
+          lat: nextLat,
+          lng: nextLng,
+          address: addressOverride,
+          mapUrl: buildMapUrl(nextLat, nextLng)
+        });
+        return;
+      }
+
+      setSelectedAddress('');
+      setIsResolving(true);
+
+      try {
+        const address = await reverseGeocode(nextLat, nextLng);
+        setSelectedAddress(address);
+        setSearchQuery(address);
+
+        onChange({
+          lat: nextLat,
+          lng: nextLng,
+          address,
+          mapUrl: buildMapUrl(nextLat, nextLng)
+        });
+      } catch {
+        setLocalError(t('reverseFailed'));
+
+        onChange({
+          lat: nextLat,
+          lng: nextLng,
+          address: '',
+          mapUrl: buildMapUrl(nextLat, nextLng)
+        });
+      } finally {
+        setIsResolving(false);
+      }
+    },
+    [onChange, t, updateMarker]
+  );
+
+  handlePickRef.current = handlePick;
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const initialLat = lat ?? DEFAULT_CENTER.lat;
+    const initialLng = lng ?? DEFAULT_CENTER.lng;
+
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: MAP_STYLE,
+      center: [initialLng, initialLat],
+      zoom: lat != null && lng != null ? SELECTED_ZOOM : DEFAULT_ZOOM,
+      minZoom: 3,
+      maxZoom: 18,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false
+    });
+
+    mapRef.current = map;
+
+    map.addControl(
+      new maplibregl.NavigationControl({
+        showCompass: false
+      }),
+      'top-right'
+    );
+
+    map.on('click', (event) => {
+      setIsSearchOpen(false);
+      setSearchResults([]);
+      void handlePickRef.current(event.lngLat.lat, event.lngLat.lng);
+    });
+
+    map.on('load', () => {
+      updateMarker(lat, lng);
+    });
+
+    return () => {
+      popupRef.current?.remove();
+      popupRef.current = null;
+
+      markerRef.current?.remove();
+      markerRef.current = null;
+
+      searchAbortRef.current?.abort();
+      searchAbortRef.current = null;
+
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [lat, lng, updateMarker]);
+
+  useEffect(() => {
+    updateMarker(lat, lng);
+  }, [lat, lng, updateMarker]);
+
+  useEffect(() => {
+    if (lat == null || lng == null) {
+      setSelectedAddress('');
+      lastResolvedCoordsRef.current = '';
+      return;
     }
 
-    return DEFAULT_CENTER;
+    const coordsKey = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+    if (coordsKey === lastResolvedCoordsRef.current) {
+      return;
+    }
+
+    let cancelled = false;
+    setIsResolving(true);
+
+    void reverseGeocode(lat, lng)
+      .then((address) => {
+        if (cancelled) return;
+        lastResolvedCoordsRef.current = coordsKey;
+        setSelectedAddress(address);
+        setSearchQuery(address);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSelectedAddress('');
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setIsResolving(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [lat, lng]);
 
-  async function handlePick(nextLat: number, nextLng: number) {
-    setLocalError('');
+  useEffect(() => {
+    const term = searchQuery.trim();
 
-    try {
-      const address = await reverseGeocode(nextLat, nextLng);
-
-      setSelectedAddress(address);
-
-      onChange({
-        lat: nextLat,
-        lng: nextLng,
-        address,
-        mapUrl: buildMapUrl(nextLat, nextLng)
-      });
-    } catch {
-      setLocalError(t('reverseFailed'));
-
-      onChange({
-        lat: nextLat,
-        lng: nextLng,
-        address: '',
-        mapUrl: buildMapUrl(nextLat, nextLng)
-      });
+    if (term.length < SEARCH_MIN_CHARS) {
+      searchAbortRef.current?.abort();
+      searchAbortRef.current = null;
+      setSearchResults([]);
+      setIsSearchOpen(false);
+      setIsSearching(false);
+      return;
     }
-  }
+
+    const timeout = window.setTimeout(() => {
+      searchAbortRef.current?.abort();
+
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
+
+      setIsSearching(true);
+      setLocalError('');
+
+      void searchPlaces(term, controller.signal)
+        .then((results) => {
+          setSearchResults(results);
+          setIsSearchOpen(true);
+        })
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === 'AbortError') {
+            return;
+          }
+          setSearchResults([]);
+          setIsSearchOpen(false);
+          setLocalError(t('searchFailed'));
+        })
+        .finally(() => {
+          setIsSearching(false);
+        });
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [searchQuery, t]);
 
   function handleUseMyLocation() {
     if (!navigator.geolocation) {
@@ -131,7 +437,10 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         setIsLocating(false);
-        await handlePick(position.coords.latitude, position.coords.longitude);
+        await handlePick(
+          position.coords.latitude,
+          position.coords.longitude
+        );
       },
       () => {
         setIsLocating(false);
@@ -144,84 +453,145 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
     );
   }
 
+  function handleSelectSearchResult(place: SearchPlaceResult) {
+    const nextLat = Number(place.lat);
+    const nextLng = Number(place.lon);
+
+    setSearchQuery(place.display_name);
+    setSearchResults([]);
+    setIsSearchOpen(false);
+
+    void handlePick(nextLat, nextLng, place.display_name);
+  }
+
+  function handleClearSearch() {
+    setSearchQuery('');
+    setSearchResults([]);
+    setIsSearchOpen(false);
+    setLocalError('');
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="space-y-1">
+      <div className="space-y-3">
+        <div>
           <p className="text-sm font-medium text-[var(--color-text)]">
             {t('label')}
           </p>
-          <p className="text-sm text-slate-500">{t('clickHint')}</p>
+          <p className="mt-1 text-sm text-slate-500">{t('clickHint')}</p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          isLoading={isLocating}
-          loadingText={t('locating')}
-          onClick={handleUseMyLocation}
-        >
-          {t('useMyLocation')}
-        </Button>
+        <div className="relative">
+          <div className="flex h-14 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 shadow-sm">
+            <Search className="h-4 w-4 shrink-0 text-slate-400" />
+
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setIsSearchOpen(true);
+              }}
+              placeholder={t('searchPlaceholder')}
+              className="h-full w-full bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400"
+            />
+
+            {isSearching ? (
+              <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-slate-400" />
+            ) : null}
+
+            {!isSearching && searchQuery ? (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
+
+          {isSearchOpen && searchResults.length > 0 ? (
+            <div className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_18px_48px_rgba(15,23,42,0.16)]">
+              {searchResults.map((place) => (
+                <button
+                  key={place.place_id}
+                  type="button"
+                  onClick={() => handleSelectSearchResult(place)}
+                  className="flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-slate-50"
+                >
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                    <MapPin className="h-4 w-4" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="line-clamp-2 text-sm font-semibold text-slate-900">
+                      {place.display_name}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            isLoading={isLocating}
+            loadingText={t('locating')}
+            onClick={handleUseMyLocation}
+          >
+            <LocateFixed className="h-4 w-4" />
+            {t('useMyLocation')}
+          </Button>
+        </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <MapContainer
-          center={center}
-          zoom={13}
-          scrollWheelZoom={true}
-          className="h-[360px] w-full"
-        >
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+      <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+        <div className="relative">
+          <div ref={mapContainerRef} className="h-[460px] w-full" />
 
-          <ClickHandler onPick={handlePick} />
-          <RecenterMap lat={lat} lng={lng} />
+          {isBusy ? (
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/25 backdrop-blur-[2px]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/92 px-4 py-2 text-sm font-medium text-slate-700 shadow-lg">
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+                {isLocating ? t('locating') : t('resolvingAddress')}
+              </div>
+            </div>
+          ) : null}
 
           {lat != null && lng != null ? (
-            <CircleMarker
-              center={[lat, lng]}
-              radius={10}
-              pathOptions={{
-                color: '#0f172a',
-                fillColor: '#2563eb',
-                fillOpacity: 0.9
-              }}
-            >
-              <Popup>
-                {t('selectedCoordinates')}: {lat.toFixed(6)}, {lng.toFixed(6)}
-              </Popup>
-            </CircleMarker>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 p-4 md:p-5">
+              <div className="pointer-events-auto rounded-[24px] border border-white/40 bg-white/94 p-4 shadow-xl backdrop-blur-md md:max-w-md">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black text-slate-950">
+                      {t('selectedLocation')}
+                    </p>
+
+                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                      {selectedAddress || common('notAvailable')}
+                    </p>
+
+                    <p className="mt-2 text-xs font-medium text-slate-500">
+                      {lat.toFixed(6)}, {lng.toFixed(6)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : null}
-        </MapContainer>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="mb-1 text-sm font-medium text-[var(--color-text)]">
-            {t('selectedCoordinates')}
-          </p>
-          <p className="text-sm text-slate-600">
-            {lat != null && lng != null
-              ? `${lat.toFixed(6)}, ${lng.toFixed(6)}`
-              : common('notAvailable')}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="mb-1 text-sm font-medium text-[var(--color-text)]">
-            {t('selectedAddress')}
-          </p>
-          <p className="text-sm text-slate-600">
-            {selectedAddress || common('notAvailable')}
-          </p>
         </div>
       </div>
 
       {localError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {localError}
         </div>
       ) : null}

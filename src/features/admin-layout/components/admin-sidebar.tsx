@@ -1,15 +1,37 @@
 'use client';
 
+import {useMemo} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import {Link} from '@/i18n/navigation';
 import {cn} from '@/lib/cn';
+import {hasAdminToken} from '@/lib/auth/token';
+import {useAdminSession} from '../hooks/use-admin-session';
 import {adminNavigation} from '../constants/admin-navigation';
+
+type AdminRole = 'ADMIN' | 'SUPER_ADMIN';
 
 export function AdminSidebar() {
   const t = useTranslations('AdminLayout');
   const locale = useLocale();
   const pathname = usePathname();
+  const sessionQuery = useAdminSession(hasAdminToken());
+
+  const visibleNavigation = useMemo(() => {
+    const role = sessionQuery.data?.role as AdminRole | undefined;
+
+    return adminNavigation.filter((item) => {
+      if (!item.visibleFor || item.visibleFor.length === 0) {
+        return true;
+      }
+
+      if (!role) {
+        return false;
+      }
+
+      return item.visibleFor.includes(role);
+    });
+  }, [sessionQuery.data?.role]);
 
   return (
     <div className="flex h-full flex-col gap-6 p-4 md:p-6">
@@ -24,7 +46,7 @@ export function AdminSidebar() {
         </p>
 
         <nav className="grid gap-2">
-          {adminNavigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const localizedHref = `/${locale}${item.href}`;
             const isActive =
               pathname === localizedHref ||

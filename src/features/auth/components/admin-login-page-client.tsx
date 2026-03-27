@@ -1,14 +1,12 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import LanguageSwitcher from '@/components/common/language-switcher';
 import LoginForm from './login-form';
-import {removeAdminToken, hasAdminToken} from '@/lib/auth/token';
+import {clearAdminSession, getAdminToken} from '@/lib/auth/token';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
-
-type TokenState = 'unknown' | 'missing' | 'present';
 
 function LoginStateCard({label}: {label: string}) {
   return (
@@ -31,35 +29,40 @@ export default function AdminLoginPageClient() {
   const locale = useLocale();
   const router = useRouter();
 
-  const [tokenState, setTokenState] = useState<TokenState>('unknown');
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    setTokenState(hasAdminToken() ? 'present' : 'missing');
+    setIsHydrated(true);
   }, []);
 
-  const sessionQuery = useAdminSession(tokenState === 'present');
+  const storedToken = useMemo(() => {
+    if (!isHydrated) return null;
+    return getAdminToken();
+  }, [isHydrated]);
+
+  const sessionQuery = useAdminSession(Boolean(storedToken));
 
   useEffect(() => {
-    if (tokenState !== 'present') return;
+    if (!storedToken) return;
 
     if (sessionQuery.data) {
       router.replace(`/${locale}/admin`);
     }
-  }, [locale, router, sessionQuery.data, tokenState]);
+  }, [storedToken, sessionQuery.data, locale, router]);
 
   useEffect(() => {
-    if (tokenState !== 'present') return;
-    if (!sessionQuery.isError) return;
+    if (!storedToken) return;
 
-    removeAdminToken();
-    setTokenState('missing');
-  }, [sessionQuery.isError, tokenState]);
+    if (sessionQuery.isError) {
+      clearAdminSession();
+    }
+  }, [storedToken, sessionQuery.isError]);
 
-  if (tokenState === 'unknown') {
+  if (!isHydrated) {
     return <LoginStateCard label={t('checkingSession')} />;
   }
 
-  if (tokenState === 'present' && sessionQuery.isPending) {
+  if (storedToken && (sessionQuery.isPending || sessionQuery.isSuccess)) {
     return <LoginStateCard label={t('redirectingAuthenticated')} />;
   }
 

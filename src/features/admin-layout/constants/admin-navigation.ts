@@ -1,3 +1,5 @@
+export type AdminRole = 'ADMIN' | 'SUPER_ADMIN';
+
 export type AdminNavigationKey =
   | 'dashboard'
   | 'siteSettings'
@@ -5,7 +7,8 @@ export type AdminNavigationKey =
   | 'sections'
   | 'media'
   | 'contactMethods'
-  | 'themeSettings';
+  | 'themeSettings'
+  | 'adminUsers';
 
 export type AdminNavigationItem = {
   key: AdminNavigationKey;
@@ -17,7 +20,9 @@ export type AdminNavigationItem = {
     | '/admin/sections'
     | '/admin/media'
     | '/admin/contact-methods'
-    | '/admin/theme-settings';
+    | '/admin/theme-settings'
+    | '/admin/users';
+  visibleFor?: AdminRole[];
 };
 
 export const adminNavigation: AdminNavigationItem[] = [
@@ -55,5 +60,11 @@ export const adminNavigation: AdminNavigationItem[] = [
     key: 'themeSettings',
     labelKey: 'themeSettings',
     href: '/admin/theme-settings'
+  },
+  {
+    key: 'adminUsers',
+    labelKey: 'adminUsers',
+    href: '/admin/users',
+    visibleFor: ['SUPER_ADMIN']
   }
 ];

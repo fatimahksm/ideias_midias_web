@@ -9,6 +9,9 @@ export function useAdminSession(enabled = true) {
     queryFn: () => getCurrentAdmin(),
     enabled,
     retry: false,
-    staleTime: 300_000
+    staleTime: 300_000,
+    gcTime: 300_000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false
   });
 }

@@ -1,7 +1,14 @@
 import type {NextConfig} from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 
-function toRemotePattern(value?: string | null) {
+type RemotePattern = {
+  protocol: 'http' | 'https';
+  hostname: string;
+  port?: string;
+  pathname: string;
+};
+
+function toRemotePattern(value?: string | null): RemotePattern | null {
   if (!value) return null;
 
   const trimmed = value.trim();
@@ -14,7 +21,7 @@ function toRemotePattern(value?: string | null) {
     return {
       protocol: url.protocol.replace(':', '') as 'http' | 'https',
       hostname: url.hostname,
-      port: url.port,
+      port: url.port || undefined,
       pathname: '/**'
     };
   } catch {
@@ -22,34 +29,36 @@ function toRemotePattern(value?: string | null) {
   }
 }
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const dynamicPatterns = [
   toRemotePattern(process.env.NEXT_PUBLIC_BACKEND_URL),
   toRemotePattern(process.env.NEXT_PUBLIC_API_BASE_URL)
-].filter(Boolean) as Array<{
-  protocol: 'http' | 'https';
-  hostname: string;
-  port: string;
-  pathname: string;
-}>;
+].filter(Boolean) as RemotePattern[];
+
+const localPatterns: RemotePattern[] = [
+  {
+    protocol: 'http',
+    hostname: 'localhost',
+    port: '8080',
+    pathname: '/**'
+  },
+  {
+    protocol: 'http',
+    hostname: '127.0.0.1',
+    port: '8080',
+    pathname: '/**'
+  }
+];
 
 const nextConfig: NextConfig = {
   images: {
-    dangerouslyAllowLocalIP: true,
+    dangerouslyAllowLocalIP: !isProduction,
     remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '8080',
-        pathname: '/**'
-      },
-      {
-        protocol: 'http',
-        hostname: '127.0.0.1',
-        port: '8080',
-        pathname: '/**'
-      },
+      ...localPatterns,
       ...dynamicPatterns
-    ]
+    ],
+    formats: ['image/webp', 'image/avif']
   }
 };
 

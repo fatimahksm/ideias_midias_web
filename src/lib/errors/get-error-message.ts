@@ -13,15 +13,25 @@ type TranslateFn = (key: ErrorTranslationKey) => string;
 export function getErrorMessage(error: AppError | null, t: TranslateFn) {
   if (!error) return t('unknownError');
 
-  if (error.status === 401) return t('unauthorized');
-  if (error.status === 403) return t('forbidden');
-  if (error.status === 404) return t('notFound');
+  const backendMessage = error.message?.trim();
 
-  if (error.errors && Object.keys(error.errors).length > 0) {
-    return error.message || t('validationError');
+  if (error.status === 401) {
+    return backendMessage || t('unauthorized');
   }
 
-  const normalizedMessage = error.message?.toLowerCase() || '';
+  if (error.status === 403) {
+    return backendMessage || t('forbidden');
+  }
+
+  if (error.status === 404) {
+    return backendMessage || t('notFound');
+  }
+
+  if (error.errors && Object.keys(error.errors).length > 0) {
+    return backendMessage || t('validationError');
+  }
+
+  const normalizedMessage = backendMessage?.toLowerCase() || '';
 
   if (
     normalizedMessage.includes('failed to fetch') ||
@@ -31,5 +41,5 @@ export function getErrorMessage(error: AppError | null, t: TranslateFn) {
     return t('networkError');
   }
 
-  return error.message || t('unknownError');
+  return backendMessage || t('unknownError');
 }

@@ -1,10 +1,11 @@
 'use client';
 
+import {useEffect, useMemo, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import LanguageSwitcher from '@/components/common/language-switcher';
 import {Button} from '@/components/ui/button';
-import {hasAdminToken, removeAdminToken} from '@/lib/auth/token';
+import {clearAdminSession, getAdminToken} from '@/lib/auth/token';
 import {useAdminSession} from '../hooks/use-admin-session';
 
 export function AdminHeader() {
@@ -13,7 +14,18 @@ export function AdminHeader() {
   const locale = useLocale();
   const router = useRouter();
 
-  const sessionQuery = useAdminSession(hasAdminToken());
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  const storedToken = useMemo(() => {
+    if (!isHydrated) return null;
+    return getAdminToken();
+  }, [isHydrated]);
+
+  const sessionQuery = useAdminSession(Boolean(storedToken));
 
   const displayName =
     sessionQuery.data?.fullName?.trim() ||
@@ -21,7 +33,7 @@ export function AdminHeader() {
     t('brandName');
 
   function handleLogout() {
-    removeAdminToken();
+    clearAdminSession();
     router.replace(`/${locale}/admin/login`);
   }
 

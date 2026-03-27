@@ -1,8 +1,8 @@
 'use client';
 
+import {useEffect, useRef} from 'react';
 import {MapPin} from 'lucide-react';
-import {MapContainer, Marker, Popup, TileLayer} from 'react-leaflet';
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
 
 type Props = {
   lat: number;
@@ -13,46 +13,85 @@ type Props = {
   googleMapsUrl?: string | null;
 };
 
-const markerIcon = new L.DivIcon({
-  className: 'public-location-pin',
-  html: `
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
+const MAP_ZOOM = 15;
+
+function createMarkerElement() {
+  const wrapper = document.createElement('div');
+  wrapper.style.width = '34px';
+  wrapper.style.height = '46px';
+  wrapper.style.display = 'flex';
+  wrapper.style.alignItems = 'center';
+  wrapper.style.justifyContent = 'center';
+  wrapper.style.position = 'relative';
+
+  wrapper.innerHTML = `
     <div style="
-      width: 44px;
-      height: 44px;
+      position: relative;
+      width: 26px;
+      height: 26px;
       border-radius: 9999px;
       background: var(--color-primary);
-      border: 4px solid white;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.22);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      border: 4px solid #ffffff;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.22);
     ">
       <div style="
+        position: absolute;
+        left: 50%;
+        bottom: -8px;
         width: 12px;
         height: 12px;
-        border-radius: 9999px;
-        background: white;
-      "></div>
-      <div style="
-        position: absolute;
-        bottom: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 14px;
-        height: 14px;
         background: var(--color-primary);
-        rotate: 45deg;
-        border-bottom-right-radius: 4px;
-        box-shadow: 8px 8px 18px rgba(0,0,0,0.12);
+        transform: translateX(-50%) rotate(45deg);
+        border-bottom-right-radius: 3px;
         z-index: -1;
       "></div>
     </div>
-  `,
-  iconSize: [44, 54],
-  iconAnchor: [22, 48],
-  popupAnchor: [0, -42]
-});
+  `;
+
+  return wrapper;
+}
+
+function createPopupContent(
+  title: string,
+  address?: string | null,
+  googleMapsUrl?: string | null,
+  openInMapsLabel?: string
+) {
+  const container = document.createElement('div');
+  container.style.minWidth = '180px';
+
+  const content = document.createElement('div');
+  content.className = 'min-w-[180px] space-y-2';
+
+  const titleEl = document.createElement('p');
+  titleEl.className = 'text-sm font-bold text-slate-900';
+  titleEl.textContent = title;
+
+  content.appendChild(titleEl);
+
+  if (address) {
+    const addressEl = document.createElement('p');
+    addressEl.className = 'text-xs leading-5 text-slate-600';
+    addressEl.textContent = address;
+    content.appendChild(addressEl);
+  }
+
+  if (googleMapsUrl && openInMapsLabel) {
+    const link = document.createElement('a');
+    link.href = googleMapsUrl;
+    link.target = '_blank';
+    link.rel = 'noreferrer';
+    link.className =
+      'inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800';
+    link.textContent = openInMapsLabel;
+
+    content.appendChild(link);
+  }
+
+  container.appendChild(content);
+  return container;
+}
 
 export default function PublicLocationMap({
   lat,
@@ -62,44 +101,99 @@ export default function PublicLocationMap({
   openInMapsLabel,
   googleMapsUrl
 }: Props) {
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
+  const markerRef = useRef<maplibregl.Marker | null>(null);
+  const popupRef = useRef<maplibregl.Popup | null>(null);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = new maplibregl.Map({
+  container: mapContainerRef.current,
+  style: MAP_STYLE,
+  center: [lng, lat],
+  zoom: MAP_ZOOM,
+  minZoom: 3,
+  maxZoom: 18,
+  scrollZoom: false,
+  dragRotate: false,
+  pitchWithRotate: false,
+  touchPitch: false
+});
+
+    mapRef.current = map;
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+    const popup = new maplibregl.Popup({
+      offset: 28,
+      closeButton: false,
+      closeOnClick: false
+    }).setDOMContent(
+      createPopupContent(title, address, googleMapsUrl, openInMapsLabel)
+    );
+
+    popupRef.current = popup;
+
+    const marker = new maplibregl.Marker({
+      element: createMarkerElement(),
+      anchor: 'bottom'
+    })
+      .setLngLat([lng, lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    markerRef.current = marker;
+
+    map.on('load', () => {
+      marker.togglePopup();
+      if (!marker.getPopup()?.isOpen()) {
+        marker.togglePopup();
+      }
+    });
+
+    return () => {
+      popupRef.current?.remove();
+      popupRef.current = null;
+
+      markerRef.current?.remove();
+      markerRef.current = null;
+
+      map.remove();
+      mapRef.current = null;
+    };
+  }, [lat, lng, title, address, googleMapsUrl, openInMapsLabel]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const marker = markerRef.current;
+    const popup = popupRef.current;
+
+    if (!map || !marker || !popup) return;
+
+    map.easeTo({
+      center: [lng, lat],
+      zoom: MAP_ZOOM,
+      duration: 700
+    });
+
+    marker.setLngLat([lng, lat]);
+
+    popup.setDOMContent(
+      createPopupContent(title, address, googleMapsUrl, openInMapsLabel)
+    );
+
+    marker.setPopup(popup);
+
+    if (!marker.getPopup()?.isOpen()) {
+      marker.togglePopup();
+    }
+  }, [lat, lng, title, address, googleMapsUrl, openInMapsLabel]);
+
   return (
     <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
       <div className="relative h-[520px] w-full">
-        <MapContainer
-          center={[lat, lng]}
-          zoom={15}
-          scrollWheelZoom={false}
-          className="h-full w-full"
-        >
-          <TileLayer
-            attribution='&copy; OpenStreetMap contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          <Marker position={[lat, lng]} icon={markerIcon}>
-            <Popup>
-              <div className="min-w-[180px] space-y-2">
-                <p className="text-sm font-bold text-slate-900">{title}</p>
-
-                {address ? (
-                  <p className="text-xs leading-5 text-slate-600">{address}</p>
-                ) : null}
-
-                {googleMapsUrl ? (
-                  <a
-                    href={googleMapsUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
-                  >
-                    <MapPin className="h-3.5 w-3.5" />
-                    {openInMapsLabel}
-                  </a>
-                ) : null}
-              </div>
-            </Popup>
-          </Marker>
-        </MapContainer>
+        <div ref={mapContainerRef} className="h-full w-full" />
 
         {googleMapsUrl ? (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5">

@@ -63,6 +63,14 @@ export function toAppError(error: unknown): AppError {
   };
 }
 
+async function safeParseJson(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type') || '';
   const isJson = contentType.includes('application/json');
@@ -78,10 +86,10 @@ async function parseResponse<T>(response: Response): Promise<T> {
     return undefined as T;
   }
 
-  const payload = (await response.json()) as ApiResponse<T> | T;
+  const payload = (await safeParseJson(response)) as ApiResponse<T> | T | null;
 
   if (!response.ok) {
-    const err = payload as ApiErrorResponse;
+    const err = (payload || {}) as ApiErrorResponse;
 
     throw new HttpError({
       message: err.message || `Request failed with status ${response.status}`,
@@ -121,6 +129,7 @@ export async function apiClient<T>(
   const response = await fetch(buildUrl(path), {
     ...rest,
     headers: {
+      Accept: 'application/json',
       ...(body !== undefined ? {'Content-Type': 'application/json'} : {}),
       ...(authorizationHeader ? {Authorization: authorizationHeader} : {}),
       ...headers

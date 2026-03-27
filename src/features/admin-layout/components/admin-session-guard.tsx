@@ -5,10 +5,7 @@ import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
-import {
-  hasAdminToken,
-  removeAdminToken
-} from '@/lib/auth/token';
+import {clearAdminSession, getAdminToken} from '@/lib/auth/token';
 import {useAdminSession} from '../hooks/use-admin-session';
 
 type Props = {
@@ -50,16 +47,16 @@ export function AdminSessionGuard({children}: Props) {
     setIsHydrated(true);
   }, []);
 
-  const tokenExists = useMemo(() => {
-    if (!isHydrated) return false;
-    return hasAdminToken();
+  const storedToken = useMemo(() => {
+    if (!isHydrated) return null;
+    return getAdminToken();
   }, [isHydrated]);
 
-  const sessionQuery = useAdminSession(isHydrated && tokenExists);
+  const sessionQuery = useAdminSession(Boolean(storedToken));
 
   const appError = sessionQuery.error ? toAppError(sessionQuery.error) : null;
 
-  const shouldForceLogin =
+  const isAuthFailure =
     appError?.status === 401 ||
     appError?.status === 403 ||
     appError?.message === 'No admin token found.';
@@ -67,25 +64,25 @@ export function AdminSessionGuard({children}: Props) {
   useEffect(() => {
     if (!isHydrated) return;
 
-    if (!tokenExists) {
+    if (!storedToken) {
       router.replace(`/${locale}/admin/login`);
     }
-  }, [isHydrated, tokenExists, locale, router]);
+  }, [isHydrated, storedToken, locale, router]);
 
   useEffect(() => {
     if (!isHydrated) return;
 
-    if (shouldForceLogin) {
-      removeAdminToken();
+    if (isAuthFailure) {
+      clearAdminSession();
       router.replace(`/${locale}/admin/login`);
     }
-  }, [isHydrated, shouldForceLogin, locale, router]);
+  }, [isHydrated, isAuthFailure, locale, router]);
 
   if (!isHydrated) {
     return <StateCard label={t('checkingSession')} />;
   }
 
-  if (!tokenExists) {
+  if (!storedToken) {
     return <StateCard label={t('redirectingToLogin')} />;
   }
 
@@ -93,7 +90,7 @@ export function AdminSessionGuard({children}: Props) {
     return <StateCard label={t('checkingSession')} />;
   }
 
-  if (shouldForceLogin) {
+  if (isAuthFailure) {
     return <StateCard label={t('redirectingToLogin')} />;
   }
 

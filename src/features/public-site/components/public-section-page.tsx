@@ -757,6 +757,28 @@ function ProjectModal({
   onClose: () => void;
   t: TranslateFn;
 }) {
+  const [media, setMedia] = useState<PortfolioProjectMediaResponse[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    getPublicPortfolioProjectMedia(project.id)
+      .then((items) => {
+        if (active) {
+          setMedia(items);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setMedia([]);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [project.id]);
+
   const title =
     getLocalizedValue(locale, project.titlePt, project.titleEn) || t('untitled');
 
@@ -790,6 +812,46 @@ function ProjectModal({
   const projectImageUrl = resolveMediaUrl(project.coverImageUrl);
   const projectVideoUrl = resolveMediaUrl(project.videoUrl);
 
+  const fallbackMedia = useMemo(() => {
+    const items: PortfolioProjectMediaResponse[] = [];
+
+    if (projectImageUrl) {
+      items.push({
+        id: -1,
+        projectId: project.id,
+        mediaType: 'IMAGE',
+        mediaUrl: projectImageUrl,
+        thumbnailUrl: null,
+        altTextPt: project.titlePt,
+        altTextEn: project.titleEn,
+        isActive: true,
+        sortOrder: 0,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt
+      });
+    }
+
+    if (projectVideoUrl) {
+      items.push({
+        id: -2,
+        projectId: project.id,
+        mediaType: 'VIDEO',
+        mediaUrl: projectVideoUrl,
+        thumbnailUrl: null,
+        altTextPt: project.titlePt,
+        altTextEn: project.titleEn,
+        isActive: true,
+        sortOrder: 1,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt
+      });
+    }
+
+    return items;
+  }, [project.createdAt, project.id, project.titleEn, project.titlePt, project.updatedAt, projectImageUrl, projectVideoUrl]);
+
+  const galleryMedia = media.length ? media : fallbackMedia;
+
   return (
     <AnimatePresence>
       <motion.div
@@ -812,7 +874,7 @@ function ProjectModal({
             <button
               type="button"
               onClick={onClose}
-              aria-label={t('close') }
+              aria-label={t('close')}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
             >
               <CircleX className="h-5 w-5" />
@@ -820,39 +882,16 @@ function ProjectModal({
           </div>
 
           <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
-            {projectImageUrl ? (
-              <div className="relative h-[320px] w-full bg-slate-100 md:h-[460px]">
-                <Image
-                  src={projectImageUrl}
-                  alt={title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : null}
-
-            {projectVideoUrl ? (
-              <div className="aspect-video w-full bg-black">
-                {isEmbeddableVideoUrl(projectVideoUrl) ? (
-                  <iframe
-                    src={toEmbeddableVideoUrl(projectVideoUrl) ?? projectVideoUrl}
-                    title={title}
-                    className="h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
-                ) : (
-                  <video
-                    className="h-full w-full"
-                    controls
-                    playsInline
-                    preload="metadata"
-                  >
-                    <source src={projectVideoUrl} />
-                  </video>
-                )}
-              </div>
-            ) : null}
+           <PublicMediaGallery
+  locale={locale}
+  title={title}
+  media={galleryMedia}
+  fallbackImageUrl={project.coverImageUrl}
+  fallbackVideoUrl={project.videoUrl}
+  loadingLabel={t('loadingMedia')}
+  noMediaLabel={t('noMedia')}
+/>
+           
 
             <div className="space-y-8 p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3">

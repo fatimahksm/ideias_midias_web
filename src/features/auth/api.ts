@@ -1,11 +1,19 @@
 import {apiClient} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
-import {getAdminToken} from '@/lib/auth/token';
+import {getAdminToken, clearAdminSession} from '@/lib/auth/token';
 import type {
   AdminLoginPayload,
   AdminLoginResponse,
   AdminMeResponse
 } from './types';
+
+function resolveAdminToken(token?: string | null) {
+  if (typeof token === 'string' && token.trim()) {
+    return token.trim();
+  }
+
+  return getAdminToken();
+}
 
 export async function adminLogin(payload: AdminLoginPayload) {
   return apiClient<AdminLoginResponse>(endpoints.auth.adminLogin, {
@@ -15,9 +23,10 @@ export async function adminLogin(payload: AdminLoginPayload) {
 }
 
 export async function getCurrentAdmin(token?: string | null) {
-  const finalToken = token ?? getAdminToken();
+  const finalToken = resolveAdminToken(token);
 
   if (!finalToken) {
+    clearAdminSession();
     throw new Error('No admin token found.');
   }
 
@@ -25,4 +34,8 @@ export async function getCurrentAdmin(token?: string | null) {
     method: 'GET',
     token: finalToken
   });
+}
+
+export function logoutAdminLocal() {
+  clearAdminSession();
 }

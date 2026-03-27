@@ -40,11 +40,14 @@ export function PortfolioProjectMediaBulkUploader({
       return;
     }
 
-    const invalidFile = files.find((file) => !file.type.startsWith('image/'));
+    const invalidFile = files.find(
+      (file) =>
+        !file.type.startsWith('image/') && !file.type.startsWith('video/')
+    );
 
     if (invalidFile) {
       setSuccessMessage('');
-      setLocalError(t('invalidImagesOnly'));
+      setLocalError(t('invalidMediaOnly'));
       resetInput();
       return;
     }
@@ -63,7 +66,9 @@ export function PortfolioProjectMediaBulkUploader({
 
         await createPortfolioProjectMedia({
           projectId,
-          mediaType: 'IMAGE',
+          mediaType:
+            uploaded.fileType ??
+            (file.type.startsWith('video/') ? 'VIDEO' : 'IMAGE'),
           mediaUrl: uploaded.fileUrl,
           thumbnailUrl: null,
           altTextPt: null,
@@ -110,7 +115,7 @@ export function PortfolioProjectMediaBulkUploader({
           <input
             ref={inputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
             className="hidden"
             onChange={handleFilesChange}
@@ -122,7 +127,7 @@ export function PortfolioProjectMediaBulkUploader({
             isLoading={isUploading}
             loadingText={t('uploading')}
           >
-            {t('selectImages')}
+            {t('selectMedia')}
           </Button>
         </div>
       </div>

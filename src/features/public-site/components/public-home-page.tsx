@@ -25,12 +25,6 @@ import {
   getPublicContactDisplayValue
 } from '../contact-visuals';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
-import dynamic from 'next/dynamic';
-
-const PublicLocationMap = dynamic(
-  () => import('./public-location-map'),
-  {ssr: false}
-);
 
 type Props = {
   locale: string;
@@ -55,6 +49,40 @@ function hasMeaningfulText(value?: string | null) {
   return Boolean(value && value.trim().length > 0);
 }
 
+
+
+function normalizeMapEmbedUrl(url?: string | null) {
+  if (!hasMeaningfulText(url)) return '';
+
+  const value = url!.trim();
+
+  if (value.includes('output=embed') || value.includes('/maps/embed')) {
+    return value;
+  }
+
+  try {
+    const parsed = new URL(value);
+
+    if (
+      parsed.hostname.includes('google.com') ||
+      parsed.hostname.includes('maps.app.goo.gl')
+    ) {
+      const q =
+        parsed.searchParams.get('q') ||
+        parsed.searchParams.get('query') ||
+        parsed.searchParams.get('destination');
+
+      if (q) {
+        return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=15&output=embed`;
+      }
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+}
+
 function buildMapEmbedUrl({
   mapEmbedUrl,
   locationLat,
@@ -68,8 +96,9 @@ function buildMapEmbedUrl({
   addressPt?: string | null;
   addressEn?: string | null;
 }) {
-  if (hasMeaningfulText(mapEmbedUrl)) {
-    return mapEmbedUrl!.trim();
+  const normalizedEmbedUrl = normalizeMapEmbedUrl(mapEmbedUrl);
+  if (normalizedEmbedUrl) {
+    return normalizedEmbedUrl;
   }
 
   if (
@@ -89,7 +118,6 @@ function buildMapEmbedUrl({
 
   return '';
 }
-
 export default function PublicHomePage({locale, data}: Props) {
   const t = useTranslations('PublicSite');
 
@@ -650,19 +678,7 @@ export default function PublicHomePage({locale, data}: Props) {
   viewport={{once: true, amount: 0.15}}
   transition={{duration: 0.75}}
 >
-  {typeof site?.locationLat === 'number' &&
-  !Number.isNaN(site.locationLat) &&
-  typeof site?.locationLng === 'number' &&
-  !Number.isNaN(site.locationLng) ? (
-    <PublicLocationMap
-      lat={site.locationLat}
-      lng={site.locationLng}
-      title={companyName}
-      address={address}
-      openInMapsLabel={t('openInMaps')}
-      googleMapsUrl={mapsUrl}
-    />
-  ) : mapEmbedUrl ? (
+  {mapEmbedUrl ? (
     <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
       <div className="relative">
         <iframe

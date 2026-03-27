@@ -11,8 +11,8 @@ import {Input} from '@/components/ui/input';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {
+  clearAdminSession,
   getAdminToken,
-  removeAdminToken,
   setAdminToken
 } from '@/lib/auth/token';
 import {adminLoginSchema, type AdminLoginFormValues} from '../schema';
@@ -69,7 +69,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (sessionQuery.isError) {
-      removeAdminToken();
+      clearAdminSession();
     }
   }, [sessionQuery.isError]);
 
@@ -94,10 +94,10 @@ export default function LoginForm() {
 
       setAdminToken(result.token);
       setSuccessMessage(t('loginSuccess'));
+
       router.replace(`/${locale}/admin`);
     } catch (error) {
       const appError = toAppError(error);
-
       setServerError(getErrorMessage(appError, (key) => errorT(key)));
     }
   }
