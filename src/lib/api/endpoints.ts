@@ -36,6 +36,9 @@ export const endpoints = {
     siteSettings: '/api/admin/site-settings',
     themeSettings: '/api/admin/theme-settings',
 
+    adminUsers: '/api/admin/users',
+    sectionAttributes: '/api/admin/section-attributes',
+
     sections: '/api/admin/sections',
     categories: '/api/admin/categories',
     items: '/api/admin/items',
