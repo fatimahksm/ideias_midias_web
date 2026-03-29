@@ -10,6 +10,7 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {toAppError} from '@/lib/api/client';
+import {z} from 'zod';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {
   createAdminUser,
@@ -33,26 +34,39 @@ export default function AdminUserForm(props: Props) {
   const errorT = useTranslations('CommonErrors');
   const locale = useLocale();
   const router = useRouter();
+
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
   const isCreate = props.mode === 'create';
+  const isEditMode = props.mode === 'edit' && typeof props.adminId === 'number';
 
   const adminQuery = useQuery({
-    queryKey: ['admin-users', 'single', props.mode === 'edit' ? props.adminId : 'new'],
-    queryFn: () => getAdminUserById(props.adminId),
-    enabled: props.mode === 'edit'
+    queryKey: ['admin-users', 'single', isEditMode ? props.adminId : 'new'],
+    queryFn: async () => {
+      if (!isEditMode) {
+        throw new Error('Admin user id is required in edit mode.');
+      }
+
+      return getAdminUserById(props.adminId);
+    },
+    enabled: isEditMode,
+    retry: false
   });
 
-  const createForm = useForm<CreateAdminUserFormValues>({
-    resolver: zodResolver(createAdminUserSchema),
-    defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
-      isActive: true
-    }
-  });
+ const createForm = useForm<
+  z.input<typeof createAdminUserSchema>,
+  unknown,
+  CreateAdminUserFormValues
+>({
+  resolver: zodResolver(createAdminUserSchema),
+  defaultValues: {
+    fullName: '',
+    email: '',
+    password: '',
+    isActive: true
+  }
+});
 
   const editForm = useForm<UpdateAdminUserFormValues>({
     resolver: zodResolver(updateAdminUserSchema),
@@ -64,28 +78,32 @@ export default function AdminUserForm(props: Props) {
   });
 
   useEffect(() => {
-    if (props.mode === 'edit' && adminQuery.data) {
-      editForm.reset({
-        fullName: adminQuery.data.fullName,
-        email: adminQuery.data.email,
-        role: adminQuery.data.role
-      });
+    if (!isEditMode || !adminQuery.data) {
+      return;
     }
-  }, [adminQuery.data, editForm, props.mode]);
+
+    editForm.reset({
+      fullName: adminQuery.data.fullName,
+      email: adminQuery.data.email,
+      role: adminQuery.data.role
+    });
+  }, [adminQuery.data, editForm, isEditMode]);
 
   const mutation = useMutation({
     mutationFn: async (values: CreateAdminUserFormValues | UpdateAdminUserFormValues) => {
-      if (props.mode === 'create') {
+      if (isCreate) {
         return createAdminUser(values as CreateAdminUserFormValues);
+      }
+
+      if (!isEditMode) {
+        throw new Error('Admin user id is required in edit mode.');
       }
 
       return updateAdminUser(props.adminId, values as UpdateAdminUserFormValues);
     },
     onSuccess: () => {
       setServerError('');
-      setSuccessMessage(
-        props.mode === 'create' ? t('createSuccess') : t('updateSuccess')
-      );
+      setSuccessMessage(isCreate ? t('createSuccess') : t('updateSuccess'));
       router.replace(`/${locale}/admin/users`);
     },
     onError: (error) => {
@@ -114,7 +132,7 @@ export default function AdminUserForm(props: Props) {
     await mutation.mutateAsync(values);
   }
 
-  if (props.mode === 'edit' && adminQuery.isPending) {
+  if (isEditMode && adminQuery.isPending) {
     return (
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-sm text-slate-600">{t('loading')}</p>
@@ -122,7 +140,7 @@ export default function AdminUserForm(props: Props) {
     );
   }
 
-  if (props.mode === 'edit' && adminQuery.isError) {
+  if (isEditMode && adminQuery.isError) {
     return (
       <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
         <p className="text-sm text-red-700">
@@ -144,13 +162,33 @@ export default function AdminUserForm(props: Props) {
     const isActive = watch('isActive');
 
     return (
-      <form onSubmit={handleSubmit(handleCreateSubmit)} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <form
+        onSubmit={handleSubmit(handleCreateSubmit)}
+        className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+      >
         <div className="grid gap-4 md:grid-cols-2">
-          <Input id="fullName" label={t('fullName')} {...register('fullName')} error={errors.fullName ? t('fullNameRequired') : undefined} />
-          <Input id="email" type="email" label={t('email')} {...register('email')} error={errors.email ? t('invalidEmail') : undefined} />
+          <Input
+            id="fullName"
+            label={t('fullName')}
+            {...register('fullName')}
+            error={errors.fullName ? t('fullNameRequired') : undefined}
+          />
+          <Input
+            id="email"
+            type="email"
+            label={t('email')}
+            {...register('email')}
+            error={errors.email ? t('invalidEmail') : undefined}
+          />
         </div>
 
-        <Input id="password" type="password" label={t('password')} {...register('password')} error={errors.password ? t('passwordTooShort') : undefined} />
+        <Input
+          id="password"
+          type="password"
+          label={t('password')}
+          {...register('password')}
+          error={errors.password ? t('passwordTooShort') : undefined}
+        />
 
         <Select
           id="isActive"
@@ -163,14 +201,31 @@ export default function AdminUserForm(props: Props) {
           ]}
         />
 
-        {serverError ? <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{serverError}</div> : null}
-        {successMessage ? <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{successMessage}</div> : null}
+        {serverError ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {serverError}
+          </div>
+        ) : null}
+
+        {successMessage ? (
+          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            {successMessage}
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => router.replace(`/${locale}/admin/users`)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.replace(`/${locale}/admin/users`)}
+          >
             {common('cancel')}
           </Button>
-          <Button type="submit" isLoading={isSubmitting || mutation.isPending} loadingText={common('loading')}>
+          <Button
+            type="submit"
+            isLoading={isSubmitting || mutation.isPending}
+            loadingText={common('loading')}
+          >
             {t('createAdmin')}
           </Button>
         </div>
@@ -187,28 +242,61 @@ export default function AdminUserForm(props: Props) {
   } = editForm;
 
   return (
-    <form onSubmit={handleSubmit(handleEditSubmit)} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <form
+      onSubmit={handleSubmit(handleEditSubmit)}
+      className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+    >
       <div className="grid gap-4 md:grid-cols-2">
-        <Input id="fullName" label={t('fullName')} {...register('fullName')} error={errors.fullName ? t('fullNameRequired') : undefined} />
-        <Input id="email" type="email" label={t('email')} {...register('email')} error={errors.email ? t('invalidEmail') : undefined} />
+        <Input
+          id="fullName"
+          label={t('fullName')}
+          {...register('fullName')}
+          error={errors.fullName ? t('fullNameRequired') : undefined}
+        />
+        <Input
+          id="email"
+          type="email"
+          label={t('email')}
+          {...register('email')}
+          error={errors.email ? t('invalidEmail') : undefined}
+        />
       </div>
 
       <Select
         id="role"
         label={t('role')}
         value={watch('role')}
-        onChange={(event) => setValue('role', event.target.value as 'ADMIN' | 'SUPER_ADMIN')}
+        onChange={(event) =>
+          setValue('role', event.target.value as 'ADMIN' | 'SUPER_ADMIN')
+        }
         options={roleOptions}
       />
 
-      {serverError ? <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{serverError}</div> : null}
-      {successMessage ? <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">{successMessage}</div> : null}
+      {serverError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {serverError}
+        </div>
+      ) : null}
+
+      {successMessage ? (
+        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+          {successMessage}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => router.replace(`/${locale}/admin/users`)}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.replace(`/${locale}/admin/users`)}
+        >
           {common('cancel')}
         </Button>
-        <Button type="submit" isLoading={isSubmitting || mutation.isPending} loadingText={common('loading')}>
+        <Button
+          type="submit"
+          isLoading={isSubmitting || mutation.isPending}
+          loadingText={common('loading')}
+        >
           {t('saveChanges')}
         </Button>
       </div>
