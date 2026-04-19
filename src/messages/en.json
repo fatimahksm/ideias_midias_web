@@ -18,7 +18,24 @@
     "english": "English",
     "portuguese": "Portuguese"
   },
+  "RouteLoading": {
+  "pageBadge": "Loading",
+  "pageTitle": "Preparing your experience",
+  "pageDescription": "Please wait a moment while we load the page content.",
+  "sectionBadge": "Opening section",
+  "sectionTitle": "Loading this section",
+  "sectionDescription": "We are getting the section details and preparing everything for display.",
+  "adminBadge": "Admin area",
+  "adminTitle": "Loading the dashboard",
+  "adminDescription": "Please wait while we prepare your admin workspace."
+},
+"AppBoot": {
+  "badge": "Starting",
+  "title": "Opening the website",
+  "description": "Please wait a moment while we prepare everything for you."
+},
 "MapPickerField": {
+  "mapLoadFailed": "The map could not be loaded. Please try again.",
   "label": "Map Picker",
   "clickHint": "Click on the map to choose the company location.",
   "useMyLocation": "Use My Location",
@@ -206,6 +223,8 @@
     "bulkSuccess": "{count} media files uploaded successfully."
   },
   "ItemMediaManager": {
+     "deleteDialogTitle": "Delete media",
+  "deleteAction": "Delete",
     "bulkUploadSuccess": "Gallery images uploaded successfully.",
     "backToWorkspace": "Back to workspace",
     "studioTitle": "Item media studio",
@@ -315,6 +334,8 @@
     "editSubtitle": "Update the block type, text, media and publishing state."
   },
   "ContentBlocksManager": {
+    "deleteDialogTitle": "Delete content block",
+  "deleteAction": "Delete",
     "studioTitle": "Content blocks studio",
     "studioSubtitle": "These blocks belong only to CONTENT sections.",
     "scopedSubtitlePrefix": "Scoped to section",
@@ -448,6 +469,8 @@
     }
   },
   "ItemsManager": {
+    "deleteDialogTitle": "Delete item",
+  "deleteAction": "Delete",
     "noDescription": "No description available",
     "manageMedia": "Manage media",
     "studioTitle": "Items studio",
@@ -622,6 +645,11 @@
     "description": "Track the main content areas and jump quickly into the parts you manage most.",
     "statsLoadError": "Failed to load dashboard statistics.",
     "stats": {
+      "stats": {
+    "homeCardsHint": "Manage the cards displayed on the homepage.",
+    "contactMethodsLabel": "Contact methods",
+    "contactMethodsHint": "Control the ways visitors can reach the company."
+  },
       "sectionsLabel": "Sections",
       "sectionsHint": "Main content areas configured in the website.",
       "categoriesLabel": "Categories",
@@ -679,6 +707,8 @@
     }
   },
   "ContactMethodsManager": {
+     "deleteDialogTitle": "Delete contact method",
+  "deleteAction": "Delete",
     "studioTitle": "Contact methods studio",
     "studioSubtitle": "Keep the public contact layer clean, actionable and easy to maintain.",
     "createMethod": "Create contact method",
@@ -737,6 +767,8 @@
     "editSubtitle": "Update the media details, alt text and publishing state."
   },
   "PortfolioProjectMediaManager": {
+    "deleteDialogTitle": "Delete media",
+  "deleteAction": "Delete",
     "bulkUploadSuccess": "Gallery images uploaded successfully.",
     "backToWorkspace": "Back to workspace",
     "studioTitle": "Portfolio project media studio",
@@ -882,6 +914,8 @@
     "noProjectsYet": "No portfolio projects yet"
   },
   "PortfolioProjectsManager": {
+    "deleteDialogTitle": "Delete project",
+  "deleteAction": "Delete",
     "manageMedia": "Manage media",
     "studioTitle": "Portfolio projects studio",
     "studioSubtitle": "These projects belong only to PORTFOLIO sections.",
@@ -1150,6 +1184,8 @@
     "editSubtitle": "Refine the homepage card content, image and section link."
   },
   "HomeCardsManager": {
+     "deleteDialogTitle": "Delete home card",
+  "deleteAction": "Delete",
     "studioTitle": "Home cards studio",
     "studioSubtitle": "Shape the homepage entry points that connect visitors to the right sections.",
     "createCard": "Create card",
@@ -1315,6 +1351,10 @@
     }
   },
   "SectionsManager": {
+    
+    "deleteDialogTitle": "Delete section",
+  "deleteAction": "Delete",
+  "cancel": "Cancel",
     "studioTitle": "Sections studio",
     "studioSubtitle": "Build the website structure with clean, reusable section blocks.",
     "createSection": "Create section",
@@ -1417,6 +1457,8 @@
     "editSubtitle": "Update the category details, media and publishing state."
   },
   "CategoriesManager": {
+      "deleteDialogTitle": "Delete category",
+  "deleteAction": "Delete",
     "studioTitle": "Categories studio",
     "studioSubtitle": "Organize category-based sections before filling them with items.",
     "scopedSubtitlePrefix": "Scoped to section",
@@ -1673,6 +1715,8 @@
     }
   },
   "MediaLibraryManager": {
+    "deleteDialogTitle": "Delete media",
+  "deleteAction": "Delete",
     "uploadCardTitle": "Upload media",
     "uploadCardDescription": "Add reusable images and videos to the shared media library.",
     "uploadButton": "Upload file",
@@ -1751,6 +1795,8 @@
       "superAdmins": "Super admins",
       "admins": "Admins"
     },
+      "deleteDialogTitle": "Delete admin user",
+  "deleteAction": "Delete",
     "studioTitle": "Admin access studio",
     "studioSubtitle": "Keep access clean, safe, and easy to manage.",
     "createAdmin": "Create admin",

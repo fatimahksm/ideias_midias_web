@@ -5,6 +5,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {hasAdminToken} from '@/lib/auth/token';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
@@ -69,6 +70,7 @@ export default function SectionsManager() {
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+  const [deleteTarget, setDeleteTarget] = useState<SectionResponse | null>(null);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -197,13 +199,16 @@ export default function SectionsManager() {
     statusFilter !== 'ALL' ||
     sortBy !== 'sortOrder';
 
-  async function handleDelete(item: SectionResponse) {
-    const confirmed = window.confirm(t('deleteConfirm', {name: item.nameEn}));
+  function handleDelete(item: SectionResponse) {
+    setDeleteTarget(item);
+  }
 
-    if (!confirmed) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   async function handleDuplicate(item: SectionResponse) {
@@ -304,6 +309,20 @@ export default function SectionsManager() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={
+          deleteTarget ? t('deleteConfirm', {name: deleteTarget.nameEn}) : ''
+        }
+        confirmLabel={t('deleteAction')}
+        cancelLabel={t('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

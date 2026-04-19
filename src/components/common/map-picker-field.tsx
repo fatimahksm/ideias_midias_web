@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   LoaderCircle,
   LocateFixed,
@@ -8,7 +8,7 @@ import {
   Search,
   X
 } from 'lucide-react';
-import maplibregl from 'maplibre-gl';
+import maplibregl, {type StyleSpecification} from 'maplibre-gl';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
 
@@ -35,12 +35,34 @@ type SearchPlaceResult = {
 const DEFAULT_CENTER = {
   lat: 33.8938,
   lng: 35.5018
-}; // Beirut
+};
 
 const DEFAULT_ZOOM = 14.5;
 const SELECTED_ZOOM = 17;
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/bright';
 const SEARCH_MIN_CHARS = 3;
+
+const MAP_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors'
+    }
+  },
+  layers: [
+    {
+      id: 'osm',
+      type: 'raster',
+      source: 'osm'
+    }
+  ]
+};
 
 function buildMapUrl(lat: number, lng: number) {
   return `https://www.google.com/maps?q=${lat},${lng}`;
@@ -162,6 +184,12 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
   const t = useTranslations('MapPickerField');
   const common = useTranslations('Common');
 
+  const selectedCoordinatesLabel = useMemo(
+    () => t('selectedCoordinates'),
+    [t]
+  );
+  const mapLoadFailedLabel = useMemo(() => t('mapLoadFailed'), [t]);
+
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markerRef = useRef<maplibregl.Marker | null>(null);
@@ -191,14 +219,13 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
       if (nextLat == null || nextLng == null) {
         popupRef.current?.remove();
         popupRef.current = null;
-
         markerRef.current?.remove();
         markerRef.current = null;
         return;
       }
 
       const popupContent = createPopupContent(
-        t('selectedCoordinates'),
+        selectedCoordinatesLabel,
         nextLat,
         nextLng
       );
@@ -233,7 +260,7 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
         duration: 700
       });
     },
-    [t]
+    [selectedCoordinatesLabel]
   );
 
   const handlePick = useCallback(
@@ -304,10 +331,16 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
       maxZoom: 18,
       dragRotate: false,
       pitchWithRotate: false,
-      touchPitch: false
+      touchPitch: false,
+      attributionControl: {}
     });
 
     mapRef.current = map;
+
+    map.on('error', (event) => {
+      console.error('MapLibre error:', event.error);
+      setLocalError(mapLoadFailedLabel);
+    });
 
     map.addControl(
       new maplibregl.NavigationControl({
@@ -329,17 +362,14 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
     return () => {
       popupRef.current?.remove();
       popupRef.current = null;
-
       markerRef.current?.remove();
       markerRef.current = null;
-
       searchAbortRef.current?.abort();
       searchAbortRef.current = null;
-
       map.remove();
       mapRef.current = null;
     };
-  }, [lat, lng, updateMarker]);
+  }, [lat, lng, mapLoadFailedLabel, updateMarker]);
 
   useEffect(() => {
     updateMarker(lat, lng);

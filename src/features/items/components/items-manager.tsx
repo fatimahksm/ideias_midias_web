@@ -5,6 +5,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {hasAdminToken} from '@/lib/auth/token';
@@ -98,6 +99,8 @@ export default function ItemsManager({
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+  const [deleteTarget, setDeleteTarget] =
+    useState<SectionItemResponse | null>(null);
 
   useEffect(() => {
     if (isSectionScoped && sectionId) {
@@ -213,7 +216,10 @@ export default function ItemsManager({
   }, [categoriesQuery.data, isSectionScoped, sectionId, sectionFilter]);
 
   const selectedCategory = useMemo(
-    () => filteredCategories.find((category) => category.id === Number(categoryFilter)),
+    () =>
+      filteredCategories.find(
+        (category) => category.id === Number(categoryFilter)
+      ),
     [filteredCategories, categoryFilter]
   );
 
@@ -303,7 +309,9 @@ export default function ItemsManager({
     isDirectMode
   ]);
 
-  function getLinkedSection(item: SectionItemResponse): SectionResponse | undefined {
+  function getLinkedSection(
+    item: SectionItemResponse
+  ): SectionResponse | undefined {
     return itemSections.find((section) => section.id === item.sectionId);
   }
 
@@ -316,12 +324,16 @@ export default function ItemsManager({
     );
   }
 
-  async function handleDelete(item: SectionItemResponse) {
-    const confirmed = window.confirm(t('deleteConfirm', {name: item.titleEn}));
-    if (!confirmed) return;
+  function handleDelete(item: SectionItemResponse) {
+    setDeleteTarget(item);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   async function handleToggleStatus(item: SectionItemResponse) {
@@ -531,6 +543,20 @@ export default function ItemsManager({
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={
+          deleteTarget ? t('deleteConfirm', {name: deleteTarget.titleEn}) : ''
+        }
+        confirmLabel={t('deleteAction')}
+        cancelLabel={common('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

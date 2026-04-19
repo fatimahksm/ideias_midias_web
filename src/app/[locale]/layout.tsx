@@ -6,6 +6,7 @@ import {routing} from '@/i18n/routing';
 import Providers from '../providers';
 import '../globals.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import AppBootProvider from '@/components/providers/app-boot-provider';
 
 type Props = {
   children: React.ReactNode;
@@ -33,7 +34,9 @@ export default async function LocaleLayout({children, params}: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <Providers>{children}</Providers>
+      <AppBootProvider>
+  {children}
+</AppBootProvider>
     </NextIntlClientProvider>
   );
 }

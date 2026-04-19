@@ -5,6 +5,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {Select} from '@/components/ui/select';
 import {hasAdminToken} from '@/lib/auth/token';
 import {toAppError} from '@/lib/api/client';
@@ -71,6 +72,8 @@ export default function ItemMediaManager({itemId}: Props) {
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+  const [deleteTarget, setDeleteTarget] =
+    useState<SectionItemMediaResponse | null>(null);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -161,12 +164,16 @@ export default function ItemMediaManager({itemId}: Props) {
     });
   }, [allMedia, statusFilter, typeFilter, sortBy]);
 
-  async function handleDelete(item: SectionItemMediaResponse) {
-    const confirmed = window.confirm(t('deleteConfirm'));
-    if (!confirmed) return;
+  function handleDelete(item: SectionItemMediaResponse) {
+    setDeleteTarget(item);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   async function handleToggleStatus(item: SectionItemMediaResponse) {
@@ -329,6 +336,18 @@ export default function ItemMediaManager({itemId}: Props) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={deleteTarget ? t('deleteConfirm') : ''}
+        confirmLabel={t('deleteAction')}
+        cancelLabel={common('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

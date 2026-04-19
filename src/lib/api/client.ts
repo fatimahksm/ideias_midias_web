@@ -39,6 +39,55 @@ function buildAuthorizationHeader(token: unknown) {
   return trimmed.startsWith('Bearer ') ? trimmed : `Bearer ${trimmed}`;
 }
 
+function clearAdminSessionClientSide() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    localStorage.removeItem('admin_token');
+  } catch {
+    // ignore
+  }
+}
+
+function redirectToAdminLoginIfNeeded() {
+  if (typeof window === 'undefined') return;
+
+  const {pathname} = window.location;
+
+  if (!pathname.includes('/admin')) {
+    return;
+  }
+
+  if (pathname.includes('/admin/login')) {
+    return;
+  }
+
+  const segments = pathname.split('/').filter(Boolean);
+
+  // expected:
+  // /en/admin
+  // /pt/admin
+  // fallback: /admin
+  let loginPath = '/admin/login';
+
+  if (segments.length >= 2 && segments[1] === 'admin') {
+    loginPath = `/${segments[0]}/admin/login`;
+  } else if (segments.length >= 1 && segments[0] === 'admin') {
+    loginPath = '/admin/login';
+  }
+
+  window.location.replace(loginPath);
+}
+
+function handleAuthFailure(status: number) {
+  if (typeof window === 'undefined') return;
+
+  if (status === 401 || status === 403) {
+    clearAdminSessionClientSide();
+    redirectToAdminLoginIfNeeded();
+  }
+}
+
 export function toAppError(error: unknown): AppError {
   if (error instanceof HttpError) {
     return {
@@ -75,6 +124,10 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type') || '';
   const isJson = contentType.includes('application/json');
 
+  if (!response.ok) {
+    handleAuthFailure(response.status);
+  }
+
   if (!isJson) {
     if (!response.ok) {
       throw new HttpError({
@@ -104,6 +157,10 @@ async function parseResponse<T>(response: Response): Promise<T> {
     const apiPayload = payload as ApiResponse<T>;
 
     if (apiPayload.success === false) {
+      if (apiPayload.status === 401 || apiPayload.status === 403) {
+        handleAuthFailure(apiPayload.status);
+      }
+
       throw new HttpError({
         message: apiPayload.message || 'Request failed.',
         status: apiPayload.status ?? response.status,

@@ -4,16 +4,13 @@ import {useMemo, useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {SettingsCard} from '@/components/common/settings-card';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {hasAdminToken} from '@/lib/auth/token';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
-import {
-  deleteMedia,
-  getAllMedia,
-  getMediaByType
-} from '../api';
+import {deleteMedia, getAllMedia, getMediaByType} from '../api';
 import type {MediaFileType, MediaLibraryItem} from '../types';
 import {sortMediaNewestFirst} from '../utils';
 import {MediaLibraryCard} from './media-library-card';
@@ -31,6 +28,9 @@ export default function MediaLibraryManager() {
   const [feedback, setFeedback] = useState('');
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
+  );
+  const [deleteTarget, setDeleteTarget] = useState<MediaLibraryItem | null>(
+    null
   );
 
   const sessionQuery = useAdminSession(hasAdminToken());
@@ -75,15 +75,16 @@ export default function MediaLibraryManager() {
     }
   }
 
-  async function handleDelete(item: MediaLibraryItem) {
-    const confirmed = window.confirm(
-      t('deleteConfirm', {name: item.originalName})
-    );
+  function handleDelete(item: MediaLibraryItem) {
+    setDeleteTarget(item);
+  }
 
-    if (!confirmed) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   return (
@@ -198,6 +199,22 @@ export default function MediaLibraryManager() {
           )}
         </div>
       </SettingsCard>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={
+          deleteTarget
+            ? t('deleteConfirm', {name: deleteTarget.originalName})
+            : ''
+        }
+        confirmLabel={t('deleteAction')}
+        cancelLabel={common('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

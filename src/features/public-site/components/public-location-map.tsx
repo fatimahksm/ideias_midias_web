@@ -2,7 +2,7 @@
 
 import {useEffect, useRef} from 'react';
 import {MapPin} from 'lucide-react';
-import maplibregl from 'maplibre-gl';
+import maplibregl, {type StyleSpecification} from 'maplibre-gl';
 
 type Props = {
   lat: number;
@@ -13,8 +13,30 @@ type Props = {
   googleMapsUrl?: string | null;
 };
 
-const MAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 const MAP_ZOOM = 15;
+
+const MAP_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: [
+        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors'
+    }
+  },
+  layers: [
+    {
+      id: 'osm',
+      type: 'raster',
+      source: 'osm'
+    }
+  ]
+};
 
 function createMarkerElement() {
   const wrapper = document.createElement('div');
@@ -110,20 +132,31 @@ export default function PublicLocationMap({
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = new maplibregl.Map({
-  container: mapContainerRef.current,
-  style: MAP_STYLE,
-  center: [lng, lat],
-  zoom: MAP_ZOOM,
-  minZoom: 3,
-  maxZoom: 18,
-  scrollZoom: false,
-  dragRotate: false,
-  pitchWithRotate: false,
-  touchPitch: false
-});
+      container: mapContainerRef.current,
+      style: MAP_STYLE,
+      center: [lng, lat],
+      zoom: MAP_ZOOM,
+      minZoom: 3,
+      maxZoom: 18,
+      scrollZoom: false,
+      dragRotate: false,
+      pitchWithRotate: false,
+      touchPitch: false,
+      attributionControl: {}
+    });
 
     mapRef.current = map;
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+    map.on('error', (event) => {
+      console.error('MapLibre error:', event.error);
+    });
+
+    map.addControl(
+      new maplibregl.NavigationControl({
+        showCompass: false
+      }),
+      'top-right'
+    );
 
     const popup = new maplibregl.Popup({
       offset: 28,
@@ -146,7 +179,6 @@ export default function PublicLocationMap({
     markerRef.current = marker;
 
     map.on('load', () => {
-      marker.togglePopup();
       if (!marker.getPopup()?.isOpen()) {
         marker.togglePopup();
       }
@@ -155,10 +187,8 @@ export default function PublicLocationMap({
     return () => {
       popupRef.current?.remove();
       popupRef.current = null;
-
       markerRef.current?.remove();
       markerRef.current = null;
-
       map.remove();
       mapRef.current = null;
     };

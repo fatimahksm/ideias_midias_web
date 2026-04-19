@@ -5,6 +5,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {hasAdminToken} from '@/lib/auth/token';
@@ -12,10 +13,7 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
 import {deleteContactMethod, getAllContactMethods} from '../api';
-import type {
-  ContactMethodResponse,
-  ContactMethodType
-} from '../types';
+import type {ContactMethodResponse, ContactMethodType} from '../types';
 import {ContactMethodCard} from './contact-method-card';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
@@ -62,6 +60,9 @@ export default function ContactMethodsManager() {
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+  const [deleteTarget, setDeleteTarget] = useState<ContactMethodResponse | null>(
+    null
+  );
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -96,8 +97,7 @@ export default function ContactMethodsManager() {
         item.labelPt.toLowerCase().includes(searchValue) ||
         item.value.toLowerCase().includes(searchValue);
 
-      const matchesType =
-        typeFilter === 'ALL' || item.type === typeFilter;
+      const matchesType = typeFilter === 'ALL' || item.type === typeFilter;
 
       const matchesStatus =
         statusFilter === 'ALL' ||
@@ -122,13 +122,16 @@ export default function ContactMethodsManager() {
     });
   }, [methodsQuery.data, search, typeFilter, statusFilter, sortBy]);
 
-  async function handleDelete(item: ContactMethodResponse) {
-    const confirmed = window.confirm(t('deleteConfirm', {name: item.labelEn}));
+  function handleDelete(item: ContactMethodResponse) {
+    setDeleteTarget(item);
+  }
 
-    if (!confirmed) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   const allItems = methodsQuery.data ?? [];
@@ -277,6 +280,20 @@ export default function ContactMethodsManager() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={
+          deleteTarget ? t('deleteConfirm', {name: deleteTarget.labelEn}) : ''
+        }
+        confirmLabel={t('deleteAction')}
+        cancelLabel={common('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

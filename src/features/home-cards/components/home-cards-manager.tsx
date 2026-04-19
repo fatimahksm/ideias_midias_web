@@ -5,6 +5,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {Select} from '@/components/ui/select';
 import {Input} from '@/components/ui/input';
 import {hasAdminToken} from '@/lib/auth/token';
@@ -55,7 +56,12 @@ export default function HomeCardsManager() {
   const [sectionFilter, setSectionFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<SortBy>('sortOrder');
   const [feedback, setFeedback] = useState('');
-  const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>('success');
+  const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
+    'success'
+  );
+  const [deleteTarget, setDeleteTarget] = useState<HomeCardResponse | null>(
+    null
+  );
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -85,7 +91,9 @@ export default function HomeCardsManager() {
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
   const sectionsMap = useMemo(() => {
-    return new Map((sectionsQuery.data ?? []).map((section) => [section.id, section]));
+    return new Map(
+      (sectionsQuery.data ?? []).map((section) => [section.id, section])
+    );
   }, [sectionsQuery.data]);
 
   const items = useMemo(() => {
@@ -128,13 +136,16 @@ export default function HomeCardsManager() {
     });
   }, [cardsQuery.data, search, statusFilter, sectionFilter, sortBy, sectionsMap]);
 
-  async function handleDelete(item: HomeCardResponse) {
-    const confirmed = window.confirm(t('deleteConfirm', {name: item.titleEn}));
+  function handleDelete(item: HomeCardResponse) {
+    setDeleteTarget(item);
+  }
 
-    if (!confirmed) return;
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   return (
@@ -181,10 +192,10 @@ export default function HomeCardsManager() {
             onChange={(event) => setSectionFilter(event.target.value)}
             options={[
               {value: 'ALL', label: t('allSections')},
-              ...((sectionsQuery.data ?? []).map((section) => ({
+              ...(sectionsQuery.data ?? []).map((section) => ({
                 value: String(section.id),
                 label: `${section.nameEn} (${section.slug})`
-              })))
+              }))
             ]}
           />
 
@@ -204,9 +215,7 @@ export default function HomeCardsManager() {
           <Select
             label={t('sortByLabel')}
             value={sortBy}
-            onChange={(event) =>
-              setSortBy(event.target.value as SortBy)
-            }
+            onChange={(event) => setSortBy(event.target.value as SortBy)}
             options={[
               {value: 'sortOrder', label: t('sortBySortOrder')},
               {value: 'titleEn', label: t('sortByTitle')},
@@ -280,6 +289,20 @@ export default function HomeCardsManager() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={
+          deleteTarget ? t('deleteConfirm', {name: deleteTarget.titleEn}) : ''
+        }
+        confirmLabel={t('deleteAction')}
+        cancelLabel={common('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

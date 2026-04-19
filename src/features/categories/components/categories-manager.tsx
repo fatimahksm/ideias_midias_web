@@ -5,6 +5,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {hasAdminToken} from '@/lib/auth/token';
@@ -71,6 +72,8 @@ export default function CategoriesManager({
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+  const [deleteTarget, setDeleteTarget] =
+    useState<SectionCategoryResponse | null>(null);
 
   useEffect(() => {
     if (isSectionScoped && sectionId) {
@@ -192,12 +195,16 @@ export default function CategoriesManager({
     return categorySections.find((section) => section.id === item.sectionId);
   }
 
-  async function handleDelete(item: SectionCategoryResponse) {
-    const confirmed = window.confirm(t('deleteConfirm', {name: item.nameEn}));
-    if (!confirmed) return;
+  function handleDelete(item: SectionCategoryResponse) {
+    setDeleteTarget(item);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   async function handleToggleStatus(item: SectionCategoryResponse) {
@@ -364,6 +371,20 @@ export default function CategoriesManager({
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={
+          deleteTarget ? t('deleteConfirm', {name: deleteTarget.nameEn}) : ''
+        }
+        confirmLabel={t('deleteAction')}
+        cancelLabel={common('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

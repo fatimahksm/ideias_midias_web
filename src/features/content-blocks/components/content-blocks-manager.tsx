@@ -5,6 +5,7 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
+import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {hasAdminToken} from '@/lib/auth/token';
@@ -83,6 +84,8 @@ export default function ContentBlocksManager({
   const [feedbackTone, setFeedbackTone] = useState<'success' | 'error'>(
     'success'
   );
+  const [deleteTarget, setDeleteTarget] =
+    useState<SectionContentBlockResponse | null>(null);
 
   useEffect(() => {
     if (isSectionScoped && sectionId) {
@@ -221,16 +224,16 @@ export default function ContentBlocksManager({
     return contentSections.find((section) => section.id === item.sectionId);
   }
 
-  async function handleDelete(item: SectionContentBlockResponse) {
-    const confirmed = window.confirm(
-      t('deleteConfirm', {
-        name: item.titleEn || item.titlePt || t('untitledBlock')
-      })
-    );
-    if (!confirmed) return;
+  function handleDelete(item: SectionContentBlockResponse) {
+    setDeleteTarget(item);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
 
     setFeedback('');
-    await deleteMutation.mutateAsync(item.id);
+    await deleteMutation.mutateAsync(deleteTarget.id);
+    setDeleteTarget(null);
   }
 
   async function handleToggleStatus(item: SectionContentBlockResponse) {
@@ -415,6 +418,27 @@ export default function ContentBlocksManager({
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title={t('deleteDialogTitle')}
+        description={
+          deleteTarget
+            ? t('deleteConfirm', {
+                name:
+                  deleteTarget.titleEn ||
+                  deleteTarget.titlePt ||
+                  t('untitledBlock')
+              })
+            : ''
+        }
+        confirmLabel={t('deleteAction')}
+        cancelLabel={common('cancel')}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+        isLoading={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }
