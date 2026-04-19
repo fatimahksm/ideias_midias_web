@@ -1,8 +1,8 @@
-import type {Metadata} from 'next';
-import {NextIntlClientProvider, hasLocale} from 'next-intl';
-import {getMessages, setRequestLocale} from 'next-intl/server';
-import {notFound} from 'next/navigation';
-import {routing} from '@/i18n/routing';
+import type { Metadata } from 'next';
+import { NextIntlClientProvider, hasLocale } from 'next-intl';
+import { getMessages, setRequestLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { routing } from '@/i18n/routing';
 import Providers from '../providers';
 import '../globals.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -10,11 +10,11 @@ import AppBootProvider from '@/components/providers/app-boot-provider';
 
 type Props = {
   children: React.ReactNode;
-  params: Promise<{locale: string}>;
+  params: Promise<{ locale: string }>;
 };
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({locale}));
+  return routing.locales.map((locale) => ({ locale }));
 }
 
 export const metadata: Metadata = {
@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   description: 'Ideias Midias website'
 };
 
-export default async function LocaleLayout({children, params}: Props) {
-  const {locale} = await params;
+export default async function LocaleLayout({ children, params }: Props) {
+  const { locale } = await params;
 
   if (!hasLocale(routing.locales, locale)) {
     notFound();
@@ -33,10 +33,14 @@ export default async function LocaleLayout({children, params}: Props) {
   const messages = await getMessages();
 
   return (
-    <NextIntlClientProvider messages={messages}>
-      <AppBootProvider>
-  {children}
-</AppBootProvider>
-    </NextIntlClientProvider>
+    <html lang={locale}>
+      <body>
+        <NextIntlClientProvider messages={messages}>
+          <Providers>
+            <AppBootProvider>{children}</AppBootProvider>
+          </Providers>
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }
