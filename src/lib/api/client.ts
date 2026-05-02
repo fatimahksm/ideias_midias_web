@@ -1,12 +1,17 @@
 import {HttpError} from './http-error';
 import type {ApiErrorResponse, ApiResponse, AppError} from '@/types/api';
+import {endpoints} from './endpoints';
+import {clearAdminSession, getAdminToken, setAdminToken} from '@/lib/auth/token';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
   token?: unknown;
+  skipAuthRefresh?: boolean;
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+let refreshPromise: Promise<string | null> | null = null;
 
 function buildUrl(path: string) {
   if (!API_BASE_URL) {
@@ -41,12 +46,7 @@ function buildAuthorizationHeader(token: unknown) {
 
 function clearAdminSessionClientSide() {
   if (typeof window === 'undefined') return;
-
-  try {
-    localStorage.removeItem('admin_token');
-  } catch {
-    // ignore
-  }
+  clearAdminSession();
 }
 
 function redirectToAdminLoginIfNeeded() {
@@ -64,10 +64,6 @@ function redirectToAdminLoginIfNeeded() {
 
   const segments = pathname.split('/').filter(Boolean);
 
-  // expected:
-  // /en/admin
-  // /pt/admin
-  // fallback: /admin
   let loginPath = '/admin/login';
 
   if (segments.length >= 2 && segments[1] === 'admin') {
@@ -86,6 +82,18 @@ function handleAuthFailure(status: number) {
     clearAdminSessionClientSide();
     redirectToAdminLoginIfNeeded();
   }
+}
+
+function isAdminApiPath(path: string) {
+  return path.startsWith('/api/admin/');
+}
+
+function isAuthPath(path: string) {
+  return (
+    path === endpoints.auth.adminLogin ||
+    path === endpoints.auth.adminRefresh ||
+    path === endpoints.auth.adminLogout
+  );
 }
 
 export function toAppError(error: unknown): AppError {
@@ -124,10 +132,6 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type') || '';
   const isJson = contentType.includes('application/json');
 
-  if (!response.ok) {
-    handleAuthFailure(response.status);
-  }
-
   if (!isJson) {
     if (!response.ok) {
       throw new HttpError({
@@ -157,10 +161,6 @@ async function parseResponse<T>(response: Response): Promise<T> {
     const apiPayload = payload as ApiResponse<T>;
 
     if (apiPayload.success === false) {
-      if (apiPayload.status === 401 || apiPayload.status === 403) {
-        handleAuthFailure(apiPayload.status);
-      }
-
       throw new HttpError({
         message: apiPayload.message || 'Request failed.',
         status: apiPayload.status ?? response.status,
@@ -176,9 +176,48 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return payload as T;
 }
 
-export async function apiClient<T>(
+async function refreshAdminAccessToken(): Promise<string | null> {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const response = await fetch(buildUrl(endpoints.auth.adminRefresh), {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json'
+          },
+          credentials: 'include',
+          cache: 'no-store'
+        });
+
+        const payload = await parseResponse<{token: string}>(response);
+        const newToken = payload?.token ?? null;
+
+        if (newToken) {
+          setAdminToken(newToken);
+          return newToken;
+        }
+
+        clearAdminSessionClientSide();
+        return null;
+      } catch {
+        clearAdminSessionClientSide();
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+
+  return refreshPromise;
+}
+
+async function executeRequest<T>(
   path: string,
-  options: RequestOptions = {}
+  options: RequestOptions
 ): Promise<T> {
   const {body, headers, token, ...rest} = options;
   const authorizationHeader = buildAuthorizationHeader(token);
@@ -192,8 +231,47 @@ export async function apiClient<T>(
       ...headers
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
+    credentials: rest.credentials ?? 'include',
     cache: 'no-store'
   });
 
   return parseResponse<T>(response);
+}
+
+export async function apiClient<T>(
+  path: string,
+  options: RequestOptions = {}
+): Promise<T> {
+  try {
+    return await executeRequest<T>(path, options);
+  } catch (error) {
+    const appError = toAppError(error);
+    const shouldTryRefresh =
+      typeof window !== 'undefined' &&
+      !options.skipAuthRefresh &&
+      isAdminApiPath(path) &&
+      !isAuthPath(path) &&
+      (appError.status === 401 || appError.status === 403);
+
+    if (!shouldTryRefresh) {
+      if (appError.status === 401 || appError.status === 403) {
+        handleAuthFailure(appError.status);
+      }
+
+      throw error;
+    }
+
+    const refreshedToken = await refreshAdminAccessToken();
+
+    if (!refreshedToken) {
+      handleAuthFailure(401);
+      throw error;
+    }
+
+    return executeRequest<T>(path, {
+      ...options,
+      token: refreshedToken,
+      skipAuthRefresh: true
+    });
+  }
 }

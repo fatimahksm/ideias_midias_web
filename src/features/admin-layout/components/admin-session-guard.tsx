@@ -1,11 +1,11 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
-import {clearAdminSession, getAdminToken} from '@/lib/auth/token';
+import {clearAdminSession} from '@/lib/auth/token';
 import {useAdminSession} from '../hooks/use-admin-session';
 
 type Props = {
@@ -47,27 +47,15 @@ export function AdminSessionGuard({children}: Props) {
     setIsHydrated(true);
   }, []);
 
-  const storedToken = useMemo(() => {
-    if (!isHydrated) return null;
-    return getAdminToken();
-  }, [isHydrated]);
-
-  const sessionQuery = useAdminSession(Boolean(storedToken));
+  const sessionQuery = useAdminSession(isHydrated);
 
   const appError = sessionQuery.error ? toAppError(sessionQuery.error) : null;
 
   const isAuthFailure =
     appError?.status === 401 ||
     appError?.status === 403 ||
-    appError?.message === 'No admin token found.';
-
-  useEffect(() => {
-    if (!isHydrated) return;
-
-    if (!storedToken) {
-      router.replace(`/${locale}/admin/login`);
-    }
-  }, [isHydrated, storedToken, locale, router]);
+    appError?.message === 'No admin token found.' ||
+    appError?.message === 'Refresh token is missing.';
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -78,15 +66,7 @@ export function AdminSessionGuard({children}: Props) {
     }
   }, [isHydrated, isAuthFailure, locale, router]);
 
-  if (!isHydrated) {
-    return <StateCard label={t('checkingSession')} />;
-  }
-
-  if (!storedToken) {
-    return <StateCard label={t('redirectingToLogin')} />;
-  }
-
-  if (sessionQuery.isPending) {
+  if (!isHydrated || sessionQuery.isPending) {
     return <StateCard label={t('checkingSession')} />;
   }
 

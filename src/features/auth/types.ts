@@ -6,6 +6,7 @@ export type AdminLoginPayload = {
 export type AdminLoginResponse = {
   token: string;
   tokenType: string;
+  expiresInMs: number;
   adminId: number;
   email: string;
   role: string;

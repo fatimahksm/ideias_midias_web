@@ -18,7 +18,24 @@ function resolveAdminToken(token?: string | null) {
 export async function adminLogin(payload: AdminLoginPayload) {
   return apiClient<AdminLoginResponse>(endpoints.auth.adminLogin, {
     method: 'POST',
-    body: payload
+    body: payload,
+    credentials: 'include'
+  });
+}
+
+export async function adminRefresh() {
+  return apiClient<AdminLoginResponse>(endpoints.auth.adminRefresh, {
+    method: 'POST',
+    credentials: 'include',
+    skipAuthRefresh: true
+  });
+}
+
+export async function adminLogout() {
+  return apiClient<void>(endpoints.auth.adminLogout, {
+    method: 'POST',
+    credentials: 'include',
+    skipAuthRefresh: true
   });
 }
 
@@ -32,7 +49,8 @@ export async function getCurrentAdmin(token?: string | null) {
 
   return apiClient<AdminMeResponse>(endpoints.auth.adminMe, {
     method: 'GET',
-    token: finalToken
+    token: finalToken,
+    credentials: 'include'
   });
 }
 
