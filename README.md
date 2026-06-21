@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ideias Mídias — Web
 
-## Getting Started
+Front-end for the Ideias Mídias platform: a bilingual (PT/EN) public
+marketing/portfolio website plus a protected admin panel for managing all content.
 
-First, run the development server:
+Built with **Next.js 16** (App Router), **React 19**, **TypeScript** and
+**Tailwind CSS 4**. It talks to the [Ideias Mídias backend](../ideias_midias_backend).
+
+## Features
+
+- Public site: home page, dynamic section pages, portfolio, media galleries,
+  location maps, contact links
+- Admin panel: dashboard plus full CRUD for site settings, home cards, sections,
+  categories, items & media, portfolio projects & media, content blocks, contact
+  methods, theme settings and admin users
+- Bilingual UI (PT/EN) via `next-intl`, with locale-prefixed routing
+- Dynamic theming driven by backend theme settings (CSS variables)
+- Auth flow with session guard for protected routes
+
+## Tech stack
+
+| Concern           | Choice                              |
+|-------------------|-------------------------------------|
+| Framework         | Next.js 16 (App Router)             |
+| UI                | React 19, Tailwind CSS 4            |
+| Data fetching     | TanStack Query                      |
+| Forms/validation  | react-hook-form + Zod              |
+| i18n              | next-intl (`en`, `pt`)             |
+| Maps              | MapLibre GL                         |
+| Animation         | Framer Motion                       |
+| Tests             | Vitest                              |
+
+## Prerequisites
+
+- Node.js 20+ (Node 22 recommended)
+- A running instance of the backend API
+
+## Environment variables
+
+Create a `.env.local` (see `.env.example`):
+
+| Variable                    | Description                                              | Example |
+|-----------------------------|----------------------------------------------------------|---------|
+| `NEXT_PUBLIC_API_BASE_URL`  | Base URL of the backend API (including `/api` if used)   | `http://localhost:8080/api` |
+| `NEXT_PUBLIC_BACKEND_URL`   | Backend origin used to resolve uploaded media URLs       | `http://localhost:8080` |
+
+These are also used by `next.config.ts` to allow-list remote image hosts, so they
+must be set at build time for production image optimization to work.
+
+## Getting started
 
 ```bash
+npm install
+cp .env.example .env.local   # then edit the values
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>. You will be redirected to a locale prefix (e.g.
+`/en` or `/pt`). The admin panel lives under `/<locale>/admin`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command              | Description                          |
+|----------------------|--------------------------------------|
+| `npm run dev`        | Start the dev server                 |
+| `npm run build`      | Production build                     |
+| `npm run start`      | Serve the production build           |
+| `npm run lint`       | Run ESLint                           |
+| `npm run test`       | Run the Vitest suite once            |
+| `npm run test:watch` | Run Vitest in watch mode             |
 
-## Learn More
+## Testing
 
-To learn more about Next.js, take a look at the following resources:
+Unit tests cover the pure utility/business logic (URL helpers, error mapping,
+contact-link building, localization helpers). They run in a Node environment with
+no browser needed:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run test
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Test files live next to the code they cover as `*.test.ts`.
 
-## Deploy on Vercel
+## Project structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/[locale]/        App Router routes (public site + /admin)
+  features/<feature>/  feature-sliced modules (api, components, schema, types, utils)
+  components/          shared UI and layout components
+  lib/                 api client, auth, theme, media, helpers
+  i18n/                next-intl routing/config
+  messages/            en.json / pt.json translation catalogs
+```
