@@ -1496,6 +1496,13 @@
     "editSubtitle": "Update the category details, media and publishing state."
   },
   "CategoriesManager": {
+    "quickAddTitle": "Quick add a category",
+    "quickAddHint": "Type a name and click Add — no need to open the full form. Fill one language and the other is reused.",
+    "quickAddNamePt": "Name (Portuguese)",
+    "quickAddNameEn": "Name (English)",
+    "quickAddPlaceholder": "e.g. Weddings",
+    "quickAddButton": "Add",
+    "quickAddSuccess": "Category added.",
       "deleteDialogTitle": "Delete category",
   "deleteAction": "Delete",
     "studioTitle": "Categories studio",

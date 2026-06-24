@@ -1493,6 +1493,13 @@
     "editSubtitle": "Atualize os detalhes da categoria, a mídia e o status de publicação."
   },
   "CategoriesManager": {
+    "quickAddTitle": "Adicionar categoria rápida",
+    "quickAddHint": "Digite um nome e clique em Adicionar — sem abrir o formulário completo. Preencha um idioma e o outro é reutilizado.",
+    "quickAddNamePt": "Nome (Português)",
+    "quickAddNameEn": "Nome (Inglês)",
+    "quickAddPlaceholder": "ex.: Casamentos",
+    "quickAddButton": "Adicionar",
+    "quickAddSuccess": "Categoria adicionada.",
     "deleteDialogTitle": "Excluir categoria",
     "deleteAction": "Excluir",
     "studioTitle": "Categorias studio",

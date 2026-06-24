@@ -15,8 +15,9 @@ import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
 import {getAllSections} from '@/features/sections/api';
 import {deleteCategory, getAllCategories, updateCategory} from '../api';
 import type {SectionCategoryPayload, SectionCategoryResponse} from '../types';
-import {emptyToNull} from '../utils';
+import {emptyToNull, getNextCategorySortOrder} from '../utils';
 import {CategoryCard} from './category-card';
+import {CategoryQuickAdd} from './category-quick-add';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type SortBy = 'sortOrder' | 'nameEn' | 'updatedAt';
@@ -317,6 +318,25 @@ export default function CategoriesManager({
           ]}
         />
       </div>
+
+      {isSectionScoped && sectionId ? (
+        <CategoryQuickAdd
+          sectionId={sectionId}
+          startSortOrder={getNextCategorySortOrder(
+            categoriesQuery.data ?? [],
+            sectionId
+          )}
+          onAdded={async () => {
+            setFeedbackTone('success');
+            setFeedback(t('quickAddSuccess'));
+            await queryClient.invalidateQueries({queryKey: ['categories']});
+          }}
+          onError={(message) => {
+            setFeedbackTone('error');
+            setFeedback(message);
+          }}
+        />
+      ) : null}
 
       {feedback ? (
         <div
