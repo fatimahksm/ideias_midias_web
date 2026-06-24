@@ -128,20 +128,6 @@ export default function HomeCardsManager() {
 
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
-  // Reordering only makes sense while the list is shown in manual sort order.
-  const canReorder = sortBy === 'sortOrder';
-
-  function handleMove(item: HomeCardResponse, direction: 'up' | 'down') {
-    const index = items.findIndex((entry) => entry.id === item.id);
-    const neighbor =
-      direction === 'up' ? items[index - 1] : items[index + 1];
-
-    if (!neighbor || reorderMutation.isPending) return;
-
-    setFeedback('');
-    reorderMutation.mutate({a: item, b: neighbor});
-  }
-
   const sectionsMap = useMemo(() => {
     return new Map(
       (sectionsQuery.data ?? []).map((section) => [section.id, section])
@@ -187,6 +173,20 @@ export default function HomeCardsManager() {
       return a.sortOrder - b.sortOrder || a.id - b.id;
     });
   }, [cardsQuery.data, search, statusFilter, sectionFilter, sortBy, sectionsMap]);
+
+  // Reordering only makes sense while the list is shown in manual sort order.
+  const canReorder = sortBy === 'sortOrder';
+
+  function handleMove(item: HomeCardResponse, direction: 'up' | 'down') {
+    const index = items.findIndex((entry) => entry.id === item.id);
+    const neighbor =
+      direction === 'up' ? items[index - 1] : items[index + 1];
+
+    if (!neighbor || reorderMutation.isPending) return;
+
+    setFeedback('');
+    reorderMutation.mutate({a: item, b: neighbor});
+  }
 
   function handleDelete(item: HomeCardResponse) {
     setDeleteTarget(item);
