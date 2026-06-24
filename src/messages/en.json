@@ -1924,5 +1924,16 @@
         "Save, then click “Preview section” at the top to see it live."
       ]
     }
+  },
+  "HomeCardsGuide": {
+    "title": "What is the homepage?",
+    "intro": "The homepage shows a grid of cards. Each card is just a doorway — when a visitor clicks it, it takes them into one of your sections. The card does not hold content itself; the real content lives inside the section it links to.",
+    "hideHint": "Quick guide — click to hide",
+    "steps": [
+      "First create your sections (in “Sections”) and add their content there.",
+      "Here, click “Create card” to add a homepage card.",
+      "Give the card a title and icon, then choose which section it links to.",
+      "Save, then open the live site to see the card on the homepage."
+    ]
   }
 }

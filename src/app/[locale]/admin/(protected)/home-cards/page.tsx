@@ -1,5 +1,6 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {PageHeader} from '@/components/common/page-header';
+import {HomeCardsGuide} from '@/features/home-cards/components/home-cards-guide';
 import HomeCardsManager from '@/features/home-cards/components/home-cards-manager';
 
 type Props = {
@@ -16,6 +17,7 @@ export default async function HomeCardsPage({params}: Props) {
   return (
     <section className="space-y-6">
       <PageHeader title={t('title')} description={t('subtitle')} />
+      <HomeCardsGuide />
       <HomeCardsManager />
     </section>
   );

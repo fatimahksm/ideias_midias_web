@@ -1921,5 +1921,16 @@
         "Salve e clique em “Visualizar seção” no topo para ver publicado."
       ]
     }
+  },
+  "HomeCardsGuide": {
+    "title": "O que é a página inicial?",
+    "intro": "A página inicial mostra uma grade de cards. Cada card é apenas uma porta — quando o visitante clica, ele é levado para uma das suas seções. O card não guarda conteúdo; o conteúdo de verdade fica dentro da seção para a qual ele aponta.",
+    "hideHint": "Guia rápido — clique para ocultar",
+    "steps": [
+      "Primeiro crie suas seções (em “Seções”) e adicione o conteúdo lá.",
+      "Aqui, clique em “Criar card” para adicionar um card na página inicial.",
+      "Dê um título e um ícone ao card e escolha para qual seção ele leva.",
+      "Salve e abra o site para ver o card na página inicial."
+    ]
   }
 }
