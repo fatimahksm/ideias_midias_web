@@ -214,6 +214,54 @@ function BlockMedia({
   );
 }
 
+// A "pure image" block carries only an image (no title/subtitle/text, no
+// video) — exactly what bulk "Add photos" produces. Runs of these are shown
+// as a gallery grid instead of stacked single-image cards.
+function isPureImageBlock(block: SectionContentBlockResponse) {
+  const hasText = Boolean(
+    block.titlePt ||
+      block.titleEn ||
+      block.subtitlePt ||
+      block.subtitleEn ||
+      block.contentPt ||
+      block.contentEn
+  );
+
+  return Boolean(block.imageUrl) && !block.videoUrl && !hasText;
+}
+
+type ContentBlockGroup =
+  | {kind: 'block'; block: SectionContentBlockResponse}
+  | {kind: 'gallery'; blocks: SectionContentBlockResponse[]};
+
+function groupContentBlocks(
+  blocks: SectionContentBlockResponse[]
+): ContentBlockGroup[] {
+  const groups: ContentBlockGroup[] = [];
+  let run: SectionContentBlockResponse[] = [];
+
+  const flush = () => {
+    if (run.length >= 2) {
+      groups.push({kind: 'gallery', blocks: run});
+    } else if (run.length === 1) {
+      groups.push({kind: 'block', block: run[0]});
+    }
+    run = [];
+  };
+
+  for (const block of blocks) {
+    if (isPureImageBlock(block)) {
+      run.push(block);
+    } else {
+      flush();
+      groups.push({kind: 'block', block});
+    }
+  }
+
+  flush();
+  return groups;
+}
+
 function ContentBlocksSection({
   locale,
   blocks,
@@ -232,7 +280,37 @@ function ContentBlocksSection({
         viewport={{once: true, amount: 0.12}}
         className="space-y-10"
       >
-        {blocks.map((block) => {
+        {groupContentBlocks(blocks).map((group) => {
+          if (group.kind === 'gallery') {
+            return (
+              <motion.div
+                key={`gallery-${group.blocks[0].id}`}
+                variants={fadeUp}
+                className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4"
+              >
+                {group.blocks.map((image) => {
+                  const url = resolveMediaUrl(image.imageUrl);
+                  if (!url) return null;
+
+                  return (
+                    <div
+                      key={image.id}
+                      className="relative aspect-square overflow-hidden rounded-2xl bg-[var(--color-surface-muted)]"
+                    >
+                      <Image
+                        src={url}
+                        alt={t('contentLabel')}
+                        fill
+                        className="object-cover transition-transform duration-300 hover:scale-105"
+                      />
+                    </div>
+                  );
+                })}
+              </motion.div>
+            );
+          }
+
+          const block = group.block;
           const title =
             getLocalizedValue(locale, block.titlePt, block.titleEn) || '';
           const subtitle =
