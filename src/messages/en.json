@@ -1880,5 +1880,49 @@
     "fullNameRequired": "Full name is required.",
     "invalidEmail": "Please enter a valid email address.",
     "passwordTooShort": "Password must be at least 8 characters long."
+  },
+  "SectionGuide": {
+    "showHint": "Click to see the step-by-step guide",
+    "hideHint": "Quick guide — click to hide",
+    "CONTENT": {
+      "title": "How to build this section",
+      "intro": "This section is built from blocks. Each block is one piece of the page — a text, an image, a video, or a photo gallery.",
+      "steps": [
+        "Scroll down to the “Content blocks” area below.",
+        "Click “Create block” and pick a type: Text, Image, Video, Text + Image, or Gallery.",
+        "For a photo gallery, choose “Gallery” and add the images you want to show.",
+        "Save, then click “Preview section” at the top to see how it looks live."
+      ]
+    },
+    "CATEGORY_ITEMS": {
+      "title": "How to fill this section",
+      "intro": "This section has two levels: first you create the categories (the groups), then you add items inside each group.",
+      "steps": [
+        "In the “Categories” area below, click “Create category” to make your groups (for example: Weddings, Events).",
+        "In the “Items” area, click “Create item” and choose which category it belongs to.",
+        "Add photos to each item, then Save.",
+        "Click “Preview section” at the top to check the result."
+      ]
+    },
+    "DIRECT_ITEMS": {
+      "title": "How to fill this section",
+      "intro": "This section is a simple, direct list of items — there are no categories to worry about.",
+      "steps": [
+        "Scroll down to the “Items” area below.",
+        "Click “Create item” and fill in the details.",
+        "Add photos to each item, then Save.",
+        "Click “Preview section” at the top to check the result."
+      ]
+    },
+    "PORTFOLIO": {
+      "title": "How to add your work",
+      "intro": "This section shows your work as a gallery of projects. Each project has its own photos and videos.",
+      "steps": [
+        "In the “Projects” area below, click “Create project”.",
+        "Open the project and add its photos and videos — that is the project's gallery.",
+        "Repeat for each project you want to show.",
+        "Save, then click “Preview section” at the top to see it live."
+      ]
+    }
   }
 }

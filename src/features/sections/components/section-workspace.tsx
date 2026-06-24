@@ -10,6 +10,7 @@ import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {getSectionById} from '../api';
 import {getSectionPreviewPath} from '../utils';
 import type {SectionType} from '../types';
+import {SectionGuide} from './section-guide';
 import {SectionStatusBadge} from './section-status-badge';
 import {SectionTypeBadge} from './section-type-badge';
 import CategoriesManager from '@/features/categories/components/categories-manager';
@@ -210,27 +211,20 @@ export function SectionWorkspace({sectionId}: Props) {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-        <p className="text-sm font-semibold text-blue-900">
-          {t(workspaceModel.introTitleKey)}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-blue-800">
-          {t(workspaceModel.introDescriptionKey)}
-        </p>
+      <SectionGuide sectionType={section.sectionType} />
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link href="/admin/sections">
-            <Button type="button" variant="outline" size="sm">
-              {t('backToSections')}
-            </Button>
-          </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/admin/sections">
+          <Button type="button" variant="outline" size="sm">
+            {t('backToSections')}
+          </Button>
+        </Link>
 
-          <Link href="/admin/home-cards">
-            <Button type="button" variant="outline" size="sm">
-              {t('manageHomepage')}
-            </Button>
-          </Link>
-        </div>
+        <Link href="/admin/home-cards">
+          <Button type="button" variant="outline" size="sm">
+            {t('manageHomepage')}
+          </Button>
+        </Link>
       </div>
 
       {section.sectionType === 'CATEGORY_ITEMS' ? (

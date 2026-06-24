@@ -1877,5 +1877,49 @@
     "fullNameRequired": "O nome completo é obrigatório.",
     "invalidEmail": "Digite um endereço de e-mail válido.",
     "passwordTooShort": "A senha deve ter pelo menos 8 caracteres."
+  },
+  "SectionGuide": {
+    "showHint": "Clique para ver o guia passo a passo",
+    "hideHint": "Guia rápido — clique para ocultar",
+    "CONTENT": {
+      "title": "Como montar esta seção",
+      "intro": "Esta seção é montada com blocos. Cada bloco é um pedaço da página — um texto, uma imagem, um vídeo ou uma galeria de fotos.",
+      "steps": [
+        "Role para baixo até a área “Blocos de conteúdo”.",
+        "Clique em “Criar bloco” e escolha o tipo: Texto, Imagem, Vídeo, Texto + Imagem ou Galeria.",
+        "Para uma galeria de fotos, escolha “Galeria” e adicione as imagens que quer mostrar.",
+        "Salve e clique em “Visualizar seção” no topo para ver como ficou."
+      ]
+    },
+    "CATEGORY_ITEMS": {
+      "title": "Como preencher esta seção",
+      "intro": "Esta seção tem dois níveis: primeiro você cria as categorias (os grupos) e depois adiciona os itens dentro de cada grupo.",
+      "steps": [
+        "Na área “Categorias” abaixo, clique em “Criar categoria” para montar os grupos (por exemplo: Casamentos, Eventos).",
+        "Na área “Itens”, clique em “Criar item” e escolha a categoria dele.",
+        "Adicione fotos a cada item e clique em Salvar.",
+        "Clique em “Visualizar seção” no topo para conferir o resultado."
+      ]
+    },
+    "DIRECT_ITEMS": {
+      "title": "Como preencher esta seção",
+      "intro": "Esta seção é uma lista simples e direta de itens — sem categorias para se preocupar.",
+      "steps": [
+        "Role para baixo até a área “Itens”.",
+        "Clique em “Criar item” e preencha os detalhes.",
+        "Adicione fotos a cada item e clique em Salvar.",
+        "Clique em “Visualizar seção” no topo para conferir o resultado."
+      ]
+    },
+    "PORTFOLIO": {
+      "title": "Como adicionar seus trabalhos",
+      "intro": "Esta seção mostra seus trabalhos como uma galeria de projetos. Cada projeto tem suas próprias fotos e vídeos.",
+      "steps": [
+        "Na área “Projetos” abaixo, clique em “Criar projeto”.",
+        "Abra o projeto e adicione as fotos e vídeos — essa é a galeria do projeto.",
+        "Repita para cada projeto que quiser mostrar.",
+        "Salve e clique em “Visualizar seção” no topo para ver publicado."
+      ]
+    }
   }
 }
