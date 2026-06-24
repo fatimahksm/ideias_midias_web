@@ -3,6 +3,7 @@
 import {useMemo} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
+import {Check} from 'lucide-react';
 import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
@@ -61,6 +62,100 @@ function ActionLinkCard({
         <Button type="button">{actionLabel}</Button>
       </Link>
     </SettingsCard>
+  );
+}
+
+function GettingStartedStep({
+  index,
+  done,
+  title,
+  description,
+  href,
+  actionLabel
+}: {
+  index: number;
+  done: boolean;
+  title: string;
+  description: string;
+  href: string;
+  actionLabel: string;
+}) {
+  return (
+    <div className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4">
+      <span
+        className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+          done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+        }`}
+      >
+        {done ? <Check className="h-4 w-4" /> : index}
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-slate-900">{title}</p>
+        <p className="mt-1 text-sm text-slate-500">{description}</p>
+      </div>
+
+      <Link href={href} className="shrink-0">
+        <Button type="button" variant="outline" size="sm">
+          {actionLabel}
+        </Button>
+      </Link>
+    </div>
+  );
+}
+
+function GettingStarted({counts}: {counts: Record<string, number>}) {
+  const t = useTranslations('AdminDashboardPage');
+
+  const steps = [
+    {key: 'sections', done: counts.sections > 0, href: '/admin/sections'},
+    {
+      key: 'content',
+      done: counts.items + counts.contentBlocks + counts.projects > 0,
+      href: '/admin/sections'
+    },
+    {key: 'homeCards', done: counts.homeCards > 0, href: '/admin/home-cards'},
+    {
+      key: 'contacts',
+      done: counts.contactMethods > 0,
+      href: '/admin/contact-methods'
+    },
+    {key: 'media', done: counts.media > 0, href: '/admin/media'}
+  ];
+
+  const doneCount = steps.filter((step) => step.done).length;
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-lg font-bold text-slate-900">
+            {t('gettingStartedTitle')}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">
+            {t('gettingStartedDescription')}
+          </p>
+        </div>
+
+        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
+          {t('gettingStartedProgress', {done: doneCount, total: steps.length})}
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3">
+        {steps.map((step, i) => (
+          <GettingStartedStep
+            key={step.key}
+            index={i + 1}
+            done={step.done}
+            title={t(`${step.key}StepTitle`)}
+            description={t(`${step.key}StepDesc`)}
+            href={step.href}
+            actionLabel={t('stepAction')}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -153,6 +248,8 @@ export function AdminDashboardOverview() {
 
   return (
     <div className="space-y-6">
+      {!isLoading && !hasError ? <GettingStarted counts={counts} /> : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label={t('stats.sectionsLabel')}
