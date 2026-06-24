@@ -470,7 +470,7 @@
     "deleteDialogTitle": "Excluir item",
     "deleteAction": "Excluir",
     "noDescription": "No descrição available",
-    "manageMedia": "Gerenciar mídia",
+    "manageMedia": "Fotos e vídeos",
     "studioTitle": "Estúdio de itens",
     "studioSubtitle": "Esses itens pertencem apenas às seções DIRECT_ITEMS e CATEGORY_ITEMS.",
     "createItem": "Criar item",
@@ -948,7 +948,7 @@
   "PortfolioProjectsManager": {
     "deleteDialogTitle": "Excluir projeto",
     "deleteAction": "Excluir",
-    "manageMedia": "Gerenciar mídia",
+    "manageMedia": "Fotos e vídeos",
     "studioTitle": "Portfolio projetos studio",
     "studioSubtitle": "These projetos belong only to PORTFOLIO seções.",
     "scopedSubtitlePrefix": "Scoped to seção",

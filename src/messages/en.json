@@ -487,7 +487,7 @@
     "deleteDialogTitle": "Delete item",
   "deleteAction": "Delete",
     "noDescription": "No description available",
-    "manageMedia": "Manage media",
+    "manageMedia": "Photos & videos",
     "studioTitle": "Items studio",
     "studioSubtitle": "These items belong only to DIRECT_ITEMS and CATEGORY_ITEMS sections.",
     "createItem": "Create item",
@@ -950,7 +950,7 @@
   "PortfolioProjectsManager": {
     "deleteDialogTitle": "Delete project",
   "deleteAction": "Delete",
-    "manageMedia": "Manage media",
+    "manageMedia": "Photos & videos",
     "studioTitle": "Portfolio projects studio",
     "studioSubtitle": "These projects belong only to PORTFOLIO sections.",
     "scopedSubtitlePrefix": "Scoped to section",
