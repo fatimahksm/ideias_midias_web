@@ -13,8 +13,8 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
 import {getAllSections} from '@/features/sections/api';
-import {deleteHomeCard, getAllHomeCards} from '../api';
-import type {HomeCardResponse} from '../types';
+import {deleteHomeCard, getAllHomeCards, updateHomeCard} from '../api';
+import type {HomeCardPayload, HomeCardResponse} from '../types';
 import {HomeCardCard} from './home-card-card';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
@@ -88,7 +88,59 @@ export default function HomeCardsManager() {
     }
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: async ({
+      a,
+      b
+    }: {
+      a: HomeCardResponse;
+      b: HomeCardResponse;
+    }) => {
+      const toPayload = (
+        card: HomeCardResponse,
+        sortOrder: number
+      ): HomeCardPayload => ({
+        sectionId: card.sectionId,
+        titlePt: card.titlePt,
+        titleEn: card.titleEn,
+        shortDescriptionPt: card.shortDescriptionPt ?? null,
+        shortDescriptionEn: card.shortDescriptionEn ?? null,
+        imageUrl: card.imageUrl ?? null,
+        iconName: card.iconName ?? null,
+        sortOrder,
+        isActive: card.isActive
+      });
+
+      // Swap the two cards' sort orders to move one past the other.
+      await updateHomeCard(a.id, toPayload(a, b.sortOrder));
+      await updateHomeCard(b.id, toPayload(b, a.sortOrder));
+    },
+    onSuccess: async () => {
+      setFeedbackTone('success');
+      setFeedback(t('reorderSuccess'));
+      await queryClient.invalidateQueries({queryKey: ['home-cards']});
+    },
+    onError: (error) => {
+      setFeedbackTone('error');
+      setFeedback(getErrorMessage(toAppError(error), (key) => errorT(key)));
+    }
+  });
+
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
+
+  // Reordering only makes sense while the list is shown in manual sort order.
+  const canReorder = sortBy === 'sortOrder';
+
+  function handleMove(item: HomeCardResponse, direction: 'up' | 'down') {
+    const index = items.findIndex((entry) => entry.id === item.id);
+    const neighbor =
+      direction === 'up' ? items[index - 1] : items[index + 1];
+
+    if (!neighbor || reorderMutation.isPending) return;
+
+    setFeedback('');
+    reorderMutation.mutate({a: item, b: neighbor});
+  }
 
   const sectionsMap = useMemo(() => {
     return new Map(
@@ -274,7 +326,7 @@ export default function HomeCardsManager() {
         </div>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <HomeCardCard
               key={item.id}
               item={item}
@@ -285,6 +337,13 @@ export default function HomeCardsManager() {
                 deleteMutation.variables === item.id
               }
               onDelete={handleDelete}
+              onMoveUp={canReorder ? (entry) => handleMove(entry, 'up') : undefined}
+              onMoveDown={
+                canReorder ? (entry) => handleMove(entry, 'down') : undefined
+              }
+              canMoveUp={index > 0}
+              canMoveDown={index < items.length - 1}
+              isReordering={reorderMutation.isPending}
             />
           ))}
         </div>

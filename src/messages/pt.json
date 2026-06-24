@@ -1217,6 +1217,9 @@
     "editSubtitle": "Ajuste o conteúdo, a imagem e o link de seção do card da página inicial."
   },
   "HomeCardsManager": {
+    "moveUp": "Mover para cima",
+    "moveDown": "Mover para baixo",
+    "reorderSuccess": "Ordem atualizada.",
     "deleteDialogTitle": "Excluir cartão inicial",
     "deleteAction": "Excluir",
     "studioTitle": "Estúdio de cartões iniciais",

@@ -1,6 +1,7 @@
 'use client';
 
 import {useLocale, useTranslations} from 'next-intl';
+import {ChevronDown, ChevronUp} from 'lucide-react';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
 import {resolveMediaUrl, formatMediaDate} from '@/features/media-library/utils';
@@ -14,6 +15,12 @@ type Props = {
   canDelete: boolean;
   isDeleting: boolean;
   onDelete: (item: HomeCardResponse) => void;
+  /** Reorder controls — only provided when the list is in manual-order mode. */
+  onMoveUp?: (item: HomeCardResponse) => void;
+  onMoveDown?: (item: HomeCardResponse) => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  isReordering?: boolean;
 };
 
 export function HomeCardCard({
@@ -21,7 +28,12 @@ export function HomeCardCard({
   linkedSection,
   canDelete,
   isDeleting,
-  onDelete
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp = false,
+  canMoveDown = false,
+  isReordering = false
 }: Props) {
   const t = useTranslations('HomeCardsManager');
   const formT = useTranslations('HomeCardForm');
@@ -125,6 +137,32 @@ export function HomeCardCard({
         ) : null}
 
         <div className="flex flex-wrap gap-2">
+          {onMoveUp && onMoveDown ? (
+            <div className="inline-flex overflow-hidden rounded-lg border border-slate-200">
+              <button
+                type="button"
+                aria-label={t('moveUp')}
+                title={t('moveUp')}
+                disabled={!canMoveUp || isReordering}
+                onClick={() => onMoveUp(item)}
+                className="flex h-9 w-9 items-center justify-center text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronUp className="h-4 w-4" />
+              </button>
+              <span className="w-px self-stretch bg-slate-200" />
+              <button
+                type="button"
+                aria-label={t('moveDown')}
+                title={t('moveDown')}
+                disabled={!canMoveDown || isReordering}
+                onClick={() => onMoveDown(item)}
+                className="flex h-9 w-9 items-center justify-center text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
+
           <Link href={`/admin/home-cards/${item.id}/edit`}>
             <Button type="button" size="sm">
               {common('edit')}

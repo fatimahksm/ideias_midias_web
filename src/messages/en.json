@@ -1219,6 +1219,9 @@
     "editSubtitle": "Refine the homepage card content, image and section link."
   },
   "HomeCardsManager": {
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "reorderSuccess": "Order updated.",
      "deleteDialogTitle": "Delete home card",
   "deleteAction": "Delete",
     "studioTitle": "Home cards studio",
