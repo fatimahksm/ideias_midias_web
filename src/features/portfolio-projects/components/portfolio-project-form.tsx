@@ -4,7 +4,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useEffect, useMemo, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
@@ -157,6 +157,8 @@ export default function PortfolioProjectForm({
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  // Set right before submit when the owner clicks "Save & add another".
+  const addAnotherRef = useRef(false);
 
   const isSectionLocked =
     mode === 'create' &&
@@ -228,6 +230,31 @@ export default function PortfolioProjectForm({
       await queryClient.invalidateQueries({queryKey: ['portfolio-projects']});
 
       if (mode === 'create') {
+        if (addAnotherRef.current) {
+          addAnotherRef.current = false;
+          // Keep the section, clear the rest, bump the order, so the owner can
+          // add several projects in a row without leaving the page.
+          reset({
+            sectionId: savedProject.sectionId,
+            titlePt: '',
+            titleEn: '',
+            shortDescriptionPt: '',
+            shortDescriptionEn: '',
+            fullDescriptionPt: '',
+            fullDescriptionEn: '',
+            clientName: '',
+            projectDate: '',
+            locationPt: '',
+            locationEn: '',
+            coverImageUrl: '',
+            videoUrl: '',
+            isFeatured: false,
+            isActive: true,
+            sortOrder: (savedProject.sortOrder ?? 0) + 1
+          });
+          return;
+        }
+
         if (isSectionLocked) {
           router.replace(`/${locale}/admin/sections/${savedProject.sectionId}`);
           return;
@@ -433,10 +460,27 @@ export default function PortfolioProjectForm({
               </span>
             ) : null}
 
+            {mode === 'create' ? (
+              <Button
+                type="submit"
+                variant="outline"
+                isLoading={saveMutation.isPending}
+                loadingText={common('loading')}
+                onClick={() => {
+                  addAnotherRef.current = true;
+                }}
+              >
+                {t('createAndAddAnother')}
+              </Button>
+            ) : null}
+
             <Button
               type="submit"
               isLoading={saveMutation.isPending}
               loadingText={common('loading')}
+              onClick={() => {
+                addAnotherRef.current = false;
+              }}
             >
               {mode === 'edit' ? t('saveButton') : t('createButton')}
             </Button>

@@ -384,6 +384,7 @@
     }
   },
   "ContentBlockForm": {
+    "createAndAddAnother": "Salvar e adicionar outro",
     "backToWorkspace": "Voltar para workspace",
     "sectionLockedHint": "Esta seção foi pré-selecionada no espaço de trabalho e está bloqueada para este fluxo de criação.",
     "backToBlocks": "Voltar para blocos de conteúdo",
@@ -518,6 +519,7 @@
     }
   },
   "ItemForm": {
+    "createAndAddAnother": "Salvar e adicionar outro",
     "backToWorkspace": "Voltar para workspace",
     "sectionLockedHint": "Esta seção foi pré-selecionada no espaço de trabalho e está bloqueada para este fluxo de criação.",
     "categoryLockedHint": "Esta categoria foi pré-selecionada no fluxo de categoria e está bloqueada para este fluxo de criação.",
@@ -997,6 +999,7 @@
     }
   },
   "PortfolioProjectForm": {
+    "createAndAddAnother": "Salvar e adicionar outro",
     "backToWorkspace": "Voltar para workspace",
     "sectionLockedHint": "Esta seção foi pré-selecionada no espaço de trabalho e está bloqueada para este fluxo de criação.",
     "backToProjects": "Voltar para projetos",
@@ -1251,6 +1254,7 @@
     "loading": "Carregando cartões iniciais..."
   },
   "HomeCardForm": {
+    "createAndAddAnother": "Salvar e adicionar outro",
     "linkCardTitle": "Seção vínculo",
     "linkCardDescription": "Cada cartão da página inicial deve apontar para uma seção real.",
     "sectionLabel": "Vinculado seção",
@@ -1531,6 +1535,7 @@
     "deactivate": "Desativar"
   },
   "CategoryForm": {
+    "createAndAddAnother": "Salvar e adicionar outra",
     "backToWorkspace": "Voltar para workspace",
     "sectionLockedHint": "Esta seção foi pré-selecionada no espaço de trabalho e está bloqueada para este fluxo de criação.",
     "backToCategories": "Voltar para categorias",

@@ -4,7 +4,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useEffect, useMemo, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
@@ -150,6 +150,8 @@ export default function HomeCardForm({mode, cardId}: Props) {
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  // Set right before submit when the owner clicks "Save & add another".
+  const addAnotherRef = useRef(false);
 
   const {
     register,
@@ -206,6 +208,24 @@ export default function HomeCardForm({mode, cardId}: Props) {
       await queryClient.invalidateQueries({queryKey: ['home-cards']});
 
       if (mode === 'create') {
+        if (addAnotherRef.current) {
+          addAnotherRef.current = false;
+          // Clear the form, bump the order, so the owner can add several
+          // homepage cards in a row without leaving the page.
+          reset({
+            sectionId: 0,
+            titlePt: '',
+            titleEn: '',
+            shortDescriptionPt: '',
+            shortDescriptionEn: '',
+            imageUrl: '',
+            iconName: '',
+            sortOrder: (savedCard.sortOrder ?? 0) + 1,
+            isActive: true
+          });
+          return;
+        }
+
         router.replace(`/${locale}/admin/home-cards/${savedCard.id}/edit`);
         return;
       }
@@ -374,10 +394,27 @@ export default function HomeCardForm({mode, cardId}: Props) {
               </span>
             ) : null}
 
+            {mode === 'create' ? (
+              <Button
+                type="submit"
+                variant="outline"
+                isLoading={saveMutation.isPending}
+                loadingText={common('loading')}
+                onClick={() => {
+                  addAnotherRef.current = true;
+                }}
+              >
+                {t('createAndAddAnother')}
+              </Button>
+            ) : null}
+
             <Button
               type="submit"
               isLoading={saveMutation.isPending}
               loadingText={common('loading')}
+              onClick={() => {
+                addAnotherRef.current = false;
+              }}
             >
               {mode === 'edit' ? t('saveButton') : t('createButton')}
             </Button>

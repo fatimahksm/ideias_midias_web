@@ -401,6 +401,7 @@
     }
   },
   "ContentBlockForm": {
+    "createAndAddAnother": "Save & add another",
     "backToWorkspace": "Back to workspace",
     "sectionLockedHint": "This section was preselected from the workspace and is locked for this creation flow.",
     "backToBlocks": "Back to content blocks",
@@ -535,6 +536,7 @@
     }
   },
   "ItemForm": {
+    "createAndAddAnother": "Save & add another",
     "backToWorkspace": "Back to workspace",
     "sectionLockedHint": "This section was preselected from the workspace and is locked for this creation flow.",
     "categoryLockedHint": "This category was preselected from the category flow and is locked for this creation flow.",
@@ -999,6 +1001,7 @@
     }
   },
   "PortfolioProjectForm": {
+    "createAndAddAnother": "Save & add another",
     "backToWorkspace": "Back to workspace",
     "sectionLockedHint": "This section was preselected from the workspace and is locked for this creation flow.",
     "backToProjects": "Back to projects",
@@ -1253,6 +1256,7 @@
     "loading": "Loading home cards..."
   },
   "HomeCardForm": {
+    "createAndAddAnother": "Save & add another",
     "linkCardTitle": "Section link",
     "linkCardDescription": "Every homepage card should point to one real section.",
     "sectionLabel": "Linked section",
@@ -1534,6 +1538,7 @@
     "deactivate": "Deactivate"
   },
   "CategoryForm": {
+    "createAndAddAnother": "Save & add another",
     "backToWorkspace": "Back to workspace",
     "sectionLockedHint": "This section was preselected from the workspace and is locked for this creation flow.",
     "backToCategories": "Back to categories",

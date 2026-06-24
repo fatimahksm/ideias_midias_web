@@ -4,7 +4,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useEffect, useMemo, useState, type ReactNode} from 'react';
+import {useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
@@ -153,6 +153,8 @@ export default function ItemForm({
 
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  // Set right before submit when the owner clicks "Save & add another".
+  const addAnotherRef = useRef(false);
 
   const isSectionLocked =
     mode === 'create' &&
@@ -233,6 +235,31 @@ export default function ItemForm({
       await queryClient.invalidateQueries({queryKey: ['items']});
 
       if (mode === 'create') {
+        if (addAnotherRef.current) {
+          addAnotherRef.current = false;
+          // Keep the section + category, clear the rest, bump the order, so the
+          // owner can add several items in a row without leaving the page.
+          reset({
+            sectionId: savedItem.sectionId,
+            categoryId: savedItem.categoryId ?? undefined,
+            titlePt: '',
+            titleEn: '',
+            shortDescriptionPt: '',
+            shortDescriptionEn: '',
+            fullDescriptionPt: '',
+            fullDescriptionEn: '',
+            coverImageUrl: '',
+            videoUrl: '',
+            itemType: '',
+            specificationsPt: '',
+            specificationsEn: '',
+            isFeatured: false,
+            isActive: true,
+            sortOrder: (savedItem.sortOrder ?? 0) + 1
+          });
+          return;
+        }
+
         if (isSectionLocked) {
           router.replace(`/${locale}/admin/sections/${savedItem.sectionId}`);
           return;
@@ -473,10 +500,27 @@ export default function ItemForm({
               </span>
             ) : null}
 
+            {mode === 'create' ? (
+              <Button
+                type="submit"
+                variant="outline"
+                isLoading={saveMutation.isPending}
+                loadingText={common('loading')}
+                onClick={() => {
+                  addAnotherRef.current = true;
+                }}
+              >
+                {t('createAndAddAnother')}
+              </Button>
+            ) : null}
+
             <Button
               type="submit"
               isLoading={saveMutation.isPending}
               loadingText={common('loading')}
+              onClick={() => {
+                addAnotherRef.current = false;
+              }}
             >
               {mode === 'edit' ? t('saveButton') : t('createButton')}
             </Button>
