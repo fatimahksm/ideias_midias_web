@@ -43,34 +43,7 @@ function resolveLogoUrl(url?: string | null) {
   return `${root}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
-export default async function Icon() {
-  const site = await getSiteSettings();
-  const logoUrl = resolveLogoUrl(site?.logoUrl);
-
-  if (!logoUrl) {
-    return new ImageResponse(
-      (
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#0f172a',
-            color: '#ffffff',
-            fontSize: 16,
-            fontWeight: 700,
-            borderRadius: 8
-          }}
-        >
-          IM
-        </div>
-      ),
-      size
-    );
-  }
-
+function fallbackIcon() {
   return new ImageResponse(
     (
       <div
@@ -80,22 +53,62 @@ export default async function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#ffffff',
-          borderRadius: 8,
-          overflow: 'hidden'
+          background: '#0f172a',
+          color: '#ffffff',
+          fontSize: 16,
+          fontWeight: 700,
+          borderRadius: 8
         }}
       >
-        <img
-          src={logoUrl}
-          alt="Logo"
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain'
-          }}
-        />
+        IM
       </div>
     ),
     size
   );
+}
+
+export default async function Icon() {
+  const site = await getSiteSettings();
+  const logoUrl = resolveLogoUrl(site?.logoUrl);
+
+  // No client logo configured yet: show a neutral branded mark, never the
+  // framework default favicon.
+  if (!logoUrl) {
+    return fallbackIcon();
+  }
+
+  // Render the client logo. If the remote image can't be fetched/decoded the
+  // ImageResponse render throws; catch it so we fall back to the branded mark
+  // instead of letting the browser drop back to the framework default icon.
+  try {
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#ffffff',
+            borderRadius: 8,
+            overflow: 'hidden'
+          }}
+        >
+          <img
+            src={logoUrl}
+            alt="Logo"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain'
+            }}
+          />
+        </div>
+      ),
+      size
+    );
+  } catch {
+    return fallbackIcon();
+  }
 }

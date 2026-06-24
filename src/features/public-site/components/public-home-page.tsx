@@ -252,7 +252,7 @@ export default function PublicHomePage({locale, data}: Props) {
     className="mb-8 flex justify-center"
   >
     <div className="flex h-[128px] w-[128px] items-center justify-center rounded-full border border-white/20 bg-white/12 p-3 shadow-[0_20px_60px_rgba(0,0,0,0.22)] backdrop-blur-xl md:h-[144px] md:w-[144px]">
-      <div className="relative h-full w-full overflow-hidden rounded-full bg-white shadow-inner">
+      <div className="relative h-full w-full overflow-hidden rounded-full bg-[var(--color-surface)] shadow-inner">
         <Image
           src={logoUrl}
           alt={companyName}
@@ -299,7 +299,7 @@ export default function PublicHomePage({locale, data}: Props) {
               >
                 <a
                   href="#home-sections"
-                  className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-white px-7 py-3 text-base font-semibold text-slate-950 shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
+                  className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-[var(--color-surface)] px-7 py-3 text-base font-semibold text-[var(--color-text)] shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
                 >
                   {t('exploreSections')}
                 </a>
@@ -472,7 +472,7 @@ export default function PublicHomePage({locale, data}: Props) {
               transition={{duration: 0.8}}
               className="mx-auto mt-12 max-w-6xl overflow-hidden rounded-[34px] border border-[var(--color-border)] bg-black shadow-[0_24px_80px_rgba(15,23,42,0.18)]"
             >
-              <div className="flex items-center gap-3 border-b border-white/10 bg-slate-950 px-5 py-4 text-white/70">
+              <div className="flex items-center gap-3 border-b border-white/10 bg-[var(--color-secondary)] px-5 py-4 text-white/70">
                 <div className="flex gap-2">
                   <span className="h-3 w-3 rounded-full bg-red-400" />
                   <span className="h-3 w-3 rounded-full bg-yellow-400" />
@@ -574,10 +574,10 @@ export default function PublicHomePage({locale, data}: Props) {
                       return (
                         <div
                           key={item.id}
-                          className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4 transition hover:border-[var(--color-primary)] hover:bg-white"
+                          className="rounded-[22px] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-4 transition hover:border-[var(--color-primary)] hover:bg-[var(--color-surface)]"
                         >
                           <div className="flex items-start gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white shadow-sm">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
                               <PublicContactIcon
                                 type={item.type}
                                 iconName={item.iconName}
@@ -657,7 +657,7 @@ export default function PublicHomePage({locale, data}: Props) {
                           target="_blank"
                           rel="noreferrer"
                           title={label}
-                          className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white text-[var(--color-text)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]"
+                          className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]"
                         >
                           <PublicContactIcon
                             type={item.type}
@@ -698,12 +698,12 @@ export default function PublicHomePage({locale, data}: Props) {
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-black text-slate-950">
+                <p className="text-sm font-black text-[var(--color-text)]">
                   {t('location')}
                 </p>
 
                 {hasMeaningfulText(address) ? (
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                  <p className="mt-1 text-sm leading-6 text-[var(--color-text-muted)]">
                     {address}
                   </p>
                 ) : null}
@@ -716,7 +716,7 @@ export default function PublicHomePage({locale, data}: Props) {
                   href={mapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--color-secondary)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
                   <ExternalLink className="h-4 w-4" />
                   {t('openInMaps')}
@@ -776,7 +776,7 @@ export default function PublicHomePage({locale, data}: Props) {
             >
               <div className="flex items-start gap-4">
                 {logoUrl ? (
-                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[26px] border border-[var(--color-border)] bg-white p-3 shadow-sm">
+                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-[26px] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 shadow-sm">
                     <Image
                       src={logoUrl}
                       alt={companyName}
@@ -896,7 +896,7 @@ export default function PublicHomePage({locale, data}: Props) {
                         target="_blank"
                         rel="noreferrer"
                         title={label}
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white text-[var(--color-text)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]"
                       >
                         <PublicContactIcon
                           type={item.type}

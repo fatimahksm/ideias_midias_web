@@ -25,7 +25,8 @@ import type {
   SectionContentBlockPayload,
   SectionContentBlockResponse
 } from '../types';
-import {emptyToNull} from '../utils';
+import {emptyToNull, getNextContentBlockSortOrder} from '../utils';
+import {BulkImageUpload} from './bulk-image-upload';
 import {ContentBlockCard} from './content-block-card';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
@@ -287,6 +288,27 @@ export default function ContentBlocksManager({
                 {t('backToWorkspace')}
               </Button>
             </Link>
+          ) : null}
+
+          {isSectionScoped && sectionId ? (
+            <BulkImageUpload
+              sectionId={sectionId}
+              startSortOrder={getNextContentBlockSortOrder(
+                contentBlocksQuery.data ?? [],
+                sectionId
+              )}
+              onUploaded={async (count) => {
+                setFeedbackTone('success');
+                setFeedback(t('bulkUploadSuccess', {count}));
+                await queryClient.invalidateQueries({
+                  queryKey: ['content-blocks']
+                });
+              }}
+              onError={(message) => {
+                setFeedbackTone('error');
+                setFeedback(message);
+              }}
+            />
           ) : null}
 
           <Link href={createHref}>
