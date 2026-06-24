@@ -21,6 +21,8 @@ type Props = {
   aspect?: number;
   cropShape?: 'rect' | 'round';
   isApplying?: boolean;
+  skipLabel?: string;
+  onSkip?: () => Promise<void> | void;
   onClose: () => void;
   onApply: (file: File, previewUrl: string) => Promise<void> | void;
 };
@@ -124,6 +126,8 @@ export function ImageCropModal({
   aspect = 4 / 3,
   cropShape = 'rect',
   isApplying = false,
+  skipLabel,
+  onSkip,
   onClose,
   onApply
 }: Props) {
@@ -292,6 +296,17 @@ export function ImageCropModal({
               >
                 {cancelLabel}
               </Button>
+
+              {onSkip && skipLabel ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => onSkip()}
+                  disabled={isApplying}
+                >
+                  {skipLabel}
+                </Button>
+              ) : null}
 
               <Button
                 type="button"

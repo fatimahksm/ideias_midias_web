@@ -428,6 +428,7 @@ export default function SiteSettingsForm() {
   onChange={field.onChange}
   cropAspect={1}
   cropShape="rect"
+  hint={sectionsT('logoHint')}
 />
               )}
             />
@@ -560,6 +561,7 @@ export default function SiteSettingsForm() {
   onChange={field.onChange}
   cropAspect={16 / 9}
   cropShape="rect"
+  hint={sectionsT('heroHint')}
 />
               )}
             />
@@ -581,6 +583,7 @@ export default function SiteSettingsForm() {
                 value={field.value}
                 type="VIDEO"
                 onChange={field.onChange}
+                hint={sectionsT('videoHint')}
               />
             )}
           />

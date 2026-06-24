@@ -183,7 +183,7 @@ function BlockMedia({
   return (
     <>
       {resolvedImageUrl ? (
-        <div className="relative h-[280px] w-full bg-slate-100 md:h-[440px]">
+        <div className="relative h-[280px] w-full bg-[var(--color-surface-muted)] md:h-[440px]">
           <Image
             src={resolvedImageUrl}
             alt={title}
@@ -244,7 +244,7 @@ function ContentBlocksSection({
             <motion.div
               key={block.id}
               variants={fadeUp}
-              className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm"
+              className="overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm"
             >
               <BlockMedia
                 title={title || subtitle || t('contentLabel')}
@@ -255,19 +255,19 @@ function ContentBlocksSection({
 
               <div className="p-8 md:p-10">
                 {title ? (
-                  <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950 md:text-4xl">
+                  <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-4xl">
                     {title}
                   </h2>
                 ) : null}
 
                 {subtitle ? (
-                  <p className="mt-3 text-lg font-medium text-slate-700">
+                  <p className="mt-3 text-lg font-medium text-[var(--color-text-muted)]">
                     {subtitle}
                   </p>
                 ) : null}
 
                 {content ? (
-                  <div className="mt-5 whitespace-pre-line text-base leading-8 text-slate-600">
+                  <div className="mt-5 whitespace-pre-line text-base leading-8 text-[var(--color-text-muted)]">
                     {content}
                   </div>
                 ) : null}
@@ -315,9 +315,9 @@ function ItemCard({
     <button
       type="button"
       onClick={() => onOpen(item)}
-      className="group block w-full overflow-hidden rounded-[30px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
         {itemImageUrl ? (
           <>
             <Image
@@ -329,14 +329,14 @@ function ItemCard({
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
           </>
         ) : (
-          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
+          <div className="flex h-full items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
             {noImageLabel}
           </div>
         )}
 
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
           {item.isFeatured ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text)] shadow-lg backdrop-blur">
               <Star className="h-3.5 w-3.5" />
               {featuredLabel}
             </div>
@@ -358,18 +358,18 @@ function ItemCard({
 
       <div className="space-y-4 p-6">
         {shortDescription ? (
-          <p className="line-clamp-3 text-base leading-7 text-slate-600">
+          <p className="line-clamp-3 text-base leading-7 text-[var(--color-text-muted)]">
             {shortDescription}
           </p>
         ) : (
-          <p className="text-sm text-slate-400">{detailsLabel}</p>
+          <p className="text-sm text-[var(--color-text-muted)]">{detailsLabel}</p>
         )}
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-4">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
             {itemLabel}
           </span>
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text-muted)] transition group-hover:text-[var(--color-text)]">
             {detailsLabel}
           </span>
         </div>
@@ -419,9 +419,9 @@ function ProjectCard({
     <button
       type="button"
       onClick={() => onOpen(project)}
-      className="group block w-full overflow-hidden rounded-[30px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
         {projectImageUrl ? (
           <>
             <Image
@@ -433,14 +433,14 @@ function ProjectCard({
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
           </>
         ) : (
-          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
+          <div className="flex h-full items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
             {noImageLabel}
           </div>
         )}
 
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
           {project.isFeatured ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text)] shadow-lg backdrop-blur">
               <Star className="h-3.5 w-3.5" />
               {featuredLabel}
             </div>
@@ -462,19 +462,19 @@ function ProjectCard({
 
       <div className="space-y-4 p-6">
         {shortDescription ? (
-          <p className="line-clamp-3 text-base leading-7 text-slate-600">
+          <p className="line-clamp-3 text-base leading-7 text-[var(--color-text-muted)]">
             {shortDescription}
           </p>
         ) : (
-          <p className="text-sm text-slate-400">{portfolioProjectLabel}</p>
+          <p className="text-sm text-[var(--color-text-muted)]">{portfolioProjectLabel}</p>
         )}
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-4">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
             {portfolioLabel}
           </span>
 
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text-muted)] transition group-hover:text-[var(--color-text)]">
             {project.projectUrl ? visitProjectLabel : notAvailableLabel}
           </span>
         </div>
@@ -520,26 +520,26 @@ function CategorySection({
 
   return (
     <motion.div variants={fadeUp} className="space-y-7">
-      <div className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm md:p-10">
+      <div className="rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm md:p-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
               <Layers3 className="h-4 w-4" />
               {categoryLabel}
             </div>
 
-            <h3 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
+            <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
               {title || untitledLabel}
             </h3>
 
             {description ? (
-              <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
+              <p className="mt-4 max-w-3xl text-base leading-8 text-[var(--color-text-muted)]">
                 {description}
               </p>
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] px-4 py-3 text-sm font-semibold text-[var(--color-text-muted)]">
             {items.length}
           </div>
         </div>
@@ -562,7 +562,7 @@ function CategorySection({
           ))}
         </div>
       ) : (
-        <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
+        <div className="rounded-[28px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-soft)] p-8 text-center text-[var(--color-text-muted)]">
           {emptyCategoryItemsLabel}
         </div>
       )}
@@ -655,16 +655,16 @@ function ItemModal({
           animate={{opacity: 1, y: 0, scale: 1}}
           exit={{opacity: 0, y: 20, scale: 0.98}}
           transition={{duration: 0.25}}
-          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(960px,92vw)] overflow-hidden rounded-[32px] bg-white shadow-2xl"
+          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(960px,92vw)] overflow-hidden rounded-[32px] bg-[var(--color-surface)] shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-            <h3 className="text-xl font-black text-slate-950">{title}</h3>
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+            <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
             <button
               type="button"
               onClick={onClose}
               aria-label={t('close') }
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface-muted)]"
             >
               <CircleX className="h-5 w-5" />
             </button>
@@ -685,14 +685,14 @@ function ItemModal({
             <div className="space-y-8 p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3">
                 {item.isFeatured ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
                     <Star className="h-3.5 w-3.5" />
                     {t('featured')}
                   </span>
                 ) : null}
 
                 {item.itemType ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-surface-muted)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
                     <Tag className="h-3.5 w-3.5" />
                     {item.itemType}
                   </span>
@@ -700,7 +700,7 @@ function ItemModal({
               </div>
 
               {hasShortDescription ? (
-                <p className="break-words text-lg leading-8 text-slate-700 [overflow-wrap:anywhere]">
+                <p className="break-words text-lg leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                   {shortDescription}
                 </p>
               ) : null}
@@ -715,23 +715,23 @@ function ItemModal({
                 >
                   {hasFullDescription ? (
                     <div className="min-w-0">
-                      <h4 className="text-2xl font-black text-slate-950">
+                      <h4 className="text-2xl font-black text-[var(--color-text)]">
                         {t('details')}
                       </h4>
 
-                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-slate-600 [overflow-wrap:anywhere]">
+                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                         {fullDescription}
                       </div>
                     </div>
                   ) : null}
 
                   {hasSpecifications ? (
-                    <div className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                      <h4 className="text-xl font-black text-slate-950">
+                    <div className="min-w-0 rounded-[24px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-5">
+                      <h4 className="text-xl font-black text-[var(--color-text)]">
                         {t('specifications')}
                       </h4>
 
-                      <div className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-slate-600 [overflow-wrap:anywhere]">
+                      <div className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                         {specifications}
                       </div>
                     </div>
@@ -866,16 +866,16 @@ function ProjectModal({
           animate={{opacity: 1, y: 0, scale: 1}}
           exit={{opacity: 0, y: 20, scale: 0.98}}
           transition={{duration: 0.25}}
-          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(980px,92vw)] overflow-hidden rounded-[32px] bg-white shadow-2xl"
+          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(980px,92vw)] overflow-hidden rounded-[32px] bg-[var(--color-surface)] shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-            <h3 className="text-xl font-black text-slate-950">{title}</h3>
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+            <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
             <button
               type="button"
               onClick={onClose}
               aria-label={t('close')}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-surface-muted)]"
             >
               <CircleX className="h-5 w-5" />
             </button>
@@ -896,7 +896,7 @@ function ProjectModal({
             <div className="space-y-8 p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3">
                 {project.isFeatured ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-secondary)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
                     <Star className="h-3.5 w-3.5" />
                     {t('featured')}
                   </span>
@@ -904,7 +904,7 @@ function ProjectModal({
               </div>
 
               {hasShortDescription ? (
-                <p className="break-words text-lg leading-8 text-slate-700 [overflow-wrap:anywhere]">
+                <p className="break-words text-lg leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                   {shortDescription}
                 </p>
               ) : null}
@@ -919,27 +919,27 @@ function ProjectModal({
                 >
                   {hasFullDescription ? (
                     <div className="min-w-0">
-                      <h4 className="text-2xl font-black text-slate-950">
+                      <h4 className="text-2xl font-black text-[var(--color-text)]">
                         {t('details')}
                       </h4>
 
-                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-slate-600 [overflow-wrap:anywhere]">
+                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                         {fullDescription}
                       </div>
                     </div>
                   ) : null}
 
                   {hasClient || hasProjectDate || hasLocation ? (
-                    <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                      <h4 className="text-xl font-black text-slate-950">
+                    <div className="space-y-4 rounded-[24px] border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-5">
+                      <h4 className="text-xl font-black text-[var(--color-text)]">
                         {t('projectInfo')}
                       </h4>
 
                       {hasClient ? (
-                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                          <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                        <div className="flex items-start gap-3 text-sm leading-7 text-[var(--color-text-muted)]">
+                          <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-800">{t('client')}</p>
+                            <p className="font-semibold text-[var(--color-text)]">{t('client')}</p>
                             <p className="break-words [overflow-wrap:anywhere]">
                               {project.clientName}
                             </p>
@@ -948,20 +948,20 @@ function ProjectModal({
                       ) : null}
 
                       {hasProjectDate ? (
-                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                        <div className="flex items-start gap-3 text-sm leading-7 text-[var(--color-text-muted)]">
+                          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-800">{t('date')}</p>
+                            <p className="font-semibold text-[var(--color-text)]">{t('date')}</p>
                             <p>{projectDate}</p>
                           </div>
                         </div>
                       ) : null}
 
                       {hasLocation ? (
-                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                        <div className="flex items-start gap-3 text-sm leading-7 text-[var(--color-text-muted)]">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-800">{t('location')}</p>
+                            <p className="font-semibold text-[var(--color-text)]">{t('location')}</p>
                             <p className="break-words [overflow-wrap:anywhere]">
                               {location}
                             </p>
@@ -1105,7 +1105,7 @@ export default function PublicSectionPage({locale, data}: Props) {
   className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-5 py-3 text-base font-semibold transition ${
     isActive
       ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]'
-      : 'border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
+      : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
   }`}
 >
   <span>{label}</span>
@@ -1120,7 +1120,7 @@ export default function PublicSectionPage({locale, data}: Props) {
   className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-5 py-3 text-base font-semibold transition ${
     effectiveSelectedCategoryId === 'uncategorized'
       ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]'
-      : 'border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
+      : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
   }`}
 >
   <span>{t('uncategorized')}</span>
@@ -1216,14 +1216,14 @@ export default function PublicSectionPage({locale, data}: Props) {
             transition={{duration: 0.6}}
             className="mb-12 flex items-center gap-3"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-secondary)] text-white">
               <Package className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
+              <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
                 {t('items')}
               </h2>
-              <p className="mt-1 text-slate-600">{t('itemsDescription')}</p>
+              <p className="mt-1 text-[var(--color-text-muted)]">{t('itemsDescription')}</p>
             </div>
           </motion.div>
 
@@ -1251,9 +1251,9 @@ export default function PublicSectionPage({locale, data}: Props) {
               ))}
             </motion.div>
           ) : (
-            <div className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-              <Package className="mx-auto h-10 w-10 text-slate-400" />
-              <h2 className="mt-5 text-3xl font-black text-slate-950">
+            <div className="rounded-[32px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-soft)] p-10 text-center">
+              <Package className="mx-auto h-10 w-10 text-[var(--color-text-muted)]" />
+              <h2 className="mt-5 text-3xl font-black text-[var(--color-text)]">
                 {t('noItemsYet')}
               </h2>
             </div>
@@ -1270,14 +1270,14 @@ export default function PublicSectionPage({locale, data}: Props) {
             transition={{duration: 0.6}}
             className="mb-12 flex items-center gap-3"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-secondary)] text-white">
               <FolderKanban className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
+              <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
                 {t('portfolioProjects')}
               </h2>
-              <p className="mt-1 text-slate-600">
+              <p className="mt-1 text-[var(--color-text-muted)]">
                 {t('portfolioProjectsDescription')}
               </p>
             </div>
@@ -1312,9 +1312,9 @@ export default function PublicSectionPage({locale, data}: Props) {
               ))}
             </motion.div>
           ) : (
-            <div className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
-              <FolderKanban className="mx-auto h-10 w-10 text-slate-400" />
-              <h2 className="mt-5 text-3xl font-black text-slate-950">
+            <div className="rounded-[32px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-soft)] p-10 text-center">
+              <FolderKanban className="mx-auto h-10 w-10 text-[var(--color-text-muted)]" />
+              <h2 className="mt-5 text-3xl font-black text-[var(--color-text)]">
                 {t('noProjectsYet')}
               </h2>
             </div>
