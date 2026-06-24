@@ -345,6 +345,9 @@
     "editSubtitle": "Update the block type, text, media and publishing state."
   },
   "ContentBlocksManager": {
+    "bulkUploadButton": "Add photos",
+    "bulkUploadProgress": "Uploading {done}/{total}...",
+    "bulkUploadSuccess": "Added {count} photo(s) to this section.",
     "deleteDialogTitle": "Delete content block",
   "deleteAction": "Delete",
     "studioTitle": "Content blocks studio",

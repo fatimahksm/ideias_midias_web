@@ -328,6 +328,9 @@
     "editSubtitle": "Atualize o tipo de bloco, o texto, a mídia e o status de publicação."
   },
   "ContentBlocksManager": {
+    "bulkUploadButton": "Adicionar fotos",
+    "bulkUploadProgress": "Enviando {done}/{total}...",
+    "bulkUploadSuccess": "{count} foto(s) adicionada(s) a esta seção.",
     "deleteDialogTitle": "Excluir bloco de conteúdo",
     "deleteAction": "Excluir",
     "studioTitle": "Estúdio de blocos de conteúdo",
