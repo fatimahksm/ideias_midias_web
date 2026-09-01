@@ -26,6 +26,9 @@ import type {SectionPayload, SectionType} from '../types';
 import {emptyToNull, getNextSortOrder, slugify} from '../utils';
 import {SectionFormSidebar} from './section-form-sidebar';
 import {SectionNextActions} from './section-next-actions';
+import {SectionStepProgress} from './section-step-progress';
+import {SectionTypeBadge} from './section-type-badge';
+import {SectionTypePicker} from './section-type-picker';
 
 type Props = {
   mode: 'create' | 'edit';
@@ -164,6 +167,9 @@ export default function SectionForm({mode, sectionId}: Props) {
   const [savedSectionType, setSavedSectionType] =
     useState<SectionType>('CONTENT');
 
+  const isWizard = mode === 'create';
+  const [step, setStep] = useState(0);
+
   const {
     register,
     control,
@@ -172,6 +178,7 @@ export default function SectionForm({mode, sectionId}: Props) {
     watch,
     setValue,
     getValues,
+    trigger,
     formState: {errors, isSubmitting, touchedFields}
   } = useForm<SectionFormValues>({
     resolver: zodResolver(sectionSchema),
@@ -346,6 +353,41 @@ export default function SectionForm({mode, sectionId}: Props) {
     );
   }
 
+  function showCard(cardStep: number) {
+    return !isWizard || step === cardStep;
+  }
+
+  async function goToNextStep(fieldsToValidate: (keyof SectionFormValues)[]) {
+    const valid = fieldsToValidate.length
+      ? await trigger(fieldsToValidate)
+      : true;
+
+    if (valid) {
+      setStep((current) => current + 1);
+    }
+  }
+
+  if (isWizard && step === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link href="/admin/sections">
+            <Button type="button" variant="ghost">
+              {t('backToSections')}
+            </Button>
+          </Link>
+        </div>
+
+        <SectionTypePicker
+          onSelect={(type) => {
+            setValue('sectionType', type, {shouldValidate: true});
+            setStep(1);
+          }}
+        />
+      </div>
+    );
+  }
+
   async function onSubmit(values: SectionFormValues) {
     setServerError('');
     setSuccessMessage('');
@@ -376,6 +418,9 @@ export default function SectionForm({mode, sectionId}: Props) {
   isVisible={mode === 'edit' || Boolean(savedSectionId)}
 />
 
+          {isWizard ? <SectionStepProgress currentStep={step} /> : null}
+
+          {showCard(1) && (
           <SettingsCard
             title={t('identityCardTitle')}
             description={t('identityCardDescription')}
@@ -384,23 +429,42 @@ export default function SectionForm({mode, sectionId}: Props) {
               <StudioNote>{t('identityStudioNote')}</StudioNote>
 
               <div className="grid gap-4 md:grid-cols-[1fr_1fr_0.85fr]">
-                <Controller
-                  name="sectionType"
-                  control={control}
-                  render={({field}) => (
-                    <Select
-                      id="sectionType"
-                      label={t('sectionTypeLabel')}
-                      value={field.value}
-                      onChange={(event) =>
-                        field.onChange(event.target.value as SectionType)
-                      }
-                      options={sectionTypeOptions}
-                      error={fieldErrors.sectionType}
-                      hint={t('sectionTypeHint')}
-                    />
-                  )}
-                />
+                {isWizard ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="mb-2 text-sm font-medium text-slate-900">
+                      {t('sectionTypeLabel')}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SectionTypeBadge type={watch('sectionType')} />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStep(0)}
+                      >
+                        {t('changeType')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Controller
+                    name="sectionType"
+                    control={control}
+                    render={({field}) => (
+                      <Select
+                        id="sectionType"
+                        label={t('sectionTypeLabel')}
+                        value={field.value}
+                        onChange={(event) =>
+                          field.onChange(event.target.value as SectionType)
+                        }
+                        options={sectionTypeOptions}
+                        error={fieldErrors.sectionType}
+                        hint={t('sectionTypeHint')}
+                      />
+                    )}
+                  />
+                )}
 
                 <Input
                   id="slug"
@@ -481,9 +545,24 @@ export default function SectionForm({mode, sectionId}: Props) {
                   />
                 }
               />
+
+              {isWizard ? (
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={() =>
+                      goToNextStep(['slug', 'namePt', 'nameEn'])
+                    }
+                  >
+                    {t('nextButton')}
+                  </Button>
+                </div>
+              ) : null}
             </div>
           </SettingsCard>
+          )}
 
+          {showCard(2) && (
           <SettingsCard
             title={t('descriptionCardTitle')}
             description={t('descriptionCardDescription')}
@@ -522,8 +601,21 @@ export default function SectionForm({mode, sectionId}: Props) {
                 />
               }
             />
-          </SettingsCard>
 
+            {isWizard ? (
+              <div className="mt-5 flex justify-between">
+                <Button type="button" variant="ghost" onClick={() => setStep(1)}>
+                  {t('backButton')}
+                </Button>
+                <Button type="button" onClick={() => goToNextStep([])}>
+                  {t('nextButton')}
+                </Button>
+              </div>
+            ) : null}
+          </SettingsCard>
+          )}
+
+          {showCard(3) && (
           <SettingsCard
             title={t('coverCardTitle')}
             description={t('coverCardDescription')}
@@ -555,8 +647,21 @@ export default function SectionForm({mode, sectionId}: Props) {
                 )}
               />
             </div>
-          </SettingsCard>
 
+            {isWizard ? (
+              <div className="mt-5 flex justify-between">
+                <Button type="button" variant="ghost" onClick={() => setStep(2)}>
+                  {t('backButton')}
+                </Button>
+                <Button type="button" onClick={() => goToNextStep([])}>
+                  {t('nextButton')}
+                </Button>
+              </div>
+            ) : null}
+          </SettingsCard>
+          )}
+
+          {showCard(4) && (
           <SettingsCard
             title={t('publishingCardTitle')}
             description={t('publishingCardDescription')}
@@ -609,6 +714,7 @@ export default function SectionForm({mode, sectionId}: Props) {
               />
             </div>
           </SettingsCard>
+          )}
 
           {serverError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -622,12 +728,19 @@ export default function SectionForm({mode, sectionId}: Props) {
             </div>
           ) : null}
 
+          {showCard(4) && (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link href="/admin/sections">
-              <Button type="button" variant="ghost">
-                {t('backToSections')}
+            {isWizard ? (
+              <Button type="button" variant="ghost" onClick={() => setStep(3)}>
+                {t('backButton')}
               </Button>
-            </Link>
+            ) : (
+              <Link href="/admin/sections">
+                <Button type="button" variant="ghost">
+                  {t('backToSections')}
+                </Button>
+              </Link>
+            )}
 
             <div className="flex flex-wrap gap-3">
               <Button
@@ -639,6 +752,7 @@ export default function SectionForm({mode, sectionId}: Props) {
               </Button>
             </div>
           </div>
+          )}
         </div>
 
         <SectionFormSidebar values={watchedValues} />

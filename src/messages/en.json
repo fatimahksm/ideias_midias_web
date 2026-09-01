@@ -92,7 +92,18 @@
     "cropLoadImageError": "Failed to load the selected image.",
     "cropCanvasError": "Failed to prepare the crop area.",
     "cropGenerateBlobError": "Failed to generate the cropped image.",
-    "cropFailed": "Failed to crop the image."
+    "cropFailed": "Failed to crop the image.",
+    "chooseFromLibrary": "Choose from Library",
+    "convertingHeic": "Converting iPhone photo...",
+    "heicConversionFailed": "Could not convert this iPhone photo (HEIC). Try saving it as JPEG first."
+  },
+  "MediaLibraryPicker": {
+    "titleImage": "Choose an image",
+    "titleVideo": "Choose a video",
+    "description": "Reuse a file already in the media library instead of uploading a new one.",
+    "close": "Close",
+    "loading": "Loading media library...",
+    "empty": "No files in the library yet. Upload one first."
   },
   "ItemMediaBulkUploader": {
     "title": "Bulk media upload",
@@ -1627,7 +1638,19 @@
     "nameEnTooLong": "English name is too long.",
     "sectionTypeRequired": "Section type is required.",
     "sortOrderInvalid": "Sort order must be a valid number.",
-    "sortOrderMin": "Sort order must be zero or greater."
+    "sortOrderMin": "Sort order must be zero or greater.",
+    "pickTypeTitle": "What are you creating?",
+    "pickTypeDescription": "Pick the closest match. You can fine-tune everything after.",
+    "pickTypeSelect": "Choose this",
+    "changeType": "Change type",
+    "backButton": "Back",
+    "nextButton": "Next",
+    "stepTypeLabel": "Type",
+    "stepBasicsLabel": "Basics",
+    "stepDescriptionLabel": "Description",
+    "stepMediaLabel": "Media",
+    "stepPublishLabel": "Publish",
+    "stepOfLabel": "Step {current} of {total}"
   },
   "ThemeSettingsPage": {
     "title": "Theme",
