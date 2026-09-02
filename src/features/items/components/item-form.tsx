@@ -778,7 +778,7 @@ export default function ItemForm({
               control={control}
               render={({field}) => (
             <MediaUploadField
-  label={t('imagePreview')}
+  label={t('imageLabel')}
   value={field.value}
   type="IMAGE"
   onChange={field.onChange}

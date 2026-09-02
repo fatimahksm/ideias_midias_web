@@ -8,9 +8,11 @@ import {MediaPreview} from '@/components/common/media-preview';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {uploadMedia} from '../api';
-import type {MediaFileType} from '../types';
+import type {MediaFileType, MediaLibraryItem} from '../types';
+import {isHeicFile, convertHeicToJpeg} from '../heic';
 import {resolveMediaUrl} from '../utils';
 import {ImageCropModal} from './image-crop-modal';
+import {MediaLibraryPickerModal} from './media-library-picker-modal';
 
 type Props = {
   label: string;
@@ -38,6 +40,8 @@ export function MediaUploadField({
   const [tempPreviewUrl, setTempPreviewUrl] = useState<string | null>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [isCropOpen, setIsCropOpen] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isConvertingHeic, setIsConvertingHeic] = useState(false);
 
   const uploadMutation = useMutation({
     mutationFn: uploadMedia
@@ -73,7 +77,7 @@ export function MediaUploadField({
   }
 
   function validateFile(file: File) {
-    if (type === 'IMAGE' && !file.type.startsWith('image/')) {
+    if (type === 'IMAGE' && !file.type.startsWith('image/') && !isHeicFile(file)) {
       return t('invalidImage');
     }
 
@@ -111,8 +115,24 @@ export function MediaUploadField({
   }
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
+    let file = event.target.files?.[0];
     if (!file) return;
+
+    if (type === 'IMAGE' && isHeicFile(file)) {
+      setLocalError('');
+      setIsConvertingHeic(true);
+
+      try {
+        file = await convertHeicToJpeg(file);
+      } catch {
+        setLocalError(t('heicConversionFailed'));
+        setIsConvertingHeic(false);
+        resetInputValue();
+        return;
+      }
+
+      setIsConvertingHeic(false);
+    }
 
     const validationError = validateFile(file);
 
@@ -155,6 +175,13 @@ export function MediaUploadField({
     resetInputValue();
   }
 
+  function handlePickFromLibrary(item: MediaLibraryItem) {
+    setLocalError('');
+    replaceTempPreview(null);
+    onChange(item.fileUrl);
+    setIsPickerOpen(false);
+  }
+
   return (
     <>
       <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -169,7 +196,7 @@ export function MediaUploadField({
           <input
             ref={inputRef}
             type="file"
-            accept={type === 'IMAGE' ? 'image/*' : 'video/*'}
+            accept={type === 'IMAGE' ? 'image/*,.heic,.heif' : 'video/*'}
             onChange={handleFileChange}
             className="hidden"
             id={`${label}-${type}-upload`}
@@ -178,8 +205,8 @@ export function MediaUploadField({
           <Button
             type="button"
             variant="outline"
-            isLoading={uploadMutation.isPending}
-            loadingText={t('uploading')}
+            isLoading={uploadMutation.isPending || isConvertingHeic}
+            loadingText={isConvertingHeic ? t('convertingHeic') : t('uploading')}
             onClick={() => inputRef.current?.click()}
           >
             {hasPreview
@@ -189,6 +216,14 @@ export function MediaUploadField({
               : type === 'IMAGE'
                 ? t('uploadImage')
                 : t('uploadVideo')}
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setIsPickerOpen(true)}
+          >
+            {t('chooseFromLibrary')}
           </Button>
 
           {hasPreview ? (
@@ -224,6 +259,13 @@ export function MediaUploadField({
         isApplying={uploadMutation.isPending}
         onClose={handleCloseCrop}
         onApply={handleApplyCrop}
+      />
+
+      <MediaLibraryPickerModal
+        open={isPickerOpen}
+        type={type}
+        onClose={() => setIsPickerOpen(false)}
+        onSelect={handlePickFromLibrary}
       />
     </>
   );
