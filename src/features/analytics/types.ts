@@ -13,10 +13,11 @@ export type TopSection = {
 
 export type AnalyticsSummaryResponse = {
   viewsToday: number;
-  viewsThisMonth: number;
+  viewsInRange: number;
   viewsAllTime: number;
   uniqueVisitorsToday: number;
-  uniqueVisitorsThisMonth: number;
+  uniqueVisitorsInRange: number;
+  rangeDays: number;
   dailySeries: DailyPoint[];
   topSections: TopSection[];
 };

@@ -1,8 +1,21 @@
 'use client';
 
-import {useMemo} from 'react';
+import {useMemo, useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
+import {
+  Briefcase,
+  FileText,
+  Home,
+  Image as ImageIcon,
+  LayoutGrid,
+  Package,
+  Palette,
+  Phone,
+  Settings,
+  Tags,
+  type LucideIcon
+} from 'lucide-react';
 import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
@@ -15,6 +28,8 @@ import {getAllMedia} from '@/features/media-library/api';
 import {getAllPortfolioProjects} from '@/features/portfolio-projects/api';
 import {getAllSections} from '@/features/sections/api';
 import {getAnalyticsSummary} from '@/features/analytics/api';
+import {DEFAULT_ANALYTICS_RANGE_DAYS, type AnalyticsRangeDays} from '@/features/analytics/constants';
+import {RangeFilter} from '@/features/analytics/components/range-filter';
 import {TrendChart} from '@/features/analytics/components/trend-chart';
 import {TopSectionsList} from '@/features/analytics/components/top-sections-list';
 
@@ -47,29 +62,64 @@ function StatCard({
   );
 }
 
+function MetricTile({
+  icon: Icon,
+  label,
+  value
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-lg font-bold leading-none text-slate-950">{value}</p>
+        <p className="text-xs leading-tight text-slate-500">{label}</p>
+      </div>
+    </div>
+  );
+}
+
 function ActionLinkCard({
+  icon: Icon,
   title,
   description,
   href,
   actionLabel
 }: {
+  icon: LucideIcon;
   title: string;
   description: string;
   href: string;
   actionLabel: string;
 }) {
   return (
-    <SettingsCard title={title} description={description}>
-      <Link href={href}>
-        <Button type="button">{actionLabel}</Button>
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md">
+      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+        <Icon className="h-5 w-5" />
+      </div>
+      <h3 className="text-lg font-semibold text-[var(--color-text)]">{title}</h3>
+      <p className="mt-1 text-sm text-slate-500">{description}</p>
+      <Link href={href} className="mt-4 inline-block">
+        <Button type="button" size="sm">
+          {actionLabel}
+        </Button>
       </Link>
-    </SettingsCard>
+    </div>
   );
 }
 
 export function AdminDashboardOverview() {
   const t = useTranslations('AdminDashboardPage');
   const common = useTranslations('Common');
+
+  const [rangeDays, setRangeDays] = useState<AnalyticsRangeDays>(
+    DEFAULT_ANALYTICS_RANGE_DAYS
+  );
 
   const sectionsQuery = useQuery({
     queryKey: ['sections', 'all'],
@@ -112,8 +162,8 @@ export function AdminDashboardOverview() {
   });
 
   const analyticsQuery = useQuery({
-    queryKey: ['analytics', 'summary'],
-    queryFn: getAnalyticsSummary
+    queryKey: ['analytics', 'summary', rangeDays],
+    queryFn: () => getAnalyticsSummary(rangeDays)
   });
 
   const isLoading =
@@ -161,11 +211,29 @@ export function AdminDashboardOverview() {
 
   const analytics = analyticsQuery.data;
 
+  const rangeLabels: Record<AnalyticsRangeDays, string> = {
+    7: t('range7d'),
+    30: t('range30d'),
+    90: t('range90d')
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <SettingsCard title={t('analyticsTitle')} description={t('analyticsDescription')}>
         <div className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-slate-500">
+              {t('analyticsAllTimeCaption', {count: analytics?.viewsAllTime ?? 0})}
+            </p>
+            <RangeFilter
+              value={rangeDays}
+              onChange={setRangeDays}
+              labels={rangeLabels}
+              ariaLabel={t('rangeFilterLabel')}
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
               label={t('viewsTodayLabel')}
               value={analytics?.viewsToday ?? 0}
@@ -173,21 +241,21 @@ export function AdminDashboardOverview() {
               tone="emerald"
             />
             <StatCard
-              label={t('viewsThisMonthLabel')}
-              value={analytics?.viewsThisMonth ?? 0}
-              hint={t('viewsThisMonthHint')}
+              label={t('viewsInRangeLabel')}
+              value={analytics?.viewsInRange ?? 0}
+              hint={t('viewsInRangeHint')}
               tone="blue"
-            />
-            <StatCard
-              label={t('viewsAllTimeLabel')}
-              value={analytics?.viewsAllTime ?? 0}
-              hint={t('viewsAllTimeHint')}
             />
             <StatCard
               label={t('uniqueVisitorsTodayLabel')}
               value={analytics?.uniqueVisitorsToday ?? 0}
               hint={t('uniqueVisitorsTodayHint')}
               tone="amber"
+            />
+            <StatCard
+              label={t('uniqueVisitorsInRangeLabel')}
+              value={analytics?.uniqueVisitorsInRange ?? 0}
+              hint={t('uniqueVisitorsInRangeHint')}
             />
           </div>
 
@@ -222,113 +290,93 @@ export function AdminDashboardOverview() {
         </div>
       </SettingsCard>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label={t('stats.sectionsLabel')}
-          value={counts.sections}
-          hint={t('stats.sectionsHint')}
-        />
-        <StatCard
-          label={t('stats.categoriesLabel')}
-          value={counts.categories}
-          hint={t('stats.categoriesHint')}
-          tone="blue"
-        />
-        <StatCard
-          label={t('stats.itemsLabel')}
-          value={counts.items}
-          hint={t('stats.itemsHint')}
-          tone="emerald"
-        />
-        <StatCard
-          label={t('stats.mediaLabel')}
-          value={counts.media}
-          hint={t('stats.mediaHint')}
-          tone="amber"
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label={t('stats.projectsLabel')}
-          value={counts.projects}
-          hint={t('stats.projectsHint')}
-        />
-        <StatCard
-          label={t('stats.contentBlocksLabel')}
-          value={counts.contentBlocks}
-          hint={t('stats.contentBlocksHint')}
-          tone="blue"
-        />
-        <StatCard
-          label={t('stats.homeCardsLabel')}
-          value={counts.homeCards}
-          hint={t('stats.homeCardsHint')}
-          tone="emerald"
-        />
-        <StatCard
-          label={t('stats.contactMethodsLabel')}
-          value={counts.contactMethods}
-          hint={t('stats.contactMethodsHint')}
-          tone="amber"
-        />
-      </div>
-
-      {isLoading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-600">{common('loading')}</p>
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-[var(--color-text)]">
+            {t('contentOverviewTitle')}
+          </h2>
+          <p className="text-sm text-slate-500">{t('contentOverviewDescription')}</p>
         </div>
-      ) : null}
 
-      {hasError ? (
-        <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
-          <p className="text-sm text-red-700">{t('statsLoadError')}</p>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <MetricTile icon={LayoutGrid} label={t('stats.sectionsLabel')} value={counts.sections} />
+          <MetricTile icon={Tags} label={t('stats.categoriesLabel')} value={counts.categories} />
+          <MetricTile icon={Package} label={t('stats.itemsLabel')} value={counts.items} />
+          <MetricTile icon={ImageIcon} label={t('stats.mediaLabel')} value={counts.media} />
+          <MetricTile icon={Briefcase} label={t('stats.projectsLabel')} value={counts.projects} />
+          <MetricTile icon={FileText} label={t('stats.contentBlocksLabel')} value={counts.contentBlocks} />
+          <MetricTile icon={Home} label={t('stats.homeCardsLabel')} value={counts.homeCards} />
+          <MetricTile icon={Phone} label={t('stats.contactMethodsLabel')} value={counts.contactMethods} />
         </div>
-      ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <ActionLinkCard
-          title={t('siteSettingsCardTitle')}
-          description={t('siteSettingsCardDescription')}
-          href="/admin/site-settings"
-          actionLabel={t('siteSettingsCardAction')}
-        />
+        {isLoading ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm text-slate-600">{common('loading')}</p>
+          </div>
+        ) : null}
 
-        <ActionLinkCard
-          title={t('homeCardsCardTitle')}
-          description={t('homeCardsCardDescription')}
-          href="/admin/home-cards"
-          actionLabel={t('homeCardsCardAction')}
-        />
+        {hasError ? (
+          <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
+            <p className="text-sm text-red-700">{t('statsLoadError')}</p>
+          </div>
+        ) : null}
+      </section>
 
-        <ActionLinkCard
-          title={t('sectionsCardTitle')}
-          description={t('sectionsCardDescription')}
-          href="/admin/sections"
-          actionLabel={t('sectionsCardAction')}
-        />
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-[var(--color-text)]">
+          {t('quickActionsTitle')}
+        </h2>
 
-        <ActionLinkCard
-          title={t('mediaCardTitle')}
-          description={t('mediaCardDescription')}
-          href="/admin/media"
-          actionLabel={t('mediaCardAction')}
-        />
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <ActionLinkCard
+            icon={Settings}
+            title={t('siteSettingsCardTitle')}
+            description={t('siteSettingsCardDescription')}
+            href="/admin/site-settings"
+            actionLabel={t('siteSettingsCardAction')}
+          />
 
-        <ActionLinkCard
-          title={t('contactMethodsCardTitle')}
-          description={t('contactMethodsCardDescription')}
-          href="/admin/contact-methods"
-          actionLabel={t('contactMethodsCardAction')}
-        />
+          <ActionLinkCard
+            icon={Home}
+            title={t('homeCardsCardTitle')}
+            description={t('homeCardsCardDescription')}
+            href="/admin/home-cards"
+            actionLabel={t('homeCardsCardAction')}
+          />
 
-        <ActionLinkCard
-          title={t('themeSettingsCardTitle')}
-          description={t('themeSettingsCardDescription')}
-          href="/admin/theme-settings"
-          actionLabel={t('themeSettingsCardAction')}
-        />
-      </div>
+          <ActionLinkCard
+            icon={LayoutGrid}
+            title={t('sectionsCardTitle')}
+            description={t('sectionsCardDescription')}
+            href="/admin/sections"
+            actionLabel={t('sectionsCardAction')}
+          />
+
+          <ActionLinkCard
+            icon={ImageIcon}
+            title={t('mediaCardTitle')}
+            description={t('mediaCardDescription')}
+            href="/admin/media"
+            actionLabel={t('mediaCardAction')}
+          />
+
+          <ActionLinkCard
+            icon={Phone}
+            title={t('contactMethodsCardTitle')}
+            description={t('contactMethodsCardDescription')}
+            href="/admin/contact-methods"
+            actionLabel={t('contactMethodsCardAction')}
+          />
+
+          <ActionLinkCard
+            icon={Palette}
+            title={t('themeSettingsCardTitle')}
+            description={t('themeSettingsCardDescription')}
+            href="/admin/theme-settings"
+            actionLabel={t('themeSettingsCardAction')}
+          />
+        </div>
+      </section>
     </div>
   );
 }

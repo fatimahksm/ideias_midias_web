@@ -1,6 +1,7 @@
 import {apiClient} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
+import type {AnalyticsRangeDays} from './constants';
 import type {AnalyticsSummaryResponse} from './types';
 
 function getRequiredToken() {
@@ -13,9 +14,12 @@ function getRequiredToken() {
   return token;
 }
 
-export async function getAnalyticsSummary() {
-  return apiClient<AnalyticsSummaryResponse>(endpoints.admin.analyticsSummary, {
-    method: 'GET',
-    token: getRequiredToken()
-  });
+export async function getAnalyticsSummary(rangeDays: AnalyticsRangeDays) {
+  return apiClient<AnalyticsSummaryResponse>(
+    `${endpoints.admin.analyticsSummary}?rangeDays=${rangeDays}`,
+    {
+      method: 'GET',
+      token: getRequiredToken()
+    }
+  );
 }
