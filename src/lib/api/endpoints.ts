@@ -58,6 +58,7 @@ export const endpoints = {
     mediaLibrary: '/api/admin/media-library',
     mediaUpload: '/api/admin/media-library/upload',
 
-    analyticsSummary: '/api/admin/analytics/summary'
+    analyticsSummary: '/api/admin/analytics/summary',
+    statsSummary: '/api/admin/stats/summary'
   }
 } as const;

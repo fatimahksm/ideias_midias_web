@@ -1781,6 +1781,7 @@
     "videoFilter": "Videos",
     "resultsCount": "{count} files",
     "refresh": "Refresh",
+    "loadMore": "Load more",
     "emptyTitle": "No media found",
     "emptyDescription": "Upload your first file to start building the shared media library.",
     "imageType": "Image",

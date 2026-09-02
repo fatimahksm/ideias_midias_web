@@ -32,6 +32,7 @@ import {
 } from '../utils';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 import {PageViewTracker} from '@/features/analytics/components/page-view-tracker';
+import {BackgroundVideo} from './background-video';
 
 type Props = {
   locale: string;
@@ -107,15 +108,10 @@ function SectionHero({
   allowFullScreen
 />
             ) : (
-              <video
+              <BackgroundVideo
+                src={resolvedCoverVideoUrl}
                 className="h-full w-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              >
-                <source src={resolvedCoverVideoUrl} />
-              </video>
+              />
             )}
           </div>
           <div className="absolute inset-0 bg-black/60" />

@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {
@@ -19,15 +19,8 @@ import {
 import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
-import {getAllCategories} from '@/features/categories/api';
-import {getAllContactMethods} from '@/features/contact-methods/api';
-import {getAllContentBlocks} from '@/features/content-blocks/api';
-import {getAllHomeCards} from '@/features/home-cards/api';
-import {getAllItems} from '@/features/items/api';
-import {getAllMedia} from '@/features/media-library/api';
-import {getAllPortfolioProjects} from '@/features/portfolio-projects/api';
-import {getAllSections} from '@/features/sections/api';
 import {getAnalyticsSummary} from '@/features/analytics/api';
+import {getContentStats} from '@/features/stats/api';
 import {DEFAULT_ANALYTICS_RANGE_DAYS, type AnalyticsRangeDays} from '@/features/analytics/constants';
 import {RangeFilter} from '@/features/analytics/components/range-filter';
 import {TrendChart} from '@/features/analytics/components/trend-chart';
@@ -121,44 +114,11 @@ export function AdminDashboardOverview() {
     DEFAULT_ANALYTICS_RANGE_DAYS
   );
 
-  const sectionsQuery = useQuery({
-    queryKey: ['sections', 'all'],
-    queryFn: getAllSections
-  });
-
-  const categoriesQuery = useQuery({
-    queryKey: ['categories', 'all'],
-    queryFn: getAllCategories
-  });
-
-  const itemsQuery = useQuery({
-    queryKey: ['items', 'all'],
-    queryFn: getAllItems
-  });
-
-  const projectsQuery = useQuery({
-    queryKey: ['portfolio-projects', 'all'],
-    queryFn: getAllPortfolioProjects
-  });
-
-  const contentBlocksQuery = useQuery({
-    queryKey: ['content-blocks', 'all'],
-    queryFn: getAllContentBlocks
-  });
-
-  const mediaQuery = useQuery({
-    queryKey: ['media-library', 'all'],
-    queryFn: getAllMedia
-  });
-
-  const homeCardsQuery = useQuery({
-    queryKey: ['home-cards', 'all'],
-    queryFn: getAllHomeCards
-  });
-
-  const contactMethodsQuery = useQuery({
-    queryKey: ['contact-methods', 'all'],
-    queryFn: getAllContactMethods
+  // One request of counts, instead of downloading every row of nine tables
+  // just to display how many there are.
+  const statsQuery = useQuery({
+    queryKey: ['content-stats'],
+    queryFn: getContentStats
   });
 
   const analyticsQuery = useQuery({
@@ -166,48 +126,19 @@ export function AdminDashboardOverview() {
     queryFn: () => getAnalyticsSummary(rangeDays)
   });
 
-  const isLoading =
-    sectionsQuery.isPending ||
-    categoriesQuery.isPending ||
-    itemsQuery.isPending ||
-    projectsQuery.isPending ||
-    contentBlocksQuery.isPending ||
-    mediaQuery.isPending ||
-    homeCardsQuery.isPending ||
-    contactMethodsQuery.isPending;
+  const isLoading = statsQuery.isPending;
+  const hasError = statsQuery.isError;
 
-  const hasError =
-    sectionsQuery.isError ||
-    categoriesQuery.isError ||
-    itemsQuery.isError ||
-    projectsQuery.isError ||
-    contentBlocksQuery.isError ||
-    mediaQuery.isError ||
-    homeCardsQuery.isError ||
-    contactMethodsQuery.isError;
-
-  const counts = useMemo(
-    () => ({
-      sections: sectionsQuery.data?.length ?? 0,
-      categories: categoriesQuery.data?.length ?? 0,
-      items: itemsQuery.data?.length ?? 0,
-      projects: projectsQuery.data?.length ?? 0,
-      contentBlocks: contentBlocksQuery.data?.length ?? 0,
-      media: mediaQuery.data?.length ?? 0,
-      homeCards: homeCardsQuery.data?.length ?? 0,
-      contactMethods: contactMethodsQuery.data?.length ?? 0
-    }),
-    [
-      sectionsQuery.data,
-      categoriesQuery.data,
-      itemsQuery.data,
-      projectsQuery.data,
-      contentBlocksQuery.data,
-      mediaQuery.data,
-      homeCardsQuery.data,
-      contactMethodsQuery.data
-    ]
-  );
+  const counts = {
+    sections: statsQuery.data?.sections ?? 0,
+    categories: statsQuery.data?.categories ?? 0,
+    items: statsQuery.data?.items ?? 0,
+    projects: statsQuery.data?.portfolioProjects ?? 0,
+    contentBlocks: statsQuery.data?.contentBlocks ?? 0,
+    media: statsQuery.data?.mediaFiles ?? 0,
+    homeCards: statsQuery.data?.homeCards ?? 0,
+    contactMethods: statsQuery.data?.contactMethods ?? 0
+  };
 
   const analytics = analyticsQuery.data;
 

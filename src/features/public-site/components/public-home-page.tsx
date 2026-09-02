@@ -26,6 +26,7 @@ import {
 } from '../contact-visuals';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 import {PageViewTracker} from '@/features/analytics/components/page-view-tracker';
+import {BackgroundVideo} from './background-video';
 
 type Props = {
   locale: string;
@@ -189,18 +190,17 @@ export default function PublicHomePage({locale, data}: Props) {
       <section className="relative isolate min-h-screen overflow-hidden">
         {heroBackgroundUrl ? (
           heroBackgroundType === 'VIDEO' ? (
-            <motion.video
+            <motion.div
               initial={{scale: 1.08}}
               animate={{scale: 1}}
               transition={{duration: 1.8, ease: 'easeOut'}}
-              className="absolute inset-0 h-full w-full object-cover"
-              autoPlay
-              muted
-              loop
-              playsInline
+              className="absolute inset-0"
             >
-              <source src={heroBackgroundUrl} />
-            </motion.video>
+              <BackgroundVideo
+                src={heroBackgroundUrl}
+                className="h-full w-full object-cover"
+              />
+            </motion.div>
           ) : (
             <motion.div
               initial={{scale: 1.08}}

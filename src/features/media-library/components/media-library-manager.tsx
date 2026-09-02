@@ -1,7 +1,7 @@
 'use client';
 
 import {useMemo, useState} from 'react';
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {useInfiniteQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
@@ -10,9 +10,8 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {hasAdminToken} from '@/lib/auth/token';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
-import {deleteMedia, getAllMedia, getMediaByType} from '../api';
+import {deleteMedia, getMediaPage} from '../api';
 import type {MediaFileType, MediaLibraryItem} from '../types';
-import {sortMediaNewestFirst} from '../utils';
 import {MediaLibraryCard} from './media-library-card';
 import {MediaLibraryUploader} from './media-library-uploader';
 
@@ -35,16 +34,14 @@ export default function MediaLibraryManager() {
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
-  const mediaQuery = useQuery({
-    queryKey: ['media-library', activeFilter],
-    queryFn: async () => {
-      const items =
-        activeFilter === 'ALL'
-          ? await getAllMedia()
-          : await getMediaByType(activeFilter);
-
-      return sortMediaNewestFirst(items);
-    }
+  // The library is read a page at a time: it grows with every upload, and
+  // loading all of it was the screen's slowest part.
+  const mediaQuery = useInfiniteQuery({
+    queryKey: ['media-library', 'page', activeFilter],
+    initialPageParam: 0,
+    queryFn: ({pageParam}) => getMediaPage(activeFilter, pageParam),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.page + 1 : undefined
   });
 
   const deleteMutation = useMutation({
@@ -62,7 +59,13 @@ export default function MediaLibraryManager() {
 
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
-  const items = useMemo(() => mediaQuery.data ?? [], [mediaQuery.data]);
+  const items = useMemo(
+    () => mediaQuery.data?.pages.flatMap((page) => page.content) ?? [],
+    [mediaQuery.data]
+  );
+
+  const totalCount =
+    mediaQuery.data?.pages[0]?.totalElements ?? items.length;
 
   async function handleCopyUrl(item: MediaLibraryItem) {
     try {
@@ -133,7 +136,7 @@ export default function MediaLibraryManager() {
 
             <div className="flex flex-wrap items-center gap-3">
               <p className="text-sm text-slate-500">
-                {t('resultsCount', {count: items.length})}
+                {t('resultsCount', {count: totalCount})}
               </p>
 
               <Button
@@ -197,6 +200,20 @@ export default function MediaLibraryManager() {
               ))}
             </div>
           )}
+
+          {mediaQuery.hasNextPage ? (
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                isLoading={mediaQuery.isFetchingNextPage}
+                loadingText={common('loading')}
+                onClick={() => mediaQuery.fetchNextPage()}
+              >
+                {t('loadMore')}
+              </Button>
+            </div>
+          ) : null}
         </div>
       </SettingsCard>
 
