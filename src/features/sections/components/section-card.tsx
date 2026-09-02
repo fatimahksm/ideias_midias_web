@@ -15,11 +15,7 @@ type Props = {
   item: SectionResponse;
   canDelete: boolean;
   isDeleting: boolean;
-  isDuplicating: boolean;
-  isTogglingStatus: boolean;
   onDelete: (item: SectionResponse) => void;
-  onDuplicate: (item: SectionResponse) => void;
-  onToggleStatus: (item: SectionResponse) => void;
 };
 
 function CoverFallback({
@@ -45,11 +41,7 @@ export function SectionCard({
   item,
   canDelete,
   isDeleting,
-  isDuplicating,
-  isTogglingStatus,
-  onDelete,
-  onDuplicate,
-  onToggleStatus
+  onDelete
 }: Props) {
   const t = useTranslations('SectionsManager');
   const common = useTranslations('Common');
@@ -62,8 +54,8 @@ export function SectionCard({
   const previewPath = getSectionPreviewPath(item.slug);
 
   return (
-    <article className="rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative h-56 overflow-hidden rounded-t-[28px] bg-slate-100">
+    <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative h-56 overflow-hidden bg-slate-100">
         {videoUrl ? (
           <video
             src={videoUrl}
@@ -161,24 +153,8 @@ export function SectionCard({
               {
                 key: 'preview',
                 label: t('preview'),
-                href: previewPath,
+                href: `/${locale}${previewPath}`,
                 external: true
-              },
-              {
-                key: 'duplicate',
-                label: isDuplicating ? common('loading') : t('duplicate'),
-                disabled: isDuplicating,
-                onSelect: () => onDuplicate(item)
-              },
-              {
-                key: 'toggle-status',
-                label: isTogglingStatus
-                  ? common('loading')
-                  : item.isActive
-                    ? t('deactivate')
-                    : t('activate'),
-                disabled: isTogglingStatus,
-                onSelect: () => onToggleStatus(item)
               },
               ...(canDelete
                 ? [

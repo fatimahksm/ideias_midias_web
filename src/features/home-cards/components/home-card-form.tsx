@@ -30,6 +30,9 @@ import {emptyToNull, getNextHomeCardSortOrder} from '../utils';
 import {HomeCardFormSidebar} from './home-card-form-sidebar';
 import {HomeCardIconPicker} from './home-card-icon-picker';
 
+/** Which cards each edit step shows: content first, then publishing. */
+const EDIT_STEP_CARDS = [[0, 1, 2, 3], [4]];
+
 type Props = {
   mode: 'create' | 'edit';
   cardId?: number;
@@ -152,8 +155,8 @@ export default function HomeCardForm({mode, cardId}: Props) {
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Creating walks through the steps one at a time; editing opens on the first
-  // step but lets the owner jump straight to whatever they came to change.
+  // Creating walks through the steps one at a time; editing collapses them
+  // into two screens so there is less to click through.
   const isWizard = mode === 'create';
   const [step, setStep] = useState(0);
 
@@ -345,18 +348,24 @@ export default function HomeCardForm({mode, cardId}: Props) {
     );
   }
 
-  const navSteps = [
-    'stepLinkLabel',
-    'stepTitlesLabel',
-    'stepDescriptionsLabel',
-    'stepImageLabel',
-    'stepPublishLabel'
-  ].map((key) => ({key, label: t(key as never)}));
+  const navSteps = (
+    isWizard
+      ? [
+          'stepLinkLabel',
+          'stepTitlesLabel',
+          'stepDescriptionsLabel',
+          'stepImageLabel',
+          'stepPublishLabel'
+        ]
+      : ['stepContentLabel', 'stepPublishLabel']
+  ).map((key) => ({key, label: t(key as never)}));
 
   const lastStep = navSteps.length - 1;
 
   function showCard(cardStep: number) {
-    return step === cardStep;
+    return isWizard
+      ? step === cardStep
+      : Boolean(EDIT_STEP_CARDS[step]?.includes(cardStep));
   }
 
   async function goToNextStep(fieldsToValidate: (keyof HomeCardFormValues)[]) {

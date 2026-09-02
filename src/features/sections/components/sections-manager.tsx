@@ -10,19 +10,9 @@ import {hasAdminToken} from '@/lib/auth/token';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
-import {
-  countSectionsByType,
-  emptyToNull,
-  getNextSortOrder,
-  slugify
-} from '../utils';
-import {
-  createSection,
-  deleteSection,
-  getAllSections,
-  updateSection
-} from '../api';
-import type {SectionPayload, SectionResponse, SectionType} from '../types';
+import {countSectionsByType} from '../utils';
+import {deleteSection, getAllSections} from '../api';
+import type {SectionResponse, SectionType} from '../types';
 import {SectionCard} from './section-card';
 import {SectionEmptyState} from './section-empty-state';
 import {SectionListToolbar} from './section-list-toolbar';
@@ -92,67 +82,6 @@ export default function SectionsManager() {
     }
   });
 
-  const duplicateMutation = useMutation({
-    mutationFn: async (item: SectionResponse) => {
-      const allItems = sectionsQuery.data ?? [];
-      const nextSortOrder = getNextSortOrder(allItems);
-
-      const payload: SectionPayload = {
-        slug: `${slugify(item.slug)}-copy-${nextSortOrder}`,
-        namePt: `${item.namePt} ${t('copySuffix')}`,
-        nameEn: `${item.nameEn} ${t('copySuffix')}`,
-        descriptionPt: emptyToNull(item.descriptionPt),
-        descriptionEn: emptyToNull(item.descriptionEn),
-        sectionType: item.sectionType,
-        coverImageUrl: emptyToNull(item.coverImageUrl),
-        coverVideoUrl: emptyToNull(item.coverVideoUrl),
-        isActive: false,
-        sortOrder: nextSortOrder
-      };
-
-      return createSection(payload);
-    },
-    onSuccess: async () => {
-      setFeedbackTone('success');
-      setFeedback(t('duplicateSuccess'));
-      await queryClient.invalidateQueries({queryKey: ['sections']});
-    },
-    onError: (error) => {
-      setFeedbackTone('error');
-      setFeedback(getErrorMessage(toAppError(error), (key) => errorT(key)));
-    }
-  });
-
-  const toggleStatusMutation = useMutation({
-    mutationFn: async (item: SectionResponse) => {
-      const payload: SectionPayload = {
-        slug: item.slug,
-        namePt: item.namePt,
-        nameEn: item.nameEn,
-        descriptionPt: emptyToNull(item.descriptionPt),
-        descriptionEn: emptyToNull(item.descriptionEn),
-        sectionType: item.sectionType,
-        coverImageUrl: emptyToNull(item.coverImageUrl),
-        coverVideoUrl: emptyToNull(item.coverVideoUrl),
-        isActive: !item.isActive,
-        sortOrder: item.sortOrder
-      };
-
-      return updateSection(item.id, payload);
-    },
-    onSuccess: async (_, item) => {
-      setFeedbackTone('success');
-      setFeedback(
-        item.isActive ? t('deactivateSuccess') : t('activateSuccess')
-      );
-      await queryClient.invalidateQueries({queryKey: ['sections']});
-    },
-    onError: (error) => {
-      setFeedbackTone('error');
-      setFeedback(getErrorMessage(toAppError(error), (key) => errorT(key)));
-    }
-  });
-
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
   const items = useMemo(() => {
@@ -209,16 +138,6 @@ export default function SectionsManager() {
     setFeedback('');
     await deleteMutation.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
-  }
-
-  async function handleDuplicate(item: SectionResponse) {
-    setFeedback('');
-    await duplicateMutation.mutateAsync(item);
-  }
-
-  async function handleToggleStatus(item: SectionResponse) {
-    setFeedback('');
-    await toggleStatusMutation.mutateAsync(item);
   }
 
   return (
@@ -294,17 +213,7 @@ export default function SectionsManager() {
                 deleteMutation.isPending &&
                 deleteMutation.variables === item.id
               }
-              isDuplicating={
-                duplicateMutation.isPending &&
-                duplicateMutation.variables?.id === item.id
-              }
-              isTogglingStatus={
-                toggleStatusMutation.isPending &&
-                toggleStatusMutation.variables?.id === item.id
-              }
               onDelete={handleDelete}
-              onDuplicate={handleDuplicate}
-              onToggleStatus={handleToggleStatus}
             />
           ))}
         </div>

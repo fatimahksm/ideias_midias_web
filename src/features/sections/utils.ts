@@ -32,7 +32,9 @@ export function getNextSortOrder(items: SectionResponse[]) {
 
 export function getSectionPreviewPath(slug?: string | null) {
   if (!slug) return '/';
-  return `/${slug}`;
+
+  // Must match the public route, app/[locale]/sections/[slug].
+  return `/sections/${slug}`;
 }
 
 export function countSectionsByType(items: SectionResponse[], type: SectionType) {
