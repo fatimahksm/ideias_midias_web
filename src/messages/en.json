@@ -1299,6 +1299,7 @@
     "shortDescriptionEnHint": "Optional, but recommended.",
     "backToCards": "Back to home cards",
     "stepLinkLabel": "Section",
+    "stepContentLabel": "Content",
     "stepTitlesLabel": "Titles",
     "stepDescriptionsLabel": "Descriptions",
     "stepImageLabel": "Image",
@@ -1396,10 +1397,9 @@
     }
   },
   "SectionsManager": {
-    
     "deleteDialogTitle": "Delete section",
-  "deleteAction": "Delete",
-  "cancel": "Cancel",
+    "deleteAction": "Delete",
+    "cancel": "Cancel",
     "studioTitle": "Sections studio",
     "studioSubtitle": "Build the website structure with clean, reusable section blocks.",
     "createSection": "Create section",
@@ -1433,16 +1433,9 @@
     "createAnother": "New section",
     "openWorkspace": "Manage content",
     "editSettings": "Edit details",
-    "duplicate": "Duplicate",
     "preview": "Preview",
-    "activate": "Activate",
-    "deactivate": "Deactivate",
-    "copySuffix": "Copy",
     "deleteConfirm": "Are you sure you want to delete \"{name}\"?",
     "deleteSuccess": "Section deleted successfully.",
-    "duplicateSuccess": "Section duplicated successfully.",
-    "activateSuccess": "Section activated successfully.",
-    "deactivateSuccess": "Section deactivated successfully.",
     "loading": "Loading sections..."
   },
   "SectionNextActions": {
@@ -1680,6 +1673,7 @@
     "backButton": "Back",
     "nextButton": "Next",
     "stepTypeLabel": "Type",
+    "stepContentLabel": "Content",
     "stepBasicsLabel": "Basics",
     "stepDescriptionLabel": "Description",
     "stepMediaLabel": "Media",

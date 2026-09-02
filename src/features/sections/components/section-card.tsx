@@ -15,11 +15,7 @@ type Props = {
   item: SectionResponse;
   canDelete: boolean;
   isDeleting: boolean;
-  isDuplicating: boolean;
-  isTogglingStatus: boolean;
   onDelete: (item: SectionResponse) => void;
-  onDuplicate: (item: SectionResponse) => void;
-  onToggleStatus: (item: SectionResponse) => void;
 };
 
 function CoverFallback({
@@ -45,11 +41,7 @@ export function SectionCard({
   item,
   canDelete,
   isDeleting,
-  isDuplicating,
-  isTogglingStatus,
-  onDelete,
-  onDuplicate,
-  onToggleStatus
+  onDelete
 }: Props) {
   const t = useTranslations('SectionsManager');
   const common = useTranslations('Common');
@@ -163,22 +155,6 @@ export function SectionCard({
                 label: t('preview'),
                 href: `/${locale}${previewPath}`,
                 external: true
-              },
-              {
-                key: 'duplicate',
-                label: isDuplicating ? common('loading') : t('duplicate'),
-                disabled: isDuplicating,
-                onSelect: () => onDuplicate(item)
-              },
-              {
-                key: 'toggle-status',
-                label: isTogglingStatus
-                  ? common('loading')
-                  : item.isActive
-                    ? t('deactivate')
-                    : t('activate'),
-                disabled: isTogglingStatus,
-                onSelect: () => onToggleStatus(item)
               },
               ...(canDelete
                 ? [

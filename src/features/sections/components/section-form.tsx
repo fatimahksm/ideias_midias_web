@@ -35,6 +35,9 @@ type Props = {
   sectionId?: number;
 };
 
+/** Which cards each edit step shows: content first, then publishing. */
+const EDIT_STEP_CARDS = [[1, 2, 3], [4]];
+
 type BilingualFieldGroupProps = {
   title: string;
   description?: string;
@@ -169,9 +172,11 @@ export default function SectionForm({mode, sectionId}: Props) {
 
   const isWizard = mode === 'create';
 
-  // Card 0 is the type picker, which only exists while creating. Editing an
-  // existing section opens straight on the first real card.
-  const [step, setStep] = useState(isWizard ? 0 : 1);
+  // Creating walks card by card, starting at the type picker (card 0).
+  // Editing collapses the same cards into two screens — everything about the
+  // content, then everything about publishing — so there is less to click
+  // through when you only came to change one thing.
+  const [step, setStep] = useState(0);
 
   const {
     register,
@@ -357,20 +362,22 @@ export default function SectionForm({mode, sectionId}: Props) {
   }
 
   function showCard(cardStep: number) {
-    return step === cardStep;
+    return isWizard
+      ? step === cardStep
+      : Boolean(EDIT_STEP_CARDS[step]?.includes(cardStep));
   }
 
-  /**
-   * The type picker is step 0 and only exists while creating, so the edit nav
-   * is the same list without it — nav index 0 is card 1, and so on.
-   */
   const navSteps = (
     isWizard
-      ? ['stepTypeLabel', 'stepBasicsLabel', 'stepDescriptionLabel', 'stepMediaLabel', 'stepPublishLabel']
-      : ['stepBasicsLabel', 'stepDescriptionLabel', 'stepMediaLabel', 'stepPublishLabel']
+      ? [
+          'stepTypeLabel',
+          'stepBasicsLabel',
+          'stepDescriptionLabel',
+          'stepMediaLabel',
+          'stepPublishLabel'
+        ]
+      : ['stepContentLabel', 'stepPublishLabel']
   ).map((key) => ({key, label: t(key as never)}));
-
-  const navCurrentStep = isWizard ? step : step - 1;
 
   async function goToNextStep(fieldsToValidate: (keyof SectionFormValues)[]) {
     const valid = fieldsToValidate.length
@@ -435,8 +442,8 @@ export default function SectionForm({mode, sectionId}: Props) {
 
           <FormStepNav
             steps={navSteps}
-            currentStep={navCurrentStep}
-            onSelect={(index) => setStep(isWizard ? index : index + 1)}
+            currentStep={step}
+            onSelect={setStep}
             maxSelectableStep={isWizard ? step : undefined}
           />
 
