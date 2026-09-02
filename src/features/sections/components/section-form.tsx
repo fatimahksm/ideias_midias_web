@@ -25,8 +25,8 @@ import {sectionSchema, type SectionFormValues} from '../schema';
 import type {SectionPayload, SectionType} from '../types';
 import {emptyToNull, getNextSortOrder, slugify} from '../utils';
 import {SectionFormSidebar} from './section-form-sidebar';
+import {FormStepNav} from '@/components/common/form-step-nav';
 import {SectionNextActions} from './section-next-actions';
-import {SectionStepProgress} from './section-step-progress';
 import {SectionTypeBadge} from './section-type-badge';
 import {SectionTypePicker} from './section-type-picker';
 
@@ -168,7 +168,10 @@ export default function SectionForm({mode, sectionId}: Props) {
     useState<SectionType>('CONTENT');
 
   const isWizard = mode === 'create';
-  const [step, setStep] = useState(0);
+
+  // Card 0 is the type picker, which only exists while creating. Editing an
+  // existing section opens straight on the first real card.
+  const [step, setStep] = useState(isWizard ? 0 : 1);
 
   const {
     register,
@@ -354,8 +357,20 @@ export default function SectionForm({mode, sectionId}: Props) {
   }
 
   function showCard(cardStep: number) {
-    return !isWizard || step === cardStep;
+    return step === cardStep;
   }
+
+  /**
+   * The type picker is step 0 and only exists while creating, so the edit nav
+   * is the same list without it — nav index 0 is card 1, and so on.
+   */
+  const navSteps = (
+    isWizard
+      ? ['stepTypeLabel', 'stepBasicsLabel', 'stepDescriptionLabel', 'stepMediaLabel', 'stepPublishLabel']
+      : ['stepBasicsLabel', 'stepDescriptionLabel', 'stepMediaLabel', 'stepPublishLabel']
+  ).map((key) => ({key, label: t(key as never)}));
+
+  const navCurrentStep = isWizard ? step : step - 1;
 
   async function goToNextStep(fieldsToValidate: (keyof SectionFormValues)[]) {
     const valid = fieldsToValidate.length
@@ -412,13 +427,18 @@ export default function SectionForm({mode, sectionId}: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-         <SectionNextActions
-  sectionId={savedSectionId}
-  sectionType={savedSectionType}
-  isVisible={mode === 'edit' || Boolean(savedSectionId)}
-/>
+          <SectionNextActions
+            sectionId={savedSectionId}
+            sectionType={savedSectionType}
+            isVisible={mode === 'edit' || Boolean(savedSectionId)}
+          />
 
-          {isWizard ? <SectionStepProgress currentStep={step} /> : null}
+          <FormStepNav
+            steps={navSteps}
+            currentStep={navCurrentStep}
+            onSelect={(index) => setStep(isWizard ? index : index + 1)}
+            maxSelectableStep={isWizard ? step : undefined}
+          />
 
           {showCard(1) && (
           <SettingsCard
@@ -728,7 +748,7 @@ export default function SectionForm({mode, sectionId}: Props) {
             </div>
           ) : null}
 
-          {showCard(4) && (
+          {(!isWizard || showCard(4)) && (
           <div className="flex flex-wrap items-center justify-between gap-3">
             {isWizard ? (
               <Button type="button" variant="ghost" onClick={() => setStep(3)}>

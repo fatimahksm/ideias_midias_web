@@ -31,7 +31,9 @@ export const endpoints = {
     portfolioProjectById: (projectId: number) =>
       `/api/public/portfolio/projects/${projectId}`,
     portfolioProjectMedia: (projectId: number) =>
-      `/api/public/portfolio/projects/${projectId}/media`
+      `/api/public/portfolio/projects/${projectId}/media`,
+
+    pageViews: '/api/public/analytics/page-views'
   },
 
   admin: {

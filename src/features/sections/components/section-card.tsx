@@ -1,7 +1,9 @@
 'use client';
 
 import {useLocale, useTranslations} from 'next-intl';
+import {useRouter} from 'next/navigation';
 import {Link} from '@/i18n/navigation';
+import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
 import {resolveMediaUrl, formatMediaDate} from '@/features/media-library/utils';
 import type {SectionResponse} from '../types';
@@ -39,9 +41,6 @@ function CoverFallback({
   );
 }
 
-const linkButtonClass =
-  'inline-flex h-9 items-center justify-center rounded-xl border border-[var(--color-primary)] bg-white px-3 text-sm font-medium text-[var(--color-primary)] transition hover:bg-slate-50';
-
 export function SectionCard({
   item,
   canDelete,
@@ -56,14 +55,15 @@ export function SectionCard({
   const common = useTranslations('Common');
   const commonSections = useTranslations('SectionsCommon');
   const locale = useLocale();
+  const router = useRouter();
 
   const imageUrl = resolveMediaUrl(item.coverImageUrl);
   const videoUrl = resolveMediaUrl(item.coverVideoUrl);
   const previewPath = getSectionPreviewPath(item.slug);
 
   return (
-    <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative h-56 overflow-hidden bg-slate-100">
+    <article className="rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative h-56 overflow-hidden rounded-t-[28px] bg-slate-100">
         {videoUrl ? (
           <video
             src={videoUrl}
@@ -142,62 +142,57 @@ export function SectionCard({
           </div>
         </dl>
 
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/sections/${item.id}`}>
-            <Button type="button" size="sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/admin/sections/${item.id}`} className="grow sm:grow-0">
+            <Button type="button" className="w-full sm:w-auto">
               {t('openWorkspace')}
             </Button>
           </Link>
 
-          <Link href={`/admin/sections/${item.id}/edit`}>
-            <Button type="button" variant="outline" size="sm">
-              {t('editSettings')}
-            </Button>
-          </Link>
-
-          <a
-            href={previewPath}
-            target="_blank"
-            rel="noreferrer"
-            className={linkButtonClass}
-          >
-            {t('preview')}
-          </a>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            isLoading={isDuplicating}
-            loadingText={common('loading')}
-            onClick={() => onDuplicate(item)}
-          >
-            {t('duplicate')}
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            isLoading={isTogglingStatus}
-            loadingText={common('loading')}
-            onClick={() => onToggleStatus(item)}
-          >
-            {item.isActive ? t('deactivate') : t('activate')}
-          </Button>
-
-          {canDelete ? (
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              isLoading={isDeleting}
-              loadingText={common('loading')}
-              onClick={() => onDelete(item)}
-            >
-              {common('delete')}
-            </Button>
-          ) : null}
+          <ActionMenu
+            label={common('moreActions')}
+            items={[
+              {
+                key: 'edit',
+                label: t('editSettings'),
+                onSelect: () =>
+                  router.push(`/${locale}/admin/sections/${item.id}/edit`)
+              },
+              {
+                key: 'preview',
+                label: t('preview'),
+                href: previewPath,
+                external: true
+              },
+              {
+                key: 'duplicate',
+                label: isDuplicating ? common('loading') : t('duplicate'),
+                disabled: isDuplicating,
+                onSelect: () => onDuplicate(item)
+              },
+              {
+                key: 'toggle-status',
+                label: isTogglingStatus
+                  ? common('loading')
+                  : item.isActive
+                    ? t('deactivate')
+                    : t('activate'),
+                disabled: isTogglingStatus,
+                onSelect: () => onToggleStatus(item)
+              },
+              ...(canDelete
+                ? [
+                    {
+                      key: 'delete',
+                      label: isDeleting ? common('loading') : common('delete'),
+                      tone: 'danger' as const,
+                      disabled: isDeleting,
+                      onSelect: () => onDelete(item)
+                    }
+                  ]
+                : [])
+            ]}
+          />
         </div>
       </div>
     </article>

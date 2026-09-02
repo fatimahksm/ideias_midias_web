@@ -31,6 +31,7 @@ import {
   toEmbeddableVideoUrl
 } from '../utils';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
+import {PageViewTracker} from '@/features/analytics/components/page-view-tracker';
 
 type Props = {
   locale: string;
@@ -1045,6 +1046,10 @@ export default function PublicSectionPage({locale, data}: Props) {
 
   return (
     <main className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+      <PageViewTracker
+        path={`/sections/${data.section.slug}`}
+        sectionSlug={data.section.slug}
+      />
       <SectionHero
         title={sectionTitle}
         description={sectionDescription}
