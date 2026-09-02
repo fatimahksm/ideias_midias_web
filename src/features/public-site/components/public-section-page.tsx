@@ -23,7 +23,12 @@ import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types
 import type {SectionItemMediaResponse} from '@/features/item-media/types';
 import type {PortfolioProjectMediaResponse} from '@/features/portfolio-project-media/types';
 import type {PublicSectionItemResponse, PublicSectionPageData} from '../types';
-import {getPublicItemMedia, getPublicPortfolioProjectMedia} from '../api';
+import {
+  getPublicItemMedia,
+  getPublicPortfolioProjectMedia,
+  getPublicPortfolioProjectsPage,
+  getPublicSectionItemsPage
+} from '../api';
 import PublicMediaGallery from './public-media-gallery';
 import {
   getLocalizedValue,
@@ -33,7 +38,6 @@ import {
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 import {useInfiniteQuery} from '@tanstack/react-query';
 import {PageViewTracker} from '@/features/analytics/components/page-view-tracker';
-import {getPublicSectionItemsPage} from '../api';
 import {BackgroundVideo} from './background-video';
 
 type Props = {
@@ -1083,6 +1087,25 @@ export default function PublicSectionPage({locale, data}: Props) {
         : undefined
   });
 
+  // Portfolio projects page the same way items do.
+  const projectsQuery = useInfiniteQuery({
+    queryKey: ['public-section-projects', data.section.id],
+    initialPageParam: 0,
+    queryFn: ({pageParam}) =>
+      getPublicPortfolioProjectsPage(data.section.id, pageParam),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.page + 1 : undefined,
+    enabled: data.section.sectionType === 'PORTFOLIO',
+    initialData: data.initialProjects
+      ? {pages: [data.initialProjects], pageParams: [0]}
+      : undefined
+  });
+
+  const loadedProjects = useMemo(
+    () => projectsQuery.data?.pages.flatMap((page) => page.content) ?? [],
+    [projectsQuery.data]
+  );
+
   const loadedItems = useMemo(
     () => itemsQuery.data?.pages.flatMap((page) => page.content) ?? [],
     [itemsQuery.data]
@@ -1340,7 +1363,7 @@ export default function PublicSectionPage({locale, data}: Props) {
             </div>
           </motion.div>
 
-          {data.projects.length ? (
+          {loadedProjects.length ? (
             <motion.div
               variants={staggerContainer}
               initial="hidden"
@@ -1348,7 +1371,7 @@ export default function PublicSectionPage({locale, data}: Props) {
               viewport={{once: true, amount: 0.12}}
               className="grid gap-7 md:grid-cols-2 xl:grid-cols-3"
             >
-              {data.projects.map((project) => (
+              {loadedProjects.map((project) => (
                 <motion.div key={project.id} variants={fadeUp}>
                   <ProjectCard
                     locale={locale}
@@ -1368,7 +1391,7 @@ export default function PublicSectionPage({locale, data}: Props) {
                 </motion.div>
               ))}
             </motion.div>
-          ) : (
+          ) : projectsQuery.isPending ? null : (
             <div className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
               <FolderKanban className="mx-auto h-10 w-10 text-slate-400" />
               <h2 className="mt-5 text-3xl font-black text-slate-950">
@@ -1376,6 +1399,8 @@ export default function PublicSectionPage({locale, data}: Props) {
               </h2>
             </div>
           )}
+
+          <LoadMoreItems query={projectsQuery} label={t('loadMore')} />
         </section>
       ) : null}
 

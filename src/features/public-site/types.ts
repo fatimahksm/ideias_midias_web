@@ -54,5 +54,6 @@ export type PublicSectionPageData = {
   initialItems: PageResponse<PublicSectionItemResponse> | null;
   /** Whether the "uncategorized" tab has anything behind it. */
   hasUncategorizedItems: boolean;
-  projects: PortfolioProjectResponse[];
+  /** First page of the section's projects, rendered on the server. */
+  initialProjects: PageResponse<PortfolioProjectResponse> | null;
 };

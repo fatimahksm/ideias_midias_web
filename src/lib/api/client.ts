@@ -7,6 +7,13 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
   token?: unknown;
   skipAuthRefresh?: boolean;
+  /**
+   * Seconds this response may be reused by Next's server-side fetch cache.
+   * Set it on public reads: without it every visitor costs a fresh round trip
+   * to the backend for content that changes only when the owner edits it.
+   * Ignored in the browser, and never used for anything authenticated.
+   */
+  revalidate?: number;
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
@@ -219,7 +226,7 @@ async function executeRequest<T>(
   path: string,
   options: RequestOptions
 ): Promise<T> {
-  const {body, headers, token, ...rest} = options;
+  const {body, headers, token, revalidate, ...rest} = options;
   const authorizationHeader = buildAuthorizationHeader(token);
 
   const response = await fetch(buildUrl(path), {
@@ -232,7 +239,9 @@ async function executeRequest<T>(
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
     credentials: rest.credentials ?? 'include',
-    cache: 'no-store'
+    ...(revalidate !== undefined && revalidate > 0
+      ? {next: {revalidate}}
+      : {cache: 'no-store' as const})
   });
 
   return parseResponse<T>(response);
