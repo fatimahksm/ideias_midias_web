@@ -1,6 +1,7 @@
 'use client';
 
 import {useLocale, useTranslations} from 'next-intl';
+import {useRouter} from 'next/navigation';
 import {Link} from '@/i18n/navigation';
 import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
@@ -54,6 +55,7 @@ export function SectionCard({
   const common = useTranslations('Common');
   const commonSections = useTranslations('SectionsCommon');
   const locale = useLocale();
+  const router = useRouter();
 
   const imageUrl = resolveMediaUrl(item.coverImageUrl);
   const videoUrl = resolveMediaUrl(item.coverVideoUrl);
@@ -147,15 +149,15 @@ export function SectionCard({
             </Button>
           </Link>
 
-          <Link href={`/admin/sections/${item.id}/edit`}>
-            <Button type="button" variant="outline">
-              {t('editSettings')}
-            </Button>
-          </Link>
-
           <ActionMenu
             label={common('moreActions')}
             items={[
+              {
+                key: 'edit',
+                label: t('editSettings'),
+                onSelect: () =>
+                  router.push(`/${locale}/admin/sections/${item.id}/edit`)
+              },
               {
                 key: 'preview',
                 label: t('preview'),
