@@ -2,7 +2,7 @@
 
 import {useMemo} from 'react';
 import {useQuery} from '@tanstack/react-query';
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
 import {toAppError} from '@/lib/api/client';
@@ -109,6 +109,7 @@ function getWorkspaceModel(sectionType: SectionType): WorkspaceModel {
 
 export function SectionWorkspace({sectionId}: Props) {
   const t = useTranslations('SectionWorkspace');
+  const locale = useLocale();
   const sectionsCommon = useTranslations('SectionsCommon');
   const errorT = useTranslations('CommonErrors');
 
@@ -191,7 +192,7 @@ export function SectionWorkspace({sectionId}: Props) {
               </Button>
             </Link>
 
-            <a href={previewPath} target="_blank" rel="noreferrer">
+            <a href={`/${locale}${previewPath}`} target="_blank" rel="noreferrer">
               <Button type="button" size="sm">
                 {t('previewSection')}
               </Button>

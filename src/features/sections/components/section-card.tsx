@@ -62,8 +62,8 @@ export function SectionCard({
   const previewPath = getSectionPreviewPath(item.slug);
 
   return (
-    <article className="rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative h-56 overflow-hidden rounded-t-[28px] bg-slate-100">
+    <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative h-56 overflow-hidden bg-slate-100">
         {videoUrl ? (
           <video
             src={videoUrl}
@@ -161,7 +161,7 @@ export function SectionCard({
               {
                 key: 'preview',
                 label: t('preview'),
-                href: previewPath,
+                href: `/${locale}${previewPath}`,
                 external: true
               },
               {
