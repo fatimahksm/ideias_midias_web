@@ -31,7 +31,9 @@ import {
   toEmbeddableVideoUrl
 } from '../utils';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
+import {useInfiniteQuery} from '@tanstack/react-query';
 import {PageViewTracker} from '@/features/analytics/components/page-view-tracker';
+import {getPublicSectionItemsPage} from '../api';
 import {BackgroundVideo} from './background-video';
 
 type Props = {
@@ -977,6 +979,37 @@ function ProjectModal({
   );
 }
 
+/**
+ * Pulls in the next page of items. Only rendered when the server said there
+ * is one, so a section that fits on a single page shows no control at all.
+ */
+function LoadMoreItems({
+  query,
+  label
+}: {
+  query: {
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    fetchNextPage: () => void;
+  };
+  label: string;
+}) {
+  if (!query.hasNextPage) return null;
+
+  return (
+    <div className="mt-10 flex justify-center">
+      <button
+        type="button"
+        disabled={query.isFetchingNextPage}
+        onClick={() => query.fetchNextPage()}
+        className="inline-flex min-h-12 items-center rounded-full border border-[var(--color-primary)] bg-white px-8 py-3 text-base font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-primary-soft)] disabled:opacity-60"
+      >
+        {label}
+      </button>
+    </div>
+  );
+}
+
 export default function PublicSectionPage({locale, data}: Props) {
   const t = useTranslations('PublicSite');
   const [activeModal, setActiveModal] = useState<ActiveModal>(null);
@@ -999,46 +1032,64 @@ export default function PublicSectionPage({locale, data}: Props) {
     [data.section.descriptionEn, data.section.descriptionPt, locale]
   );
 
-  const uncategorizedItems = useMemo(
-    () => data.items.filter((item) => !item.categoryId),
-    [data.items]
-  );
+  const isDirectItems = data.section.sectionType === 'DIRECT_ITEMS';
 
-  const effectiveSelectedCategoryId = useMemo(() => {
-    if (selectedCategoryId !== null) {
-      return selectedCategoryId;
-    }
+  const defaultCategoryId: number | 'uncategorized' | null = isDirectItems
+    ? null
+    : data.categories.length > 0
+      ? data.categories[0].id
+      : data.hasUncategorizedItems
+        ? 'uncategorized'
+        : null;
 
-    if (data.categories.length > 0) {
-      return data.categories[0].id;
-    }
-
-    if (uncategorizedItems.length > 0) {
-      return 'uncategorized';
-    }
-
-    return null;
-  }, [selectedCategoryId, data.categories, uncategorizedItems]);
+  const effectiveSelectedCategoryId =
+    selectedCategoryId ?? defaultCategoryId;
 
   const selectedCategory = useMemo(() => {
     if (typeof effectiveSelectedCategoryId !== 'number') {
       return null;
     }
 
-    return data.categories.find((category) => category.id === effectiveSelectedCategoryId) ?? null;
+    return (
+      data.categories.find(
+        (category) => category.id === effectiveSelectedCategoryId
+      ) ?? null
+    );
   }, [data.categories, effectiveSelectedCategoryId]);
 
-  const selectedCategoryItems = useMemo(() => {
-    if (effectiveSelectedCategoryId === 'uncategorized') {
-      return uncategorizedItems;
-    }
+  // Items arrive a page at a time, for the selected category only. The server
+  // already rendered the first page of the default selection, so that one is
+  // seeded rather than re-fetched.
+  const isDefaultSelection = effectiveSelectedCategoryId === defaultCategoryId;
 
-    if (typeof effectiveSelectedCategoryId === 'number') {
-      return data.items.filter((item) => item.categoryId === effectiveSelectedCategoryId);
-    }
+  const itemsQuery = useInfiniteQuery({
+    queryKey: [
+      'public-section-items',
+      data.section.id,
+      effectiveSelectedCategoryId
+    ],
+    initialPageParam: 0,
+    queryFn: ({pageParam}) =>
+      getPublicSectionItemsPage(
+        data.section.id,
+        effectiveSelectedCategoryId,
+        pageParam
+      ),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.page + 1 : undefined,
+    initialData:
+      isDefaultSelection && data.initialItems
+        ? {pages: [data.initialItems], pageParams: [0]}
+        : undefined
+  });
 
-    return [];
-  }, [effectiveSelectedCategoryId, data.items, uncategorizedItems]);
+  const loadedItems = useMemo(
+    () => itemsQuery.data?.pages.flatMap((page) => page.content) ?? [],
+    [itemsQuery.data]
+  );
+
+  const totalItems = itemsQuery.data?.pages[0]?.totalElements ?? 0;
+  const selectedCategoryItems = loadedItems;
 
   return (
     <main className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
@@ -1083,7 +1134,7 @@ export default function PublicSectionPage({locale, data}: Props) {
             </div>
           </motion.div>
 
-          {(data.categories.length > 0 || uncategorizedItems.length > 0) ? (
+          {data.categories.length > 0 || data.hasUncategorizedItems ? (
             <motion.div
               initial={{opacity: 0, y: 20}}
               whileInView={{opacity: 1, y: 0}}
@@ -1114,7 +1165,7 @@ export default function PublicSectionPage({locale, data}: Props) {
                 );
               })}
 
-              {uncategorizedItems.length ? (
+              {data.hasUncategorizedItems ? (
                 <button
   type="button"
   onClick={() => setSelectedCategoryId('uncategorized')}
@@ -1171,7 +1222,7 @@ export default function PublicSectionPage({locale, data}: Props) {
                 </div>
 
                 <div className="inline-flex h-12 min-w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 text-sm font-bold text-[var(--color-text)]">
-                  {selectedCategoryItems.length}
+                  {totalItems}
                 </div>
               </div>
             </motion.div>
@@ -1198,13 +1249,16 @@ export default function PublicSectionPage({locale, data}: Props) {
                 />
               ))}
             </motion.div>
-          ) : selectedCategory || effectiveSelectedCategoryId === 'uncategorized' ? (
+          ) : itemsQuery.isPending ? null : selectedCategory ||
+            effectiveSelectedCategoryId === 'uncategorized' ? (
             <div className="rounded-[28px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-10 text-center">
               <h3 className="text-2xl font-black text-[var(--color-text)]">
                 {t('noItemsYet')}
               </h3>
             </div>
           ) : null}
+
+          <LoadMoreItems query={itemsQuery} label={t('loadMore')} />
         </section>
       ) : null}
 
@@ -1228,7 +1282,7 @@ export default function PublicSectionPage({locale, data}: Props) {
             </div>
           </motion.div>
 
-          {data.items.length ? (
+          {loadedItems.length ? (
             <motion.div
               variants={staggerContainer}
               initial="hidden"
@@ -1236,7 +1290,7 @@ export default function PublicSectionPage({locale, data}: Props) {
               viewport={{once: true, amount: 0.12}}
               className="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
             >
-              {data.items.map((item) => (
+              {loadedItems.map((item) => (
                 <motion.div key={item.id} variants={fadeUp}>
                   <ItemCard
                     locale={locale}
@@ -1251,7 +1305,7 @@ export default function PublicSectionPage({locale, data}: Props) {
                 </motion.div>
               ))}
             </motion.div>
-          ) : (
+          ) : itemsQuery.isPending ? null : (
             <div className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
               <Package className="mx-auto h-10 w-10 text-slate-400" />
               <h2 className="mt-5 text-3xl font-black text-slate-950">
@@ -1259,6 +1313,8 @@ export default function PublicSectionPage({locale, data}: Props) {
               </h2>
             </div>
           )}
+
+          <LoadMoreItems query={itemsQuery} label={t('loadMore')} />
         </section>
       ) : null}
 

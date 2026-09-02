@@ -20,6 +20,8 @@ export const endpoints = {
       `/api/public/sections/${sectionId}/categories`,
     sectionItems: (sectionId: number) =>
       `/api/public/sections/${sectionId}/items`,
+    sectionItemsPage: (sectionId: number) =>
+      `/api/public/sections/${sectionId}/items/page`,
 
     itemById: (itemId: number) => `/api/public/items/${itemId}`,
     itemMedia: (itemId: number) => `/api/public/items/${itemId}/media`,
