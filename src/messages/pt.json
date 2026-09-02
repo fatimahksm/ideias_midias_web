@@ -16,7 +16,8 @@
     "language": "Idioma",
     "notAvailable": "Não disponível",
     "english": "Inglês",
-    "portuguese": "Português"
+    "portuguese": "Português",
+    "moreActions": "Mais"
   },
   "MapPickerField": {
     "mapLoadFailed": "Não foi possível carregar o mapa. Tente novamente.",
@@ -1291,6 +1292,13 @@
     "shortDescriptionEnLabel": "Descrição curta em inglês",
     "shortDescriptionEnHint": "Optional, but recommended.",
     "backToCards": "Voltar para cartões iniciais",
+    "stepLinkLabel": "Seção",
+    "stepTitlesLabel": "Títulos",
+    "stepDescriptionsLabel": "Descrições",
+    "stepImageLabel": "Imagem",
+    "stepPublishLabel": "Publicação",
+    "nextButton": "Próximo",
+    "backButton": "Voltar",
     "saveButton": "Salvar cartão",
     "createButton": "Criar cartão",
     "saveSuccess": "Home card atualizado com sucesso.",

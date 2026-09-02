@@ -16,7 +16,8 @@
     "language": "Language",
     "notAvailable": "Not available",
     "english": "English",
-    "portuguese": "Portuguese"
+    "portuguese": "Portuguese",
+    "moreActions": "More"
   },
   "RouteLoading": {
   "pageBadge": "Loading",
@@ -1297,6 +1298,13 @@
     "shortDescriptionEnLabel": "English short description",
     "shortDescriptionEnHint": "Optional, but recommended.",
     "backToCards": "Back to home cards",
+    "stepLinkLabel": "Section",
+    "stepTitlesLabel": "Titles",
+    "stepDescriptionsLabel": "Descriptions",
+    "stepImageLabel": "Image",
+    "stepPublishLabel": "Publish",
+    "nextButton": "Next",
+    "backButton": "Back",
     "saveButton": "Save card",
     "createButton": "Create card",
     "saveSuccess": "Home card updated successfully.",

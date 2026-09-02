@@ -1,7 +1,9 @@
 'use client';
 
 import {useLocale, useTranslations} from 'next-intl';
+import {useRouter} from 'next/navigation';
 import {Link} from '@/i18n/navigation';
+import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
 import {resolveMediaUrl, formatMediaDate} from '@/features/media-library/utils';
 import type {HomeCardResponse} from '../types';
@@ -27,14 +29,15 @@ export function HomeCardCard({
   const formT = useTranslations('HomeCardForm');
   const common = useTranslations('Common');
   const locale = useLocale();
+  const router = useRouter();
 
   const imageUrl = resolveMediaUrl(item.imageUrl);
   const selectedIcon = getHomeCardIconOption(item.iconName);
   const SelectedIconComponent = selectedIcon?.icon;
 
   return (
-    <article className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="relative h-56 overflow-hidden bg-slate-100">
+    <article className="rounded-[28px] border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative h-56 overflow-hidden rounded-t-[28px] bg-slate-100">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -124,33 +127,41 @@ export function HomeCardCard({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/home-cards/${item.id}/edit`}>
-            <Button type="button" size="sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/admin/home-cards/${item.id}/edit`} className="grow sm:grow-0">
+            <Button type="button" className="w-full sm:w-auto">
               {common('edit')}
             </Button>
           </Link>
 
-          {linkedSection ? (
-            <Link href={`/admin/sections/${linkedSection.id}/edit`}>
-              <Button type="button" variant="outline" size="sm">
-                {t('openSection')}
-              </Button>
-            </Link>
-          ) : null}
-
-          {canDelete ? (
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              isLoading={isDeleting}
-              loadingText={common('loading')}
-              onClick={() => onDelete(item)}
-            >
-              {common('delete')}
-            </Button>
-          ) : null}
+          <ActionMenu
+            label={common('moreActions')}
+            items={[
+              ...(linkedSection
+                ? [
+                    {
+                      key: 'open-section',
+                      label: t('openSection'),
+                      onSelect: () =>
+                        router.push(
+                          `/${locale}/admin/sections/${linkedSection.id}/edit`
+                        )
+                    }
+                  ]
+                : []),
+              ...(canDelete
+                ? [
+                    {
+                      key: 'delete',
+                      label: isDeleting ? common('loading') : common('delete'),
+                      tone: 'danger' as const,
+                      disabled: isDeleting,
+                      onSelect: () => onDelete(item)
+                    }
+                  ]
+                : [])
+            ]}
+          />
         </div>
       </div>
     </article>

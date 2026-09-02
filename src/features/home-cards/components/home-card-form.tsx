@@ -7,6 +7,7 @@ import {useRouter} from 'next/navigation';
 import {useEffect, useMemo, useState, type ReactNode} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {Link} from '@/i18n/navigation';
+import {FormStepNav} from '@/components/common/form-step-nav';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -151,6 +152,11 @@ export default function HomeCardForm({mode, cardId}: Props) {
   const [serverError, setServerError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Creating walks through the steps one at a time; editing opens on the first
+  // step but lets the owner jump straight to whatever they came to change.
+  const isWizard = mode === 'create';
+  const [step, setStep] = useState(0);
+
   const {
     register,
     control,
@@ -159,6 +165,7 @@ export default function HomeCardForm({mode, cardId}: Props) {
     watch,
     setValue,
     getValues,
+    trigger,
     formState: {errors, touchedFields}
   } = useForm<HomeCardFormValues>({
     resolver: zodResolver(homeCardSchema),
@@ -338,6 +345,28 @@ export default function HomeCardForm({mode, cardId}: Props) {
     );
   }
 
+  const navSteps = [
+    'stepLinkLabel',
+    'stepTitlesLabel',
+    'stepDescriptionsLabel',
+    'stepImageLabel',
+    'stepPublishLabel'
+  ].map((key) => ({key, label: t(key as never)}));
+
+  const lastStep = navSteps.length - 1;
+
+  function showCard(cardStep: number) {
+    return step === cardStep;
+  }
+
+  async function goToNextStep(fieldsToValidate: (keyof HomeCardFormValues)[]) {
+    const valid = fieldsToValidate.length ? await trigger(fieldsToValidate) : true;
+
+    if (valid) {
+      setStep((current) => Math.min(current + 1, lastStep));
+    }
+  }
+
   async function onSubmit(values: HomeCardFormValues) {
     setServerError('');
     setSuccessMessage('');
@@ -362,27 +391,24 @@ export default function HomeCardForm({mode, cardId}: Props) {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link href="/admin/home-cards">
-            <Button type="button" variant="outline">
+            <Button type="button" variant="ghost">
               {t('backToCards')}
             </Button>
           </Link>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {successMessage ? (
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-                {successMessage}
-              </span>
-            ) : null}
-
-            <Button
-              type="submit"
-              isLoading={saveMutation.isPending}
-              loadingText={common('loading')}
-            >
-              {mode === 'edit' ? t('saveButton') : t('createButton')}
-            </Button>
-          </div>
+          {successMessage ? (
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
+              {successMessage}
+            </span>
+          ) : null}
         </div>
+
+        <FormStepNav
+          steps={navSteps}
+          currentStep={step}
+          onSelect={setStep}
+          maxSelectableStep={isWizard ? step : undefined}
+        />
 
         {serverError ? (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -390,6 +416,7 @@ export default function HomeCardForm({mode, cardId}: Props) {
           </div>
         ) : null}
 
+        {showCard(0) && (
         <SettingsCard
           title={t('linkCardTitle')}
           description={t('linkCardDescription')}
@@ -431,8 +458,18 @@ export default function HomeCardForm({mode, cardId}: Props) {
               )}
             />
           </div>
-        </SettingsCard>
 
+          {isWizard ? (
+            <div className="mt-5 flex items-center justify-end">
+              <Button type="button" onClick={() => goToNextStep(['sectionId'])}>
+                {t('nextButton')}
+              </Button>
+            </div>
+          ) : null}
+        </SettingsCard>
+        )}
+
+        {showCard(1) && (
         <SettingsCard
           title={t('contentCardTitle')}
           description={t('contentCardDescription')}
@@ -469,8 +506,21 @@ export default function HomeCardForm({mode, cardId}: Props) {
               />
             }
           />
-        </SettingsCard>
 
+          {isWizard ? (
+            <div className="mt-5 flex items-center justify-between">
+            <Button type="button" variant="ghost" onClick={() => setStep(0)}>
+              {t('backButton')}
+            </Button>
+              <Button type="button" onClick={() => goToNextStep(['titlePt', 'titleEn'])}>
+                {t('nextButton')}
+              </Button>
+            </div>
+          ) : null}
+        </SettingsCard>
+        )}
+
+        {showCard(2) && (
         <SettingsCard
           title={t('descriptionCardTitle')}
           description={t('descriptionCardDescription')}
@@ -509,8 +559,21 @@ export default function HomeCardForm({mode, cardId}: Props) {
               />
             }
           />
-        </SettingsCard>
 
+          {isWizard ? (
+            <div className="mt-5 flex items-center justify-between">
+            <Button type="button" variant="ghost" onClick={() => setStep(1)}>
+              {t('backButton')}
+            </Button>
+              <Button type="button" onClick={() => goToNextStep([])}>
+                {t('nextButton')}
+              </Button>
+            </div>
+          ) : null}
+        </SettingsCard>
+        )}
+
+        {showCard(3) && (
         <SettingsCard
           title={t('mediaCardTitle')}
           description={t('mediaCardDescription')}
@@ -527,8 +590,21 @@ export default function HomeCardForm({mode, cardId}: Props) {
               />
             )}
           />
-        </SettingsCard>
 
+          {isWizard ? (
+            <div className="mt-5 flex items-center justify-between">
+            <Button type="button" variant="ghost" onClick={() => setStep(2)}>
+              {t('backButton')}
+            </Button>
+              <Button type="button" onClick={() => goToNextStep([])}>
+                {t('nextButton')}
+              </Button>
+            </div>
+          ) : null}
+        </SettingsCard>
+        )}
+
+        {showCard(4) && (
         <SettingsCard
           title={t('publishingCardTitle')}
           description={t('publishingCardDescription')}
@@ -572,6 +648,29 @@ export default function HomeCardForm({mode, cardId}: Props) {
             />
           </div>
         </SettingsCard>
+        )}
+
+        {!isWizard || showCard(lastStep) ? (
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {isWizard ? (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setStep(lastStep - 1)}
+              >
+                {t('backButton')}
+              </Button>
+            ) : null}
+
+            <Button
+              type="submit"
+              isLoading={saveMutation.isPending}
+              loadingText={common('loading')}
+            >
+              {mode === 'edit' ? t('saveButton') : t('createButton')}
+            </Button>
+          </div>
+        ) : null}
       </div>
 
       <HomeCardFormSidebar
