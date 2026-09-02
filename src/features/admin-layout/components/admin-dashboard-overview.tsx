@@ -14,6 +14,9 @@ import {getAllItems} from '@/features/items/api';
 import {getAllMedia} from '@/features/media-library/api';
 import {getAllPortfolioProjects} from '@/features/portfolio-projects/api';
 import {getAllSections} from '@/features/sections/api';
+import {getAnalyticsSummary} from '@/features/analytics/api';
+import {TrendChart} from '@/features/analytics/components/trend-chart';
+import {TopSectionsList} from '@/features/analytics/components/top-sections-list';
 
 function StatCard({
   label,
@@ -108,6 +111,11 @@ export function AdminDashboardOverview() {
     queryFn: getAllContactMethods
   });
 
+  const analyticsQuery = useQuery({
+    queryKey: ['analytics', 'summary'],
+    queryFn: getAnalyticsSummary
+  });
+
   const isLoading =
     sectionsQuery.isPending ||
     categoriesQuery.isPending ||
@@ -151,8 +159,69 @@ export function AdminDashboardOverview() {
     ]
   );
 
+  const analytics = analyticsQuery.data;
+
   return (
     <div className="space-y-6">
+      <SettingsCard title={t('analyticsTitle')} description={t('analyticsDescription')}>
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <StatCard
+              label={t('viewsTodayLabel')}
+              value={analytics?.viewsToday ?? 0}
+              hint={t('viewsTodayHint')}
+              tone="emerald"
+            />
+            <StatCard
+              label={t('viewsThisMonthLabel')}
+              value={analytics?.viewsThisMonth ?? 0}
+              hint={t('viewsThisMonthHint')}
+              tone="blue"
+            />
+            <StatCard
+              label={t('viewsAllTimeLabel')}
+              value={analytics?.viewsAllTime ?? 0}
+              hint={t('viewsAllTimeHint')}
+            />
+            <StatCard
+              label={t('uniqueVisitorsTodayLabel')}
+              value={analytics?.uniqueVisitorsToday ?? 0}
+              hint={t('uniqueVisitorsTodayHint')}
+              tone="amber"
+            />
+          </div>
+
+          {analyticsQuery.isError ? (
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-6 shadow-sm">
+              <p className="text-sm text-red-700">{t('analyticsLoadError')}</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
+              <TrendChart
+                data={analytics?.dailySeries ?? []}
+                viewsLabel={t('trendChartViewsLabel')}
+                uniqueVisitorsLabel={t('trendChartVisitorsLabel')}
+                emptyText={t('trendChartEmpty')}
+              />
+
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900">
+                    {t('topSectionsTitle')}
+                  </h3>
+                  <p className="text-xs text-slate-500">{t('topSectionsDescription')}</p>
+                </div>
+                <TopSectionsList
+                  sections={analytics?.topSections ?? []}
+                  emptyText={t('topSectionsEmpty')}
+                  viewsLabel={t('topSectionsViewsUnit')}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </SettingsCard>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label={t('stats.sectionsLabel')}
