@@ -1,6 +1,7 @@
 'use client';
 
 import {useLocale, useTranslations} from 'next-intl';
+import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
 import type {MediaLibraryItem} from '../types';
 import {
@@ -98,39 +99,41 @@ export function MediaLibraryCard({
           <p className="truncate text-sm text-slate-700">{item.fileUrl}</p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
-            variant="outline"
-            size="sm"
+            className="w-full grow sm:w-auto sm:grow-0"
             onClick={() => onCopyUrl(item)}
           >
             {t('copyUrl')}
           </Button>
 
-          {previewUrl ? (
-            <a
-              href={previewUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={anchorClassName}
-            >
-              {t('openFile')}
-            </a>
-          ) : null}
-
-          {canDelete ? (
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              isLoading={isDeleting}
-              loadingText={common('loading')}
-              onClick={() => onDelete(item)}
-            >
-              {common('delete')}
-            </Button>
-          ) : null}
+          <ActionMenu
+            label={common('moreActions')}
+            items={[
+              ...(previewUrl
+                ? [
+                    {
+                      key: 'open',
+                      label: t('openFile'),
+                      href: previewUrl,
+                      external: true
+                    }
+                  ]
+                : []),
+              ...(canDelete
+                ? [
+                    {
+                      key: 'delete',
+                      label: isDeleting ? common('loading') : common('delete'),
+                      tone: 'danger' as const,
+                      disabled: isDeleting,
+                      onSelect: () => onDelete(item)
+                    }
+                  ]
+                : [])
+            ]}
+          />
         </div>
       </div>
     </article>

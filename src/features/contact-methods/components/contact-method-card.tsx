@@ -1,6 +1,8 @@
 'use client';
 
 import {useLocale, useTranslations} from 'next-intl';
+import {Link} from '@/i18n/navigation';
+import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
 import {formatMediaDate} from '@/features/media-library/utils';
 import type {ContactMethodResponse} from '../types';
@@ -92,34 +94,32 @@ export function ContactMethodCard({
         </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <a href={`/admin/contact-methods/${item.id}/edit`} className={linkClassName}>
-          {common('edit')}
-        </a>
-
-        {href ? (
-          <a
-            href={href}
-            target="_blank"
-            rel="noreferrer"
-            className={linkClassName}
-          >
-            {t('openContact')}
-          </a>
-        ) : null}
-
-        {canDelete ? (
-          <Button
-            type="button"
-            variant="danger"
-            size="sm"
-            isLoading={isDeleting}
-            loadingText={common('loading')}
-            onClick={() => onDelete(item)}
-          >
-            {common('delete')}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Link href={`/admin/contact-methods/${item.id}/edit`} className="grow sm:grow-0">
+          <Button type="button" className="w-full sm:w-auto">
+            {common('edit')}
           </Button>
-        ) : null}
+        </Link>
+
+        <ActionMenu
+          label={common('moreActions')}
+          items={[
+            ...(href
+              ? [{key: 'open', label: t('openContact'), href, external: true}]
+              : []),
+            ...(canDelete
+              ? [
+                  {
+                    key: 'delete',
+                    label: isDeleting ? common('loading') : common('delete'),
+                    tone: 'danger' as const,
+                    disabled: isDeleting,
+                    onSelect: () => onDelete(item)
+                  }
+                ]
+              : [])
+          ]}
+        />
       </div>
     </article>
   );
