@@ -8,6 +8,7 @@ import {useEffect, useMemo, useState, type ReactNode} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import PhoneInput from 'react-phone-number-input';
 import {Link} from '@/i18n/navigation';
+import {FormStepNav} from '@/components/common/form-step-nav';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -163,6 +164,11 @@ export default function ContactMethodForm({mode, methodId}: Props) {
   const queryClient = useQueryClient();
 
   const [serverError, setServerError] = useState('');
+
+  // The form is two screens: everything about the content, then publishing.
+  // Both are one click away, so changing one field never means scrolling past
+  // everything else.
+  const [step, setStep] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<string>('LB');
   const [socialPlatform, setSocialPlatform] =
@@ -374,10 +380,27 @@ export default function ContactMethodForm({mode, methodId}: Props) {
     await saveMutation.mutateAsync(payload);
   }
 
+  const navSteps = [
+    {key: 'content', label: t('stepContentLabel')},
+    {key: 'publish', label: t('stepPublishLabel')}
+  ];
+
+  function showCard(cardStep: number) {
+    return step === cardStep;
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
+          <FormStepNav
+            steps={navSteps}
+            currentStep={step}
+            onSelect={setStep}
+          />
+
+          {showCard(0) && (
+            <>
           <SettingsCard
             title={t('typeCardTitle')}
             description={t('typeCardDescription')}
@@ -525,7 +548,10 @@ export default function ContactMethodForm({mode, methodId}: Props) {
               )}
             </div>
           </SettingsCard>
+            </>
+          )}
 
+          {showCard(1) && (
           <SettingsCard
             title={t('publishingCardTitle')}
             description={t('publishingCardDescription')}
@@ -578,6 +604,7 @@ export default function ContactMethodForm({mode, methodId}: Props) {
               />
             </div>
           </SettingsCard>
+          )}
 
           {serverError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

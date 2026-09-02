@@ -316,7 +316,9 @@
     "sidebarSortOrder": "Ordem de exibição",
     "noMediaSelected": "Ainda sem media selected",
     "itemRequired": "Um item válido é obrigatório.",
-    "mediaTypeRequired": "Please choose a mídia tipo."
+    "mediaTypeRequired": "Please choose a mídia tipo.",
+    "stepContentLabel": "Conteúdo",
+    "stepPublishLabel": "Publicação"
   },
   "ContentBlocksPage": {
     "title": "Blocos de conteúdo",
@@ -461,7 +463,9 @@
       "VIDEO": "Vídeo",
       "TEXT_IMAGE": "Text + imagem",
       "GALLERY": "Galeria"
-    }
+    },
+    "stepContentLabel": "Conteúdo",
+    "stepPublishLabel": "Publicação"
   },
   "ItemsManager": {
     "deleteDialogTitle": "Excluir item",
@@ -610,7 +614,9 @@
     "titlePtRequired": "O título em português é obrigatório.",
     "titleEnRequired": "O título em inglês é obrigatório.",
     "sortOrderInvalid": "Ordem de exibição must be a valid whole number.",
-    "sortOrderMin": "Ordem de exibição cannot be negative."
+    "sortOrderMin": "Ordem de exibição cannot be negative.",
+    "stepContentLabel": "Conteúdo",
+    "stepPublishLabel": "Publicação"
   },
   "AdminLayout": {
     "portfolioProjects": "Projetos de portfólio",
@@ -899,7 +905,9 @@
     "sidebarSortOrder": "Ordem de exibição",
     "noMediaSelected": "Ainda sem media selected",
     "projectRequired": "Um projeto válido é obrigatório.",
-    "mediaTypeRequired": "Please choose a mídia tipo."
+    "mediaTypeRequired": "Please choose a mídia tipo.",
+    "stepContentLabel": "Conteúdo",
+    "stepPublishLabel": "Publicação"
   },
   "PublicSite": {
     "close": "Fechar",
@@ -1093,7 +1101,9 @@
     "previewDescription": "Quick visual pré-visualização of how this projeto feels inside the administrador.",
     "noImageSelected": "Ainda sem image selected",
     "noDescriptionYet": "Ainda sem description",
-    "noClient": "No cliente"
+    "noClient": "No cliente",
+    "stepContentLabel": "Conteúdo",
+    "stepPublishLabel": "Publicação"
   },
   "ContactMethodForm": {
     "typeCardTitle": "Method tipo",
@@ -1208,7 +1218,9 @@
       "youtube": "YouTube",
       "tiktok": "TikTok",
       "website": "Site"
-    }
+    },
+    "stepContentLabel": "Conteúdo",
+    "stepPublishLabel": "Publicação"
   },
   "HomeCardsPage": {
     "title": "Página inicial",
@@ -1598,7 +1610,9 @@
     "nameEnRequired": "Nome em inglês is obrigatório.",
     "nameEnTooLong": "Nome em inglês is too long.",
     "sortOrderInvalid": "Ordem de exibição must be a valid whole number.",
-    "sortOrderMin": "Ordem de exibição cannot be negative."
+    "sortOrderMin": "Ordem de exibição cannot be negative.",
+    "stepContentLabel": "Conteúdo",
+    "stepPublishLabel": "Publicação"
   },
   "SectionForm": {
     "identityCardTitle": "Identidade da seção",

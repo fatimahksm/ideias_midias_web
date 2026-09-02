@@ -10,6 +10,7 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {Textarea} from '@/components/ui/textarea';
+import {FormStepNav} from '@/components/common/form-step-nav';
 import {SettingsCard} from '@/components/common/settings-card';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
@@ -172,6 +173,10 @@ export default function SiteSettingsForm() {
   const errorT = useTranslations('CommonErrors');
 
   const [serverError, setServerError] = useState('');
+
+  // Four screens instead of one very long page: identity, hero, video,
+  // location. Each is one click away from the others.
+  const [step, setStep] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
 
   const backgroundOptions = useMemo(
@@ -309,8 +314,26 @@ export default function SiteSettingsForm() {
     );
   }
 
+  const navSteps = [
+    {key: 'identity', label: sectionsT('identityTitle')},
+    {key: 'hero', label: sectionsT('heroTitle')},
+    {key: 'video', label: sectionsT('videoTitle')},
+    {key: 'location', label: sectionsT('locationTitle')}
+  ];
+
+  function showCard(cardStep: number) {
+    return step === cardStep;
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <FormStepNav
+        steps={navSteps}
+        currentStep={step}
+        onSelect={setStep}
+      />
+
+      {showCard(0) && (
       <SettingsCard
         title={sectionsT('identityTitle')}
         description={sectionsT('identityDescription')}
@@ -434,7 +457,9 @@ export default function SiteSettingsForm() {
           </div>
         </div>
       </SettingsCard>
+      )}
 
+      {showCard(1) && (
       <SettingsCard
         title={sectionsT('heroTitle')}
         description={sectionsT('heroDescription')}
@@ -566,7 +591,9 @@ export default function SiteSettingsForm() {
           </div>
         </div>
       </SettingsCard>
+      )}
 
+      {showCard(2) && (
       <SettingsCard
         title={sectionsT('videoTitle')}
         description={sectionsT('videoDescription')}
@@ -586,7 +613,9 @@ export default function SiteSettingsForm() {
           />
         </div>
       </SettingsCard>
+      )}
 
+      {showCard(3) && (
       <SettingsCard
         title={sectionsT('locationTitle')}
         description={sectionsT('locationDescription')}
@@ -712,6 +741,7 @@ export default function SiteSettingsForm() {
           </div>
         </div>
       </SettingsCard>
+      )}
 
       {serverError ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
