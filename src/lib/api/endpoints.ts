@@ -54,6 +54,8 @@ export const endpoints = {
     portfolioProjectMedia: '/api/admin/portfolio-media',
 
     mediaLibrary: '/api/admin/media-library',
-    mediaUpload: '/api/admin/media-library/upload'
+    mediaUpload: '/api/admin/media-library/upload',
+
+    analyticsSummary: '/api/admin/analytics/summary'
   }
 } as const;
