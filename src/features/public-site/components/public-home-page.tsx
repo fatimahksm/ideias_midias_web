@@ -25,6 +25,7 @@ import {
   getPublicContactDisplayValue
 } from '../contact-visuals';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
+import {PageViewTracker} from '@/features/analytics/components/page-view-tracker';
 
 type Props = {
   locale: string;
@@ -184,6 +185,7 @@ export default function PublicHomePage({locale, data}: Props) {
 
   return (
     <main className="overflow-x-hidden bg-[var(--color-background)] text-[var(--color-text)]">
+      <PageViewTracker path="/" />
       <section className="relative isolate min-h-screen overflow-hidden">
         {heroBackgroundUrl ? (
           heroBackgroundType === 'VIDEO' ? (
