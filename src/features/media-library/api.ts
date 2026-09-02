@@ -3,7 +3,7 @@ import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
 import {HttpError} from '@/lib/api/http-error';
 import type {ApiErrorResponse, ApiResponse} from '@/types/api';
-import type {MediaFileType, MediaLibraryItem} from './types';
+import type {MediaFileType, MediaLibraryItem, PageResponse} from './types';
 
 function getRequiredToken() {
   const token = getAdminToken();
@@ -88,6 +88,32 @@ export async function getAllMedia(): Promise<MediaLibraryItem[]> {
     method: 'GET',
     token: getRequiredToken()
   });
+}
+
+export const MEDIA_PAGE_SIZE = 24;
+
+/**
+ * One page of the library, newest first. The screens read the library this
+ * way so a big library never arrives as one enormous response.
+ */
+export async function getMediaPage(
+  fileType: MediaFileType | 'ALL',
+  page: number,
+  size: number = MEDIA_PAGE_SIZE
+): Promise<PageResponse<MediaLibraryItem>> {
+  const params = new URLSearchParams({page: String(page), size: String(size)});
+
+  if (fileType !== 'ALL') {
+    params.set('fileType', fileType);
+  }
+
+  return apiClient<PageResponse<MediaLibraryItem>>(
+    `${endpoints.admin.mediaLibrary}/page?${params.toString()}`,
+    {
+      method: 'GET',
+      token: getRequiredToken()
+    }
+  );
 }
 
 export async function getMediaByType(

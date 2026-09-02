@@ -20,6 +20,8 @@ export const endpoints = {
       `/api/public/sections/${sectionId}/categories`,
     sectionItems: (sectionId: number) =>
       `/api/public/sections/${sectionId}/items`,
+    sectionItemsPage: (sectionId: number) =>
+      `/api/public/sections/${sectionId}/items/page`,
 
     itemById: (itemId: number) => `/api/public/items/${itemId}`,
     itemMedia: (itemId: number) => `/api/public/items/${itemId}/media`,
@@ -58,6 +60,7 @@ export const endpoints = {
     mediaLibrary: '/api/admin/media-library',
     mediaUpload: '/api/admin/media-library/upload',
 
-    analyticsSummary: '/api/admin/analytics/summary'
+    analyticsSummary: '/api/admin/analytics/summary',
+    statsSummary: '/api/admin/stats/summary'
   }
 } as const;

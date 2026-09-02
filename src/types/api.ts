@@ -28,3 +28,12 @@ export type AppError = {
   errors?: ApiFieldErrors;
   raw?: unknown;
 };
+/** One page of a list, as the API returns it. */
+export type PageResponse<T> = {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
+};

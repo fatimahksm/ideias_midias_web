@@ -5,6 +5,7 @@ import type {SectionCategoryResponse} from '@/features/categories/types';
 import type {SectionResponse} from '@/features/sections/types';
 import type {SiteSettingsResponse} from '@/features/site-settings/types';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
+import type {PageResponse} from '@/types/api';
 
 export type PublicSectionItemResponse = {
   id: number;
@@ -45,6 +46,13 @@ export type PublicSectionPageData = {
   section: SectionResponse;
   contentBlocks: SectionContentBlockResponse[];
   categories: SectionCategoryResponse[];
-  items: PublicSectionItemResponse[];
+  /**
+   * First page of the selection the page opens on, rendered on the server so
+   * the visitor sees items immediately. Further pages, and other categories,
+   * are fetched in the browser.
+   */
+  initialItems: PageResponse<PublicSectionItemResponse> | null;
+  /** Whether the "uncategorized" tab has anything behind it. */
+  hasUncategorizedItems: boolean;
   projects: PortfolioProjectResponse[];
 };

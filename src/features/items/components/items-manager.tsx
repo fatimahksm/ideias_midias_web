@@ -1,7 +1,13 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {useDebouncedValue} from '@/hooks/use-debounced-value';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
@@ -16,7 +22,7 @@ import {getAllSections} from '@/features/sections/api';
 import type {SectionResponse} from '@/features/sections/types';
 import {getAllCategories} from '@/features/categories/api';
 import type {SectionCategoryResponse} from '@/features/categories/types';
-import {deleteItem, getAllItems, updateItem} from '../api';
+import {deleteItem, getItemStats, getItemsPage, updateItem} from '../api';
 import type {SectionItemPayload, SectionItemResponse} from '../types';
 import {emptyToNull} from '../utils';
 import {ItemCard} from './item-card';
@@ -126,9 +132,56 @@ export default function ItemsManager({
     queryFn: getAllCategories
   });
 
-  const itemsQuery = useQuery({
-    queryKey: ['items', 'all'],
-    queryFn: getAllItems
+  // Filters and sorting run in the database now, so the screen can ask for
+  // one page at a time without a filter silently missing rows.
+  const debouncedSearch = useDebouncedValue(search);
+
+  const effectiveSectionId = isSectionScoped
+    ? sectionId
+    : sectionFilter === 'ALL'
+      ? null
+      : Number(sectionFilter);
+
+  const effectiveCategoryId = isCategoryScoped
+    ? categoryId
+    : categoryFilter === 'ALL'
+      ? null
+      : Number(categoryFilter);
+
+  const featuredParam =
+    featuredFilter === 'ALL' ? null : featuredFilter === 'FEATURED';
+
+  const sortParam = sortBy === 'titleEn' ? 'title' : sortBy;
+
+  const statsQuery = useQuery({
+    queryKey: ['items', 'stats', effectiveSectionId, effectiveCategoryId],
+    queryFn: () => getItemStats(effectiveSectionId, effectiveCategoryId)
+  });
+
+  const itemsQuery = useInfiniteQuery({
+    queryKey: [
+      'items',
+      'page',
+      effectiveSectionId,
+      effectiveCategoryId,
+      statusFilter,
+      featuredFilter,
+      debouncedSearch,
+      sortBy
+    ],
+    initialPageParam: 0,
+    queryFn: ({pageParam}) =>
+      getItemsPage({
+        sectionId: effectiveSectionId,
+        categoryId: effectiveCategoryId,
+        status: statusFilter,
+        featured: featuredParam,
+        search: debouncedSearch,
+        sort: sortParam,
+        page: pageParam
+      }),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.page + 1 : undefined
   });
 
   const deleteMutation = useMutation({
@@ -228,86 +281,12 @@ export default function ItemsManager({
 
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
-  const scopedBase = useMemo(() => {
-    const all = itemsQuery.data ?? [];
+  const items = useMemo(
+    () => itemsQuery.data?.pages.flatMap((page) => page.content) ?? [],
+    [itemsQuery.data]
+  );
 
-    let current = all;
-
-    if (isSectionScoped && sectionId) {
-      current = current.filter((item) => item.sectionId === sectionId);
-    }
-
-    if (isCategoryScoped && categoryId) {
-      current = current.filter((item) => item.categoryId === categoryId);
-    }
-
-    return current;
-  }, [itemsQuery.data, isSectionScoped, sectionId, isCategoryScoped, categoryId]);
-
-  const items = useMemo(() => {
-    const searchValue = search.trim().toLowerCase();
-
-    const filtered = scopedBase.filter((item) => {
-      const matchesSearch =
-        !searchValue ||
-        item.titleEn.toLowerCase().includes(searchValue) ||
-        item.titlePt.toLowerCase().includes(searchValue);
-
-      const matchesSection =
-        isSectionScoped ||
-        sectionFilter === 'ALL' ||
-        String(item.sectionId) === sectionFilter;
-
-      const matchesCategory =
-        isDirectMode ||
-        isCategoryScoped ||
-        categoryFilter === 'ALL' ||
-        String(item.categoryId ?? '') === categoryFilter;
-
-      const matchesStatus =
-        statusFilter === 'ALL' ||
-        (statusFilter === 'ACTIVE' && item.isActive) ||
-        (statusFilter === 'INACTIVE' && !item.isActive);
-
-      const matchesFeatured =
-        featuredFilter === 'ALL' ||
-        (featuredFilter === 'FEATURED' && item.isFeatured) ||
-        (featuredFilter === 'REGULAR' && !item.isFeatured);
-
-      return (
-        matchesSearch &&
-        matchesSection &&
-        matchesCategory &&
-        matchesStatus &&
-        matchesFeatured
-      );
-    });
-
-    return filtered.sort((a, b) => {
-      if (sortBy === 'titleEn') {
-        return a.titleEn.localeCompare(b.titleEn);
-      }
-
-      if (sortBy === 'updatedAt') {
-        const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return bTime - aTime;
-      }
-
-      return a.sortOrder - b.sortOrder || a.id - b.id;
-    });
-  }, [
-    scopedBase,
-    search,
-    isSectionScoped,
-    sectionFilter,
-    isCategoryScoped,
-    categoryFilter,
-    statusFilter,
-    featuredFilter,
-    sortBy,
-    isDirectMode
-  ]);
+  const totalItems = itemsQuery.data?.pages[0]?.totalElements ?? items.length;
 
   function getLinkedSection(
     item: SectionItemResponse
@@ -352,15 +331,15 @@ export default function ItemsManager({
     <div className="space-y-6">
       {!compact ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label={t('stats.total')} value={scopedBase.length} />
+          <StatCard label={t('stats.total')} value={statsQuery.data?.total ?? 0} />
           <StatCard
             label={t('stats.active')}
-            value={scopedBase.filter((item) => item.isActive).length}
+            value={statsQuery.data?.active ?? 0}
             tone="emerald"
           />
           <StatCard
             label={t('stats.featured')}
-            value={scopedBase.filter((item) => item.isFeatured).length}
+            value={statsQuery.data?.featured ?? 0}
             tone="amber"
           />
           <StatCard
@@ -543,6 +522,24 @@ export default function ItemsManager({
           ))}
         </div>
       )}
+
+      {itemsQuery.hasNextPage ? (
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-sm text-slate-500">
+            {t('showingCount', {shown: items.length, total: totalItems})}
+          </p>
+
+          <Button
+            type="button"
+            variant="outline"
+            isLoading={itemsQuery.isFetchingNextPage}
+            loadingText={common('loading')}
+            onClick={() => itemsQuery.fetchNextPage()}
+          >
+            {t('loadMore')}
+          </Button>
+        </div>
+      ) : null}
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

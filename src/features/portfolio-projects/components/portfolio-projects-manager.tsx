@@ -1,7 +1,13 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {useDebouncedValue} from '@/hooks/use-debounced-value';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
 import {Button} from '@/components/ui/button';
@@ -16,7 +22,8 @@ import {getAllSections} from '@/features/sections/api';
 import type {SectionResponse} from '@/features/sections/types';
 import {
   deletePortfolioProject,
-  getAllPortfolioProjects,
+  getPortfolioProjectStats,
+  getPortfolioProjectsPage,
   updatePortfolioProject
 } from '../api';
 import type {
@@ -100,9 +107,46 @@ export default function PortfolioProjectsManager({
     queryFn: getAllSections
   });
 
-  const projectsQuery = useQuery({
-    queryKey: ['portfolio-projects', 'all'],
-    queryFn: getAllPortfolioProjects
+  // Filters and sorting run in the database, so the screen can page through
+  // projects without a filter quietly missing rows on later pages.
+  const debouncedSearch = useDebouncedValue(search);
+
+  const effectiveSectionId = isSectionScoped
+    ? sectionId
+    : sectionFilter === 'ALL'
+      ? null
+      : Number(sectionFilter);
+
+  const featuredParam =
+    featuredFilter === 'ALL' ? null : featuredFilter === 'FEATURED';
+
+  const statsQuery = useQuery({
+    queryKey: ['portfolio-projects', 'stats', effectiveSectionId],
+    queryFn: () => getPortfolioProjectStats(effectiveSectionId)
+  });
+
+  const projectsQuery = useInfiniteQuery({
+    queryKey: [
+      'portfolio-projects',
+      'page',
+      effectiveSectionId,
+      statusFilter,
+      featuredFilter,
+      debouncedSearch,
+      sortBy
+    ],
+    initialPageParam: 0,
+    queryFn: ({pageParam}) =>
+      getPortfolioProjectsPage({
+        sectionId: effectiveSectionId,
+        status: statusFilter,
+        featured: featuredParam,
+        search: debouncedSearch,
+        sort: sortBy === 'titleEn' ? 'title' : sortBy,
+        page: pageParam
+      }),
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.page + 1 : undefined
   });
 
   const deleteMutation = useMutation({
@@ -169,66 +213,12 @@ export default function PortfolioProjectsManager({
 
   const canDelete = sessionQuery.data?.role === 'SUPER_ADMIN';
 
-  const scopedBase = useMemo(() => {
-    const all = projectsQuery.data ?? [];
-    if (!isSectionScoped || !sectionId) return all;
-    return all.filter((item) => item.sectionId === sectionId);
-  }, [projectsQuery.data, isSectionScoped, sectionId]);
+  const items = useMemo(
+    () => projectsQuery.data?.pages.flatMap((page) => page.content) ?? [],
+    [projectsQuery.data]
+  );
 
-  const items = useMemo(() => {
-    const searchValue = search.trim().toLowerCase();
-
-    const filtered = scopedBase.filter((item) => {
-      const text =
-        `${item.titleEn} ${item.titlePt} ${item.clientName || ''}`.toLowerCase();
-
-      const matchesSearch = !searchValue || text.includes(searchValue);
-
-      const matchesSection =
-        isSectionScoped ||
-        sectionFilter === 'ALL' ||
-        String(item.sectionId) === sectionFilter;
-
-      const matchesStatus =
-        statusFilter === 'ALL' ||
-        (statusFilter === 'ACTIVE' && item.isActive) ||
-        (statusFilter === 'INACTIVE' && !item.isActive);
-
-      const matchesFeatured =
-        featuredFilter === 'ALL' ||
-        (featuredFilter === 'FEATURED' && item.isFeatured) ||
-        (featuredFilter === 'REGULAR' && !item.isFeatured);
-
-      return (
-        matchesSearch &&
-        matchesSection &&
-        matchesStatus &&
-        matchesFeatured
-      );
-    });
-
-    return filtered.sort((a, b) => {
-      if (sortBy === 'titleEn') {
-        return a.titleEn.localeCompare(b.titleEn);
-      }
-
-      if (sortBy === 'updatedAt') {
-        const aTime = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-        const bTime = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-        return bTime - aTime;
-      }
-
-      return a.sortOrder - b.sortOrder || a.id - b.id;
-    });
-  }, [
-    scopedBase,
-    search,
-    isSectionScoped,
-    sectionFilter,
-    statusFilter,
-    featuredFilter,
-    sortBy
-  ]);
+  const totalItems = projectsQuery.data?.pages[0]?.totalElements ?? items.length;
 
   function getLinkedSection(
     item: PortfolioProjectResponse
@@ -262,15 +252,15 @@ export default function PortfolioProjectsManager({
     <div className="space-y-6">
       {!compact ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label={t('stats.total')} value={scopedBase.length} />
+          <StatCard label={t('stats.total')} value={statsQuery.data?.total ?? 0} />
           <StatCard
             label={t('stats.active')}
-            value={scopedBase.filter((item) => item.isActive).length}
+            value={statsQuery.data?.active ?? 0}
             tone="emerald"
           />
           <StatCard
             label={t('stats.featured')}
-            value={scopedBase.filter((item) => item.isFeatured).length}
+            value={statsQuery.data?.featured ?? 0}
             tone="amber"
           />
           <StatCard
@@ -431,6 +421,24 @@ export default function PortfolioProjectsManager({
           ))}
         </div>
       )}
+
+      {projectsQuery.hasNextPage ? (
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-sm text-slate-500">
+            {t('showingCount', {shown: items.length, total: totalItems})}
+          </p>
+
+          <Button
+            type="button"
+            variant="outline"
+            isLoading={projectsQuery.isFetchingNextPage}
+            loadingText={common('loading')}
+            onClick={() => projectsQuery.fetchNextPage()}
+          >
+            {t('loadMore')}
+          </Button>
+        </div>
+      ) : null}
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}
