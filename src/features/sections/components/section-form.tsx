@@ -10,6 +10,7 @@ import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
+import {Select} from '@/components/ui/select';
 import {Textarea} from '@/components/ui/textarea';
 import {MediaUploadField} from '@/features/media-library/components/media-upload-field';
 import {toAppError} from '@/lib/api/client';
@@ -24,7 +25,9 @@ import {sectionSchema, type SectionFormValues} from '../schema';
 import type {SectionPayload, SectionType} from '../types';
 import {emptyToNull, getNextSortOrder, slugify} from '../utils';
 import {SectionFormSidebar} from './section-form-sidebar';
+import {FormStepNav} from '@/components/common/form-step-nav';
 import {SectionNextActions} from './section-next-actions';
+import {SectionTypeBadge} from './section-type-badge';
 import {SectionTypePicker} from './section-type-picker';
 import {CopyButton} from '@/components/common/copy-button';
 
@@ -32,6 +35,9 @@ type Props = {
   mode: 'create' | 'edit';
   sectionId?: number;
 };
+
+/** Which cards each edit step shows: content first, then publishing. */
+const EDIT_STEP_CARDS = [[1, 2, 3], [4]];
 
 type BilingualFieldGroupProps = {
   title: string;
@@ -133,6 +139,7 @@ export default function SectionForm({mode, sectionId}: Props) {
   const t = useTranslations('SectionForm');
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
+  const commonSections = useTranslations('SectionsCommon');
   const locale = useLocale();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -146,6 +153,14 @@ export default function SectionForm({mode, sectionId}: Props) {
   const [savedSectionType, setSavedSectionType] =
     useState<SectionType>('CONTENT');
 
+  const isWizard = mode === 'create';
+
+  // Creating walks card by card, starting at the type picker (card 0).
+  // Editing collapses the same cards into two screens — everything about the
+  // content, then everything about publishing — so there is less to click
+  // through when you only came to change one thing.
+  const [step, setStep] = useState(0);
+
   const {
     register,
     control,
@@ -154,6 +169,7 @@ export default function SectionForm({mode, sectionId}: Props) {
     watch,
     setValue,
     getValues,
+    trigger,
     formState: {errors, isSubmitting, touchedFields}
   } = useForm<SectionFormValues>({
     resolver: zodResolver(sectionSchema),
@@ -272,6 +288,25 @@ export default function SectionForm({mode, sectionId}: Props) {
     });
   }, [autoSlug, watchedNameEn, setValue]);
 
+  const sectionTypeOptions = useMemo(
+    () => [
+      {value: 'CONTENT', label: commonSections('types.CONTENT.label')},
+      {
+        value: 'CATEGORY_ITEMS',
+        label: commonSections('types.CATEGORY_ITEMS.label')
+      },
+      {
+        value: 'DIRECT_ITEMS',
+        label: commonSections('types.DIRECT_ITEMS.label')
+      },
+      {
+        value: 'PORTFOLIO',
+        label: commonSections('types.PORTFOLIO.label')
+      }
+    ],
+    [commonSections]
+  );
+
   const fieldErrors = useMemo(
     () => ({
       slug: errors.slug?.message ? t(errors.slug.message as never) : undefined,
@@ -309,6 +344,55 @@ export default function SectionForm({mode, sectionId}: Props) {
     );
   }
 
+  function showCard(cardStep: number) {
+    return isWizard
+      ? step === cardStep
+      : Boolean(EDIT_STEP_CARDS[step]?.includes(cardStep));
+  }
+
+  const navSteps = (
+    isWizard
+      ? [
+          'stepTypeLabel',
+          'stepBasicsLabel',
+          'stepDescriptionLabel',
+          'stepMediaLabel',
+          'stepPublishLabel'
+        ]
+      : ['stepContentLabel', 'stepPublishLabel']
+  ).map((key) => ({key, label: t(key as never)}));
+
+  async function goToNextStep(fieldsToValidate: (keyof SectionFormValues)[]) {
+    const valid = fieldsToValidate.length
+      ? await trigger(fieldsToValidate)
+      : true;
+
+    if (valid) {
+      setStep((current) => current + 1);
+    }
+  }
+
+  if (isWizard && step === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link href="/admin/sections">
+            <Button type="button" variant="ghost">
+              {t('backToSections')}
+            </Button>
+          </Link>
+        </div>
+
+        <SectionTypePicker
+          onSelect={(type) => {
+            setValue('sectionType', type, {shouldValidate: true});
+            setStep(1);
+          }}
+        />
+      </div>
+    );
+  }
+
   async function onSubmit(values: SectionFormValues) {
     setServerError('');
     setSuccessMessage('');
@@ -333,31 +417,20 @@ export default function SectionForm({mode, sectionId}: Props) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <div>
-            <Link href="/admin/sections">
-              <Button type="button" variant="ghost">
-                {t('backToSections')}
-              </Button>
-            </Link>
-          </div>
-
           <SectionNextActions
             sectionId={savedSectionId}
             sectionType={savedSectionType}
             isVisible={mode === 'edit' || Boolean(savedSectionId)}
           />
 
-          <Controller
-            name="sectionType"
-            control={control}
-            render={({field}) => (
-              <SectionTypePicker
-                selectedType={field.value}
-                onSelect={(type) => field.onChange(type)}
-              />
-            )}
+          <FormStepNav
+            steps={navSteps}
+            currentStep={step}
+            onSelect={setStep}
+            maxSelectableStep={isWizard ? step : undefined}
           />
 
+          {showCard(1) && (
           <SettingsCard
             title={t('identityCardTitle')}
             description={t('identityCardDescription')}
@@ -365,7 +438,44 @@ export default function SectionForm({mode, sectionId}: Props) {
             <div className="space-y-5">
               <StudioNote>{t('identityStudioNote')}</StudioNote>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-[1fr_1fr_0.85fr]">
+                {isWizard ? (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="mb-2 text-sm font-medium text-slate-900">
+                      {t('sectionTypeLabel')}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <SectionTypeBadge type={watch('sectionType')} />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStep(0)}
+                      >
+                        {t('changeType')}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Controller
+                    name="sectionType"
+                    control={control}
+                    render={({field}) => (
+                      <Select
+                        id="sectionType"
+                        label={t('sectionTypeLabel')}
+                        value={field.value}
+                        onChange={(event) =>
+                          field.onChange(event.target.value as SectionType)
+                        }
+                        options={sectionTypeOptions}
+                        error={fieldErrors.sectionType}
+                        hint={t('sectionTypeHint')}
+                      />
+                    )}
+                  />
+                )}
+
                 <Input
                   id="slug"
                   label={t('slugLabel')}
@@ -445,9 +555,24 @@ export default function SectionForm({mode, sectionId}: Props) {
                   />
                 }
               />
+
+              {isWizard ? (
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={() =>
+                      goToNextStep(['slug', 'namePt', 'nameEn'])
+                    }
+                  >
+                    {t('nextButton')}
+                  </Button>
+                </div>
+              ) : null}
             </div>
           </SettingsCard>
+          )}
 
+          {showCard(2) && (
           <SettingsCard
             title={t('descriptionCardTitle')}
             description={t('descriptionCardDescription')}
@@ -486,8 +611,21 @@ export default function SectionForm({mode, sectionId}: Props) {
                 />
               }
             />
-          </SettingsCard>
 
+            {isWizard ? (
+              <div className="mt-5 flex justify-between">
+                <Button type="button" variant="ghost" onClick={() => setStep(1)}>
+                  {t('backButton')}
+                </Button>
+                <Button type="button" onClick={() => goToNextStep([])}>
+                  {t('nextButton')}
+                </Button>
+              </div>
+            ) : null}
+          </SettingsCard>
+          )}
+
+          {showCard(3) && (
           <SettingsCard
             title={t('coverCardTitle')}
             description={t('coverCardDescription')}
@@ -519,8 +657,21 @@ export default function SectionForm({mode, sectionId}: Props) {
                 )}
               />
             </div>
-          </SettingsCard>
 
+            {isWizard ? (
+              <div className="mt-5 flex justify-between">
+                <Button type="button" variant="ghost" onClick={() => setStep(2)}>
+                  {t('backButton')}
+                </Button>
+                <Button type="button" onClick={() => goToNextStep([])}>
+                  {t('nextButton')}
+                </Button>
+              </div>
+            ) : null}
+          </SettingsCard>
+          )}
+
+          {showCard(4) && (
           <SettingsCard
             title={t('publishingCardTitle')}
             description={t('publishingCardDescription')}
@@ -573,6 +724,7 @@ export default function SectionForm({mode, sectionId}: Props) {
               />
             </div>
           </SettingsCard>
+          )}
 
           {serverError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -586,21 +738,31 @@ export default function SectionForm({mode, sectionId}: Props) {
             </div>
           ) : null}
 
+          {(!isWizard || showCard(4)) && (
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <Link href="/admin/sections">
-              <Button type="button" variant="ghost">
-                {t('backToSections')}
+            {isWizard ? (
+              <Button type="button" variant="ghost" onClick={() => setStep(3)}>
+                {t('backButton')}
               </Button>
-            </Link>
+            ) : (
+              <Link href="/admin/sections">
+                <Button type="button" variant="ghost">
+                  {t('backToSections')}
+                </Button>
+              </Link>
+            )}
 
-            <Button
-              type="submit"
-              isLoading={isSubmitting || saveMutation.isPending}
-              loadingText={common('loading')}
-            >
-              {mode === 'edit' ? t('saveButton') : t('createButton')}
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                type="submit"
+                isLoading={isSubmitting || saveMutation.isPending}
+                loadingText={common('loading')}
+              >
+                {mode === 'edit' ? t('saveButton') : t('createButton')}
+              </Button>
+            </div>
           </div>
+          )}
         </div>
 
         <SectionFormSidebar values={watchedValues} />
