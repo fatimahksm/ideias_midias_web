@@ -66,6 +66,8 @@ export const endpoints = {
     dataImportPreview: '/api/admin/data-import/preview',
     dataImportCommit: '/api/admin/data-import/commit',
 
+    resolveMapsLink: '/api/admin/geo/resolve-maps-link',
+
     analyticsSummary: '/api/admin/analytics/summary',
     statsSummary: '/api/admin/stats/summary'
   }

@@ -50,7 +50,13 @@
     "searchFailed": "Place search failed. Please try again.",
     "resolvingAddress": "Looking up address...",
     "openInMaps": "Open in Google Maps",
-    "selectedLocation": "Selected Location"
+    "selectedLocation": "Selected Location",
+    "pasteLinkLabel": "Or paste a Google Maps link",
+    "pasteLinkHint": "Share the location from the Google Maps app and paste the link here — or type coordinates like 33.8938, 35.5018.",
+    "pasteLinkPlaceholder": "Paste a Google Maps link or coordinates",
+    "pasteLinkAction": "Set location",
+    "resolvingLink": "Finding location...",
+    "linkResolveFailed": "Couldn't find a location in that link. Make sure it's a Google Maps link, or use the search box above instead."
   },
   "SiteSettingsPage": {
     "title": "Website Settings",

@@ -34,7 +34,13 @@
     "searchFailed": "A busca do lugar falhou. Tente novamente.",
     "resolvingAddress": "Procurando o endereço...",
     "openInMaps": "Abrir in Google Maps",
-    "selectedLocation": "Selected Localização"
+    "selectedLocation": "Selected Localização",
+    "pasteLinkLabel": "Ou cole um link do Google Maps",
+    "pasteLinkHint": "Compartilhe a localização do aplicativo Google Maps e cole o link aqui — ou digite coordenadas como 33.8938, 35.5018.",
+    "pasteLinkPlaceholder": "Cole um link do Google Maps ou coordenadas",
+    "pasteLinkAction": "Definir localização",
+    "resolvingLink": "Buscando localização...",
+    "linkResolveFailed": "Não foi possível encontrar uma localização nesse link. Confirme que é um link do Google Maps, ou use a busca acima."
   },
   "SiteSettingsPage": {
     "title": "Site Configurações",

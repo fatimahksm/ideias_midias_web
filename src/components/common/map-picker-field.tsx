@@ -11,6 +11,9 @@ import {
 import maplibregl, {type StyleSpecification} from 'maplibre-gl';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
+import {apiClient} from '@/lib/api/client';
+import {endpoints} from '@/lib/api/endpoints';
+import {getAdminToken} from '@/lib/auth/token';
 
 type MapPickerValue = {
   lat: number;
@@ -66,6 +69,65 @@ const MAP_STYLE: StyleSpecification = {
 
 function buildMapUrl(lat: number, lng: number) {
   return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+function isValidLatLng(lat: number, lng: number) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
+const COORDINATE_PATTERNS = [
+  /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
+  /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+  /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/,
+  /[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/
+];
+
+/**
+ * Reads coordinates straight out of a full Google Maps link, or out of a
+ * bare "lat,lng" pasted from Maps' own "copy coordinates" action — no
+ * network round trip needed. A shortened link (maps.app.goo.gl) has no
+ * coordinates in the URL itself, so this returns null and the caller falls
+ * back to asking the backend to resolve it.
+ */
+function extractLatLngFromText(raw: string): {lat: number; lng: number} | null {
+  for (const pattern of COORDINATE_PATTERNS) {
+    const match = raw.match(pattern);
+    if (match) {
+      const lat = Number(match[1]);
+      const lng = Number(match[2]);
+      if (isValidLatLng(lat, lng)) {
+        return {lat, lng};
+      }
+    }
+  }
+
+  const bare = raw.trim().match(/^(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)$/);
+  if (bare) {
+    const lat = Number(bare[1]);
+    const lng = Number(bare[2]);
+    if (isValidLatLng(lat, lng)) {
+      return {lat, lng};
+    }
+  }
+
+  return null;
+}
+
+async function resolveGoogleMapsLink(url: string): Promise<{lat: number; lng: number}> {
+  const token = getAdminToken();
+
+  return apiClient<{lat: number; lng: number}>(endpoints.admin.resolveMapsLink, {
+    method: 'POST',
+    body: {url},
+    token: token ?? undefined
+  });
 }
 
 async function reverseGeocode(lat: number, lng: number) {
@@ -208,6 +270,9 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchPlaceResult[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [linkInput, setLinkInput] = useState('');
+  const [isResolvingLink, setIsResolvingLink] = useState(false);
+  const [linkError, setLinkError] = useState('');
 
   const isBusy = isLocating || isResolving;
 
@@ -501,6 +566,32 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
     setLocalError('');
   }
 
+  async function handleUseLink() {
+    const raw = linkInput.trim();
+    if (!raw) return;
+
+    setLinkError('');
+    setLocalError('');
+
+    const direct = extractLatLngFromText(raw);
+    if (direct) {
+      await handlePick(direct.lat, direct.lng);
+      setLinkInput('');
+      return;
+    }
+
+    setIsResolvingLink(true);
+    try {
+      const resolved = await resolveGoogleMapsLink(raw);
+      await handlePick(resolved.lat, resolved.lng);
+      setLinkInput('');
+    } catch {
+      setLinkError(t('linkResolveFailed'));
+    } finally {
+      setIsResolvingLink(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-3">
@@ -576,6 +667,41 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
             <LocateFixed className="h-4 w-4" />
             {t('useMyLocation')}
           </Button>
+        </div>
+
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+          <p className="text-sm font-medium text-[var(--color-text)]">
+            {t('pasteLinkLabel')}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">{t('pasteLinkHint')}</p>
+
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={linkInput}
+              onChange={(event) => {
+                setLinkInput(event.target.value);
+                setLinkError('');
+              }}
+              placeholder={t('pasteLinkPlaceholder')}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+            />
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!linkInput.trim()}
+              isLoading={isResolvingLink}
+              loadingText={t('resolvingLink')}
+              onClick={handleUseLink}
+            >
+              {t('pasteLinkAction')}
+            </Button>
+          </div>
+
+          {linkError ? (
+            <p className="mt-2 text-sm text-red-600">{linkError}</p>
+          ) : null}
         </div>
       </div>
 
