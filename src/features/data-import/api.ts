@@ -2,7 +2,7 @@ import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
 import {HttpError} from '@/lib/api/http-error';
 import type {ApiErrorResponse, ApiResponse} from '@/types/api';
-import type {ImportSummaryResponse} from './types';
+import type {ImageOverride, ImportSummaryResponse} from './types';
 
 function getRequiredToken() {
   const token = getAdminToken();
@@ -93,11 +93,18 @@ export async function downloadImportTemplate(): Promise<void> {
   window.URL.revokeObjectURL(url);
 }
 
-async function uploadWorkbook(path: string, file: File): Promise<ImportSummaryResponse> {
+async function uploadWorkbook(
+  path: string,
+  file: File,
+  imageOverrides: ImageOverride[]
+): Promise<ImportSummaryResponse> {
   const token = getRequiredToken();
   const formData = new FormData();
 
   formData.append('file', file);
+  if (imageOverrides.length > 0) {
+    formData.append('imageOverrides', JSON.stringify(imageOverrides));
+  }
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`, {
     method: 'POST',
@@ -109,11 +116,17 @@ async function uploadWorkbook(path: string, file: File): Promise<ImportSummaryRe
 }
 
 /** Validates the workbook without persisting anything. */
-export async function previewImport(file: File): Promise<ImportSummaryResponse> {
-  return uploadWorkbook(endpoints.admin.dataImportPreview, file);
+export async function previewImport(
+  file: File,
+  imageOverrides: ImageOverride[] = []
+): Promise<ImportSummaryResponse> {
+  return uploadWorkbook(endpoints.admin.dataImportPreview, file, imageOverrides);
 }
 
 /** Validates and persists every valid row, sheet by sheet. */
-export async function commitImport(file: File): Promise<ImportSummaryResponse> {
-  return uploadWorkbook(endpoints.admin.dataImportCommit, file);
+export async function commitImport(
+  file: File,
+  imageOverrides: ImageOverride[] = []
+): Promise<ImportSummaryResponse> {
+  return uploadWorkbook(endpoints.admin.dataImportCommit, file, imageOverrides);
 }

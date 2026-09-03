@@ -1948,6 +1948,14 @@
     "sheetNotPresent": "Não incluída neste arquivo",
     "sheetAllOk": "Todas as linhas são válidas.",
     "rowError": "Linha {row}: {message}",
-    "previewHint": "Isso foi só uma checagem — nada foi salvo ainda. Clique em \"Confirmar\" para realmente adicionar esses dados ao site."
+    "previewHint": "Isso foi só uma checagem — nada foi salvo ainda. Clique em \"Confirmar\" para realmente adicionar esses dados ao site.",
+    "imagesCardTitle": "3. Anexar imagens (opcional)",
+    "imagesCardDescription": "Uma célula do Excel só guarda texto, não um arquivo de imagem. Escolha cada imagem ou vídeo na Galeria em vez de digitar uma URL — também serve para corrigir uma linha que ainda não tem imagem.",
+    "rowLabel": "Linha {row} — {label}",
+    "untitledRow": "Sem título",
+    "noImage": "Sem imagem",
+    "pickImage": "Escolher da Galeria",
+    "changeImage": "Trocar",
+    "clearImage": "Limpar"
   }
 }

@@ -1,14 +1,28 @@
 'use client';
 
-import {useRef, useState} from 'react';
+import {useMemo, useRef, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
 import {SettingsCard} from '@/components/common/settings-card';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {MediaLibraryPickerModal} from '@/features/media-library/components/media-library-picker-modal';
+import {resolveMediaUrl} from '@/features/media-library/utils';
+import type {MediaLibraryItem} from '@/features/media-library/types';
 import {commitImport, downloadImportTemplate, previewImport} from '../api';
-import type {ImportSummaryResponse} from '../types';
+import type {ImageOverride, ImportMediaType, ImportSummaryResponse} from '../types';
+
+type PickerTarget = {
+  sheet: string;
+  rowNumber: number;
+  field: string;
+  mediaType: ImportMediaType;
+};
+
+function slotKey(sheet: string, rowNumber: number, field: string) {
+  return `${sheet}|${rowNumber}|${field}`;
+}
 
 export default function DataImportManager() {
   const t = useTranslations('DataImportManager');
@@ -19,9 +33,14 @@ export default function DataImportManager() {
   const [result, setResult] = useState<ImportSummaryResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [downloadError, setDownloadError] = useState('');
+  const [overrides, setOverrides] = useState<Record<string, ImageOverride>>({});
+  const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
+
+  const overridesList = useMemo(() => Object.values(overrides), [overrides]);
 
   const previewMutation = useMutation({
-    mutationFn: previewImport,
+    mutationFn: ({file, imageOverrides}: {file: File; imageOverrides: ImageOverride[]}) =>
+      previewImport(file, imageOverrides),
     onSuccess: (data) => {
       setResult(data);
       setErrorMessage('');
@@ -33,7 +52,8 @@ export default function DataImportManager() {
   });
 
   const commitMutation = useMutation({
-    mutationFn: commitImport,
+    mutationFn: ({file, imageOverrides}: {file: File; imageOverrides: ImageOverride[]}) =>
+      commitImport(file, imageOverrides),
     onSuccess: (data) => {
       setResult(data);
       setErrorMessage('');
@@ -50,6 +70,7 @@ export default function DataImportManager() {
     setSelectedFile(file);
     setResult(null);
     setErrorMessage('');
+    setOverrides({});
   }
 
   async function handleDownloadTemplate() {
@@ -63,21 +84,45 @@ export default function DataImportManager() {
 
   function handlePreview() {
     if (!selectedFile) return;
-    previewMutation.mutate(selectedFile);
+    previewMutation.mutate({file: selectedFile, imageOverrides: overridesList});
   }
 
   function handleCommit() {
     if (!selectedFile) return;
-    commitMutation.mutate(selectedFile);
+    commitMutation.mutate({file: selectedFile, imageOverrides: overridesList});
   }
 
   function handleReset() {
     setSelectedFile(null);
     setResult(null);
     setErrorMessage('');
+    setOverrides({});
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  }
+
+  function handlePickImage(item: MediaLibraryItem) {
+    if (!pickerTarget) return;
+
+    setOverrides((prev) => ({
+      ...prev,
+      [slotKey(pickerTarget.sheet, pickerTarget.rowNumber, pickerTarget.field)]: {
+        sheet: pickerTarget.sheet,
+        rowNumber: pickerTarget.rowNumber,
+        field: pickerTarget.field,
+        url: item.fileUrl
+      }
+    }));
+    setPickerTarget(null);
+  }
+
+  function handleClearOverride(key: string) {
+    setOverrides((prev) => {
+      const next = {...prev};
+      delete next[key];
+      return next;
+    });
   }
 
   const totalRows =
@@ -86,6 +131,8 @@ export default function DataImportManager() {
     result?.sheets.reduce((sum, sheet) => sum + sheet.succeeded, 0) ?? 0;
   const totalErrors =
     result?.sheets.reduce((sum, sheet) => sum + sheet.errors.length, 0) ?? 0;
+
+  const sheetsWithImages = result?.sheets.filter((sheet) => sheet.rows.length > 0) ?? [];
 
   return (
     <div className="space-y-6">
@@ -157,6 +204,103 @@ export default function DataImportManager() {
         </div>
       </SettingsCard>
 
+      {sheetsWithImages.length > 0 ? (
+        <SettingsCard title={t('imagesCardTitle')} description={t('imagesCardDescription')}>
+          <div className="space-y-6">
+            {sheetsWithImages.map((sheet) => (
+              <div key={sheet.sheet}>
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  {sheet.sheet}
+                </h3>
+                <div className="space-y-3">
+                  {sheet.rows.map((row) => (
+                    <div
+                      key={row.rowNumber}
+                      className="rounded-2xl border border-slate-200 p-3"
+                    >
+                      <p className="mb-3 text-sm font-medium text-slate-800">
+                        {t('rowLabel', {
+                          row: row.rowNumber,
+                          label: row.label || t('untitledRow')
+                        })}
+                      </p>
+
+                      <div className="flex flex-wrap gap-3">
+                        {row.imageFields.map((field) => {
+                          const key = slotKey(sheet.sheet, row.rowNumber, field.field);
+                          const effectiveValue =
+                            overrides[key]?.url ?? field.currentValue;
+                          const resolvedUrl = resolveMediaUrl(effectiveValue);
+
+                          return (
+                            <div key={field.field} className="w-36 space-y-2">
+                              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                {field.field}
+                              </p>
+
+                              <div className="h-20 w-full overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50">
+                                {resolvedUrl ? (
+                                  field.mediaType === 'VIDEO' ? (
+                                    <video
+                                      src={resolvedUrl}
+                                      className="h-full w-full object-cover"
+                                      muted
+                                    />
+                                  ) : (
+                                    <img
+                                      src={resolvedUrl}
+                                      alt=""
+                                      className="h-full w-full object-cover"
+                                    />
+                                  )
+                                ) : (
+                                  <div className="flex h-full items-center justify-center px-2 text-center text-xs text-slate-400">
+                                    {t('noImage')}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setPickerTarget({
+                                      sheet: sheet.sheet,
+                                      rowNumber: row.rowNumber,
+                                      field: field.field,
+                                      mediaType: field.mediaType
+                                    })
+                                  }
+                                >
+                                  {resolvedUrl ? t('changeImage') : t('pickImage')}
+                                </Button>
+
+                                {overrides[key] ? (
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleClearOverride(key)}
+                                  >
+                                    {t('clearImage')}
+                                  </Button>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SettingsCard>
+      ) : null}
+
       {result ? (
         <SettingsCard
           title={result.committed ? t('resultsCommittedTitle') : t('resultsPreviewTitle')}
@@ -205,6 +349,13 @@ export default function DataImportManager() {
           </div>
         </SettingsCard>
       ) : null}
+
+      <MediaLibraryPickerModal
+        open={pickerTarget !== null}
+        type={pickerTarget?.mediaType ?? 'IMAGE'}
+        onClose={() => setPickerTarget(null)}
+        onSelect={handlePickImage}
+      />
     </div>
   );
 }

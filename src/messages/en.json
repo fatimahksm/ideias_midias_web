@@ -1948,6 +1948,14 @@
     "sheetNotPresent": "Not included in this file",
     "sheetAllOk": "All rows are valid.",
     "rowError": "Row {row}: {message}",
-    "previewHint": "This was only a check — nothing was saved yet. Click \"Commit\" to actually add this data to the website."
+    "previewHint": "This was only a check — nothing was saved yet. Click \"Commit\" to actually add this data to the website.",
+    "imagesCardTitle": "3. Attach images (optional)",
+    "imagesCardDescription": "An Excel cell can only hold text, not a picture file. Pick each image or video from the Gallery instead of typing a URL — this also works to fix a row that has no image yet.",
+    "rowLabel": "Row {row} — {label}",
+    "untitledRow": "Untitled",
+    "noImage": "No image",
+    "pickImage": "Pick from Gallery",
+    "changeImage": "Change",
+    "clearImage": "Clear"
   }
 }
