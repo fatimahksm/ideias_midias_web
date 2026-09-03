@@ -56,7 +56,10 @@
     "pasteLinkPlaceholder": "Paste a Google Maps link or coordinates",
     "pasteLinkAction": "Set location",
     "resolvingLink": "Finding location...",
-    "linkResolveFailed": "Couldn't find a location in that link. Make sure it's a Google Maps link, or use the search box above instead."
+    "linkResolveFailed": "Couldn't find a location in that link. Make sure it's a Google Maps link, or use the search box above instead.",
+    "expandMap": "Expand map",
+    "expandedTitle": "Choose the company location",
+    "doneButton": "Done"
   },
   "SiteSettingsPage": {
     "title": "Website Settings",

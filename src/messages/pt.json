@@ -40,7 +40,10 @@
     "pasteLinkPlaceholder": "Cole um link do Google Maps ou coordenadas",
     "pasteLinkAction": "Definir localização",
     "resolvingLink": "Buscando localização...",
-    "linkResolveFailed": "Não foi possível encontrar uma localização nesse link. Confirme que é um link do Google Maps, ou use a busca acima."
+    "linkResolveFailed": "Não foi possível encontrar uma localização nesse link. Confirme que é um link do Google Maps, ou use a busca acima.",
+    "expandMap": "Expandir mapa",
+    "expandedTitle": "Escolha a localização da empresa",
+    "doneButton": "Concluído"
   },
   "SiteSettingsPage": {
     "title": "Site Configurações",
