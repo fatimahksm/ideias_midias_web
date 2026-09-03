@@ -1966,5 +1966,10 @@
     "pickImage": "Escolher da Galeria",
     "changeImage": "Trocar",
     "clearImage": "Limpar"
+  },
+  "NotFoundPage": {
+    "title": "Página não encontrada",
+    "description": "A página que você procura não existe ou pode ter sido movida.",
+    "backHome": "Voltar ao início"
   }
 }

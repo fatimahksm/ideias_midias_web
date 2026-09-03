@@ -1066,6 +1066,10 @@ export default function PublicSectionPage({locale, data}: Props) {
   // seeded rather than re-fetched.
   const isDefaultSelection = effectiveSelectedCategoryId === defaultCategoryId;
 
+  const hasItems =
+    data.section.sectionType === 'CATEGORY_ITEMS' ||
+    data.section.sectionType === 'DIRECT_ITEMS';
+
   const itemsQuery = useInfiniteQuery({
     queryKey: [
       'public-section-items',
@@ -1081,6 +1085,7 @@ export default function PublicSectionPage({locale, data}: Props) {
       ),
     getNextPageParam: (lastPage) =>
       lastPage.hasNext ? lastPage.page + 1 : undefined,
+    enabled: hasItems,
     initialData:
       isDefaultSelection && data.initialItems
         ? {pages: [data.initialItems], pageParams: [0]}
