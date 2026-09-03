@@ -1025,7 +1025,8 @@
       "sortOrder": "Ordem de exibição",
       "titleEn": "English título",
       "updatedAt": "Last atualizado"
-    }
+    },
+    "noDescription": "Nenhuma descrição disponível"
   },
   "PortfolioProjectForm": {
     "backToWorkspace": "Voltar para workspace",
@@ -1800,7 +1801,7 @@
     "uploadCardTitle": "Enviar mídia",
     "uploadCardDescription": "Adicione imagens e vídeos reutilizáveis à galeria compartilhada.",
     "uploadButton": "Enviar arquivo",
-    "uploadHint": "Os tipos de arquivo aceitos dependem das regras do backend para imagens e vídeos.",
+    "uploadHint": "Fotos: JPG, PNG, WEBP, GIF, ou HEIC do iPhone. Vídeos: MP4, WEBM ou MOV. Até 10 MB por arquivo.",
     "uploading": "Enviando...",
     "uploadSuccess": "Mídia enviada com sucesso.",
     "libraryCardTitle": "Conteúdo da galeria",

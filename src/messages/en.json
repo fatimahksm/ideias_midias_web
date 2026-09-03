@@ -1025,7 +1025,8 @@
       "sortOrder": "Sort order",
       "titleEn": "English title",
       "updatedAt": "Last updated"
-    }
+    },
+    "noDescription": "No description available"
   },
   "PortfolioProjectForm": {
     "backToWorkspace": "Back to workspace",
@@ -1800,7 +1801,7 @@
     "uploadCardTitle": "Upload media",
     "uploadCardDescription": "Add reusable images and videos to the shared gallery.",
     "uploadButton": "Upload file",
-    "uploadHint": "Accepted file types depend on the backend rules for images and videos.",
+    "uploadHint": "Photos: JPG, PNG, WEBP, GIF, or iPhone HEIC. Videos: MP4, WEBM, or MOV. Up to 10 MB per file.",
     "uploading": "Uploading...",
     "uploadSuccess": "Media uploaded successfully.",
     "libraryCardTitle": "Gallery contents",
