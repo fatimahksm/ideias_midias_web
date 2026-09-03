@@ -11,13 +11,29 @@ import {MediaLibraryPickerModal} from '@/features/media-library/components/media
 import {resolveMediaUrl} from '@/features/media-library/utils';
 import type {MediaLibraryItem} from '@/features/media-library/types';
 import {commitImport, downloadImportTemplate, previewImport} from '../api';
-import type {ImageOverride, ImportMediaType, ImportSummaryResponse} from '../types';
+import type {
+  FieldOverride,
+  ImportFieldMeta,
+  ImportRowSummary,
+  ImportSheetResult,
+  ImportSummaryResponse
+} from '../types';
 
 type PickerTarget = {
   sheet: string;
   rowNumber: number;
   field: string;
-  mediaType: ImportMediaType;
+  mediaType: 'IMAGE' | 'VIDEO';
+};
+
+const SHEET_LABEL_KEYS: Record<string, string> = {
+  Sections: 'sheetLabelSections',
+  Categories: 'sheetLabelCategories',
+  Items: 'sheetLabelItems',
+  PortfolioProjects: 'sheetLabelPortfolioProjects',
+  ContentBlocks: 'sheetLabelContentBlocks',
+  HomeCards: 'sheetLabelHomeCards',
+  ContactMethods: 'sheetLabelContactMethods'
 };
 
 function slotKey(sheet: string, rowNumber: number, field: string) {
@@ -33,14 +49,14 @@ export default function DataImportManager() {
   const [result, setResult] = useState<ImportSummaryResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [downloadError, setDownloadError] = useState('');
-  const [overrides, setOverrides] = useState<Record<string, ImageOverride>>({});
+  const [overrides, setOverrides] = useState<Record<string, FieldOverride>>({});
   const [pickerTarget, setPickerTarget] = useState<PickerTarget | null>(null);
 
   const overridesList = useMemo(() => Object.values(overrides), [overrides]);
 
   const previewMutation = useMutation({
-    mutationFn: ({file, imageOverrides}: {file: File; imageOverrides: ImageOverride[]}) =>
-      previewImport(file, imageOverrides),
+    mutationFn: ({file, fieldOverrides}: {file: File; fieldOverrides: FieldOverride[]}) =>
+      previewImport(file, fieldOverrides),
     onSuccess: (data) => {
       setResult(data);
       setErrorMessage('');
@@ -52,8 +68,8 @@ export default function DataImportManager() {
   });
 
   const commitMutation = useMutation({
-    mutationFn: ({file, imageOverrides}: {file: File; imageOverrides: ImageOverride[]}) =>
-      commitImport(file, imageOverrides),
+    mutationFn: ({file, fieldOverrides}: {file: File; fieldOverrides: FieldOverride[]}) =>
+      commitImport(file, fieldOverrides),
     onSuccess: (data) => {
       setResult(data);
       setErrorMessage('');
@@ -84,12 +100,12 @@ export default function DataImportManager() {
 
   function handlePreview() {
     if (!selectedFile) return;
-    previewMutation.mutate({file: selectedFile, imageOverrides: overridesList});
+    previewMutation.mutate({file: selectedFile, fieldOverrides: overridesList});
   }
 
   function handleCommit() {
     if (!selectedFile) return;
-    commitMutation.mutate({file: selectedFile, imageOverrides: overridesList});
+    commitMutation.mutate({file: selectedFile, fieldOverrides: overridesList});
   }
 
   function handleReset() {
@@ -102,27 +118,30 @@ export default function DataImportManager() {
     }
   }
 
-  function handlePickImage(item: MediaLibraryItem) {
-    if (!pickerTarget) return;
-
+  function setOverride(sheet: string, rowNumber: number, field: string, value: string) {
     setOverrides((prev) => ({
       ...prev,
-      [slotKey(pickerTarget.sheet, pickerTarget.rowNumber, pickerTarget.field)]: {
-        sheet: pickerTarget.sheet,
-        rowNumber: pickerTarget.rowNumber,
-        field: pickerTarget.field,
-        url: item.fileUrl
-      }
+      [slotKey(sheet, rowNumber, field)]: {sheet, rowNumber, field, value}
     }));
-    setPickerTarget(null);
   }
 
-  function handleClearOverride(key: string) {
+  function clearOverride(sheet: string, rowNumber: number, field: string) {
     setOverrides((prev) => {
       const next = {...prev};
-      delete next[key];
+      delete next[slotKey(sheet, rowNumber, field)];
       return next;
     });
+  }
+
+  function fieldValue(sheet: string, row: ImportRowSummary, field: string) {
+    const override = overrides[slotKey(sheet, row.rowNumber, field)];
+    return override ? override.value : (row.fields[field] ?? '');
+  }
+
+  function handlePickImage(item: MediaLibraryItem) {
+    if (!pickerTarget) return;
+    setOverride(pickerTarget.sheet, pickerTarget.rowNumber, pickerTarget.field, item.fileUrl);
+    setPickerTarget(null);
   }
 
   const totalRows =
@@ -132,7 +151,7 @@ export default function DataImportManager() {
   const totalErrors =
     result?.sheets.reduce((sum, sheet) => sum + sheet.errors.length, 0) ?? 0;
 
-  const sheetsWithImages = result?.sheets.filter((sheet) => sheet.rows.length > 0) ?? [];
+  const sheetsWithRows = result?.sheets.filter((sheet) => sheet.rows.length > 0) ?? [];
 
   return (
     <div className="space-y-6">
@@ -204,99 +223,35 @@ export default function DataImportManager() {
         </div>
       </SettingsCard>
 
-      {sheetsWithImages.length > 0 ? (
-        <SettingsCard title={t('imagesCardTitle')} description={t('imagesCardDescription')}>
-          <div className="space-y-6">
-            {sheetsWithImages.map((sheet) => (
-              <div key={sheet.sheet}>
-                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-                  {sheet.sheet}
-                </h3>
-                <div className="space-y-3">
-                  {sheet.rows.map((row) => (
-                    <div
-                      key={row.rowNumber}
-                      className="rounded-2xl border border-slate-200 p-3"
-                    >
-                      <p className="mb-3 text-sm font-medium text-slate-800">
-                        {t('rowLabel', {
-                          row: row.rowNumber,
-                          label: row.label || t('untitledRow')
-                        })}
-                      </p>
-
-                      <div className="flex flex-wrap gap-3">
-                        {row.imageFields.map((field) => {
-                          const key = slotKey(sheet.sheet, row.rowNumber, field.field);
-                          const effectiveValue =
-                            overrides[key]?.url ?? field.currentValue;
-                          const resolvedUrl = resolveMediaUrl(effectiveValue);
-
-                          return (
-                            <div key={field.field} className="w-36 space-y-2">
-                              <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                                {field.field}
-                              </p>
-
-                              <div className="h-20 w-full overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50">
-                                {resolvedUrl ? (
-                                  field.mediaType === 'VIDEO' ? (
-                                    <video
-                                      src={resolvedUrl}
-                                      className="h-full w-full object-cover"
-                                      muted
-                                    />
-                                  ) : (
-                                    <img
-                                      src={resolvedUrl}
-                                      alt=""
-                                      className="h-full w-full object-cover"
-                                    />
-                                  )
-                                ) : (
-                                  <div className="flex h-full items-center justify-center px-2 text-center text-xs text-slate-400">
-                                    {t('noImage')}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="flex flex-wrap gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    setPickerTarget({
-                                      sheet: sheet.sheet,
-                                      rowNumber: row.rowNumber,
-                                      field: field.field,
-                                      mediaType: field.mediaType
-                                    })
-                                  }
-                                >
-                                  {resolvedUrl ? t('changeImage') : t('pickImage')}
-                                </Button>
-
-                                {overrides[key] ? (
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleClearOverride(key)}
-                                  >
-                                    {t('clearImage')}
-                                  </Button>
-                                ) : null}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {sheetsWithRows.length > 0 ? (
+        <SettingsCard title={t('reviewCardTitle')} description={t('reviewCardDescription')}>
+          <div className="space-y-8">
+            {sheetsWithRows.map((sheet) => (
+              <SheetReview
+                key={sheet.sheet}
+                sheet={sheet}
+                t={t}
+                fieldValue={fieldValue}
+                setOverride={setOverride}
+                clearOverride={clearOverride}
+                onPickMedia={(rowNumber, field, mediaType) =>
+                  setPickerTarget({sheet: sheet.sheet, rowNumber, field, mediaType})
+                }
+              />
             ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3 border-t border-slate-200 pt-5">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!selectedFile || isBusy}
+              isLoading={previewMutation.isPending}
+              loadingText={t('previewing')}
+              onClick={handlePreview}
+            >
+              {t('recheckAction')}
+            </Button>
           </div>
         </SettingsCard>
       ) : null}
@@ -314,7 +269,9 @@ export default function DataImportManager() {
             {result.sheets.map((sheet) => (
               <div key={sheet.sheet} className="rounded-2xl border border-slate-200 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-base font-semibold text-slate-900">{sheet.sheet}</h3>
+                  <h3 className="text-base font-semibold text-slate-900">
+                    {t(SHEET_LABEL_KEYS[sheet.sheet] as never)}
+                  </h3>
                   {sheet.present ? (
                     <span className="text-sm text-slate-500">
                       {t('sheetCounts', {
@@ -357,5 +314,239 @@ export default function DataImportManager() {
         onSelect={handlePickImage}
       />
     </div>
+  );
+}
+
+type SheetReviewProps = {
+  sheet: ImportSheetResult;
+  t: ReturnType<typeof useTranslations<'DataImportManager'>>;
+  fieldValue: (sheet: string, row: ImportRowSummary, field: string) => string;
+  setOverride: (sheet: string, rowNumber: number, field: string, value: string) => void;
+  clearOverride: (sheet: string, rowNumber: number, field: string) => void;
+  onPickMedia: (rowNumber: number, field: string, mediaType: 'IMAGE' | 'VIDEO') => void;
+};
+
+function SheetReview({
+  sheet,
+  t,
+  fieldValue,
+  setOverride,
+  clearOverride,
+  onPickMedia
+}: SheetReviewProps) {
+  const errorsByRow = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const err of sheet.errors) {
+      map.set(err.rowNumber, err.message);
+    }
+    return map;
+  }, [sheet.errors]);
+
+  return (
+    <div>
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+        {t(SHEET_LABEL_KEYS[sheet.sheet] as never)}
+      </h3>
+
+      <div className="space-y-4">
+        {sheet.rows.map((row) => {
+          const rowError = errorsByRow.get(row.rowNumber);
+          const sectionSlugForFiltering = fieldValue(sheet.sheet, row, 'section_slug');
+
+          return (
+            <div
+              key={row.rowNumber}
+              className={`rounded-2xl border p-4 ${
+                rowError ? 'border-red-300 bg-red-50/40' : 'border-slate-200'
+              }`}
+            >
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-medium text-slate-800">
+                  {t('rowLabel', {row: row.rowNumber, label: row.label || t('untitledRow')})}
+                </p>
+                {rowError ? (
+                  <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                    {t('rowHasError')}
+                  </span>
+                ) : null}
+              </div>
+
+              {rowError ? (
+                <p className="mb-3 text-sm text-red-700">{rowError}</p>
+              ) : null}
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {sheet.fieldsMeta.map((meta) => (
+                  <FieldEditor
+                    key={meta.field}
+                    meta={meta}
+                    value={fieldValue(sheet.sheet, row, meta.field)}
+                    options={sheet.fieldOptions[meta.field] ?? []}
+                    groupFilter={
+                      meta.field === 'category_name_en' ? sectionSlugForFiltering : undefined
+                    }
+                    t={t}
+                    onChange={(value) => setOverride(sheet.sheet, row.rowNumber, meta.field, value)}
+                    onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
+                    onPickMedia={() =>
+                      onPickMedia(
+                        row.rowNumber,
+                        meta.field,
+                        meta.type === 'VIDEO' ? 'VIDEO' : 'IMAGE'
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+type FieldEditorProps = {
+  meta: ImportFieldMeta;
+  value: string;
+  options: {value: string; label: string; groupKey: string | null}[];
+  groupFilter?: string;
+  t: ReturnType<typeof useTranslations<'DataImportManager'>>;
+  onChange: (value: string) => void;
+  onClear: () => void;
+  onPickMedia: () => void;
+};
+
+function FieldEditor({
+  meta,
+  value,
+  options,
+  groupFilter,
+  t,
+  onChange,
+  onClear,
+  onPickMedia
+}: FieldEditorProps) {
+  const label = t(`field_${meta.field}` as never) + (meta.required ? ' *' : '');
+  const inputClassName =
+    'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10';
+
+  if (meta.type === 'IMAGE' || meta.type === 'VIDEO') {
+    const resolvedUrl = resolveMediaUrl(value || undefined);
+
+    return (
+      <div className="space-y-2">
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+        <div className="h-24 w-full max-w-[9rem] overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50">
+          {resolvedUrl ? (
+            meta.type === 'VIDEO' ? (
+              <video src={resolvedUrl} className="h-full w-full object-cover" muted />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={resolvedUrl} alt="" className="h-full w-full object-cover" />
+            )
+          ) : (
+            <div className="flex h-full items-center justify-center px-2 text-center text-xs text-slate-400">
+              {t('noImage')}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={onPickMedia}>
+            {resolvedUrl ? t('changeImage') : t('pickImage')}
+          </Button>
+          {value ? (
+            <Button type="button" variant="ghost" size="sm" onClick={onClear}>
+              {t('clearImage')}
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (meta.type === 'BOOLEAN') {
+    return (
+      <label className="block space-y-1">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={inputClassName}
+        >
+          <option value="">{t('booleanDefault')}</option>
+          <option value="true">{t('booleanYes')}</option>
+          <option value="false">{t('booleanNo')}</option>
+        </select>
+      </label>
+    );
+  }
+
+  if (meta.type === 'SELECT') {
+    const filteredOptions =
+      meta.field === 'category_name_en'
+        ? options.filter((option) => !groupFilter || option.groupKey === groupFilter.trim().toLowerCase())
+        : options;
+
+    return (
+      <label className="block space-y-1">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={inputClassName}
+        >
+          <option value="">{t('selectPlaceholder')}</option>
+          {filteredOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        {filteredOptions.length === 0 ? (
+          <span className="block text-xs text-amber-700">{t('noOptionsAvailable')}</span>
+        ) : null}
+      </label>
+    );
+  }
+
+  if (meta.type === 'DATE') {
+    return (
+      <label className="block space-y-1">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+        <input
+          type="date"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={inputClassName}
+        />
+      </label>
+    );
+  }
+
+  if (meta.type === 'INTEGER') {
+    return (
+      <label className="block space-y-1">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+        <input
+          type="number"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={inputClassName}
+        />
+      </label>
+    );
+  }
+
+  return (
+    <label className="block space-y-1">
+      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={inputClassName}
+      />
+    </label>
   );
 }

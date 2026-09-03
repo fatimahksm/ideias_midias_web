@@ -3,18 +3,31 @@ export type ImportRowError = {
   message: string;
 };
 
-export type ImportMediaType = 'IMAGE' | 'VIDEO';
+export type ImportFieldType =
+  | 'TEXT'
+  | 'BOOLEAN'
+  | 'INTEGER'
+  | 'DATE'
+  | 'SELECT'
+  | 'IMAGE'
+  | 'VIDEO';
 
-export type ImportImageField = {
+export type ImportFieldMeta = {
   field: string;
-  mediaType: ImportMediaType;
-  currentValue: string | null;
+  type: ImportFieldType;
+  required: boolean;
+};
+
+export type ImportFieldOption = {
+  value: string;
+  label: string;
+  groupKey: string | null;
 };
 
 export type ImportRowSummary = {
   rowNumber: number;
   label: string | null;
-  imageFields: ImportImageField[];
+  fields: Record<string, string>;
 };
 
 export type ImportSheetResult = {
@@ -24,6 +37,8 @@ export type ImportSheetResult = {
   succeeded: number;
   errors: ImportRowError[];
   rows: ImportRowSummary[];
+  fieldsMeta: ImportFieldMeta[];
+  fieldOptions: Record<string, ImportFieldOption[]>;
 };
 
 export type ImportSummaryResponse = {
@@ -31,9 +46,9 @@ export type ImportSummaryResponse = {
   sheets: ImportSheetResult[];
 };
 
-export type ImageOverride = {
+export type FieldOverride = {
   sheet: string;
   rowNumber: number;
   field: string;
-  url: string;
+  value: string;
 };

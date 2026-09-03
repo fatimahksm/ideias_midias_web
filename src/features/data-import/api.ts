@@ -2,7 +2,7 @@ import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
 import {HttpError} from '@/lib/api/http-error';
 import type {ApiErrorResponse, ApiResponse} from '@/types/api';
-import type {ImageOverride, ImportSummaryResponse} from './types';
+import type {FieldOverride, ImportSummaryResponse} from './types';
 
 function getRequiredToken() {
   const token = getAdminToken();
@@ -96,14 +96,14 @@ export async function downloadImportTemplate(): Promise<void> {
 async function uploadWorkbook(
   path: string,
   file: File,
-  imageOverrides: ImageOverride[]
+  fieldOverrides: FieldOverride[]
 ): Promise<ImportSummaryResponse> {
   const token = getRequiredToken();
   const formData = new FormData();
 
   formData.append('file', file);
-  if (imageOverrides.length > 0) {
-    formData.append('imageOverrides', JSON.stringify(imageOverrides));
+  if (fieldOverrides.length > 0) {
+    formData.append('fieldOverrides', JSON.stringify(fieldOverrides));
   }
 
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`, {
@@ -118,15 +118,15 @@ async function uploadWorkbook(
 /** Validates the workbook without persisting anything. */
 export async function previewImport(
   file: File,
-  imageOverrides: ImageOverride[] = []
+  fieldOverrides: FieldOverride[] = []
 ): Promise<ImportSummaryResponse> {
-  return uploadWorkbook(endpoints.admin.dataImportPreview, file, imageOverrides);
+  return uploadWorkbook(endpoints.admin.dataImportPreview, file, fieldOverrides);
 }
 
 /** Validates and persists every valid row, sheet by sheet. */
 export async function commitImport(
   file: File,
-  imageOverrides: ImageOverride[] = []
+  fieldOverrides: FieldOverride[] = []
 ): Promise<ImportSummaryResponse> {
-  return uploadWorkbook(endpoints.admin.dataImportCommit, file, imageOverrides);
+  return uploadWorkbook(endpoints.admin.dataImportCommit, file, fieldOverrides);
 }
