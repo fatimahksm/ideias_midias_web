@@ -333,7 +333,9 @@
     "sidebarSortOrder": "Sort order",
     "noMediaSelected": "No media selected yet",
     "itemRequired": "A valid item is required.",
-    "mediaTypeRequired": "Please choose a media type."
+    "mediaTypeRequired": "Please choose a media type.",
+    "stepContentLabel": "Content",
+    "stepPublishLabel": "Publish"
   },
   "ContentBlocksPage": {
     "title": "Content Blocks",
@@ -478,7 +480,9 @@
       "VIDEO": "Video",
       "TEXT_IMAGE": "Text + image",
       "GALLERY": "Gallery"
-    }
+    },
+    "stepContentLabel": "Content",
+    "stepPublishLabel": "Publish"
   },
   "ItemsManager": {
     "deleteDialogTitle": "Delete item",
@@ -627,7 +631,9 @@
     "titlePtRequired": "Portuguese title is required.",
     "titleEnRequired": "English title is required.",
     "sortOrderInvalid": "Sort order must be a valid whole number.",
-    "sortOrderMin": "Sort order cannot be negative."
+    "sortOrderMin": "Sort order cannot be negative.",
+    "stepContentLabel": "Content",
+    "stepPublishLabel": "Publish"
   },
   "AdminLayout": {
     "portfolioProjects": "Portfolio projects",
@@ -905,7 +911,9 @@
     "sidebarSortOrder": "Sort order",
     "noMediaSelected": "No media selected yet",
     "projectRequired": "A valid project is required.",
-    "mediaTypeRequired": "Please choose a media type."
+    "mediaTypeRequired": "Please choose a media type.",
+    "stepContentLabel": "Content",
+    "stepPublishLabel": "Publish"
   },
   "PublicSite": {
     "close": "Close",
@@ -1099,7 +1107,9 @@
     "previewDescription": "Quick visual preview of how this project feels inside the admin.",
     "noImageSelected": "No image selected yet",
     "noDescriptionYet": "No description yet",
-    "noClient": "No client"
+    "noClient": "No client",
+    "stepContentLabel": "Content",
+    "stepPublishLabel": "Publish"
   },
   "ContactMethodForm": {
     "typeCardTitle": "Method type",
@@ -1214,7 +1224,9 @@
       "youtube": "YouTube",
       "tiktok": "TikTok",
       "website": "Website"
-    }
+    },
+    "stepContentLabel": "Content",
+    "stepPublishLabel": "Publish"
   },
   "HomeCardsPage": {
     "title": "Homepage",
@@ -1604,7 +1616,9 @@
     "nameEnRequired": "English name is required.",
     "nameEnTooLong": "English name is too long.",
     "sortOrderInvalid": "Sort order must be a valid whole number.",
-    "sortOrderMin": "Sort order cannot be negative."
+    "sortOrderMin": "Sort order cannot be negative.",
+    "stepContentLabel": "Content",
+    "stepPublishLabel": "Publish"
   },
   "SectionForm": {
     "identityCardTitle": "Section identity",

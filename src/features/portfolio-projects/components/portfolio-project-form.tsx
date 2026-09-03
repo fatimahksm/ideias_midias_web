@@ -7,6 +7,7 @@ import {useRouter} from 'next/navigation';
 import {useEffect, useMemo, useState, type ReactNode} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {Link} from '@/i18n/navigation';
+import {FormStepNav} from '@/components/common/form-step-nav';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -156,6 +157,11 @@ export default function PortfolioProjectForm({
   const queryClient = useQueryClient();
 
   const [serverError, setServerError] = useState('');
+
+  // The form is two screens: everything about the content, then publishing.
+  // Both are one click away, so changing one field never means scrolling past
+  // everything else.
+  const [step, setStep] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
 
   const isSectionLocked =
@@ -407,6 +413,15 @@ export default function PortfolioProjectForm({
     );
   }
 
+  const navSteps = [
+    {key: 'content', label: t('stepContentLabel')},
+    {key: 'publish', label: t('stepPublishLabel')}
+  ];
+
+  function showCard(cardStep: number) {
+    return step === cardStep;
+  }
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -449,6 +464,14 @@ export default function PortfolioProjectForm({
           </div>
         ) : null}
 
+        <FormStepNav
+          steps={navSteps}
+          currentStep={step}
+          onSelect={setStep}
+        />
+
+        {showCard(0) && (
+          <>
         <SettingsCard
           title={t('linkCardTitle')}
           description={t('linkCardDescription')}
@@ -716,7 +739,10 @@ cropShape="rect"
             />
           </div>
         </SettingsCard>
+          </>
+        )}
 
+        {showCard(1) && (
         <SettingsCard
           title={t('publishingCardTitle')}
           description={t('publishingCardDescription')}
@@ -777,6 +803,7 @@ cropShape="rect"
             />
           </div>
         </SettingsCard>
+        )}
       </div>
 
       <PortfolioProjectFormSidebar

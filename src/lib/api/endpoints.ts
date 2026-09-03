@@ -28,6 +28,8 @@ export const endpoints = {
 
     portfolioSectionProjects: (sectionId: number) =>
       `/api/public/portfolio/sections/${sectionId}/projects`,
+    portfolioSectionProjectsPage: (sectionId: number) =>
+      `/api/public/portfolio/sections/${sectionId}/projects/page`,
     portfolioFeaturedProjects: (sectionId: number) =>
       `/api/public/portfolio/sections/${sectionId}/projects/featured`,
     portfolioProjectById: (projectId: number) =>

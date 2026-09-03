@@ -7,6 +7,8 @@ import Providers from '../providers';
 import '../globals.css';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import AppBootProvider from '@/components/providers/app-boot-provider';
+import {getPublicThemeSettings} from '@/features/theme/api';
+import {themeToCss} from '@/lib/theme/css-variables';
 
 type Props = {
   children: React.ReactNode;
@@ -30,10 +32,23 @@ export default async function LocaleLayout({ children, params }: Props) {
   }
 
   setRequestLocale(locale);
-  const messages = await getMessages();
+
+  // Fetched here rather than in the browser: reading it client-side meant every
+  // visitor saw the fallback palette first, and on a slow connection the
+  // owner's colours took seconds to arrive — or never did.
+  const [messages, theme] = await Promise.all([
+    getMessages(),
+    getPublicThemeSettings().catch(() => null)
+  ]);
 
   return (
     <html lang={locale}>
+      <head>
+        <style
+          id="theme-variables"
+          dangerouslySetInnerHTML={{__html: themeToCss(theme)}}
+        />
+      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <Providers>

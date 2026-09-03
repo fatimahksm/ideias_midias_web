@@ -2,8 +2,6 @@
 
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 import {useState} from 'react';
-import ThemeBootstrap from '@/features/theme/theme-bootstrap';
-import ThemeProvider from '@/lib/theme/theme-provider';
 
 type Props = {
   children: React.ReactNode;
@@ -27,10 +25,7 @@ export default function Providers({children}: Props) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <ThemeBootstrap />
-        {children}
-      </ThemeProvider>
+      {children}
     </QueryClientProvider>
   );
 }

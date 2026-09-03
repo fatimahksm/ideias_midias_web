@@ -1,7 +1,9 @@
 'use client';
 
 import {useLocale, useTranslations} from 'next-intl';
+import {useRouter} from 'next/navigation';
 import {Link} from '@/i18n/navigation';
+import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
 import {formatMediaDate, resolveMediaUrl} from '@/features/media-library/utils';
 import type {SectionResponse} from '@/features/sections/types';
@@ -30,6 +32,7 @@ export function ContentBlockCard({
   const t = useTranslations('ContentBlocksManager');
   const common = useTranslations('Common');
   const locale = useLocale();
+  const router = useRouter();
 
   const imageUrl = resolveMediaUrl(item.imageUrl);
   const previewTitle = item.titleEn || item.titlePt || t('untitledBlock');
@@ -115,44 +118,49 @@ export function ContentBlockCard({
           </div>
         </dl>
 
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/admin/content-blocks/${item.id}/edit`}>
-            <Button type="button" size="sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/admin/content-blocks/${item.id}/edit`} className="grow sm:grow-0">
+            <Button type="button" className="w-full sm:w-auto">
               {common('edit')}
             </Button>
           </Link>
 
-          {linkedSection ? (
-            <Link href={`/admin/sections/${linkedSection.id}/edit`}>
-              <Button type="button" variant="outline" size="sm">
-                {t('openSection')}
-              </Button>
-            </Link>
-          ) : null}
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            isLoading={isTogglingStatus}
-            loadingText={common('loading')}
-            onClick={() => onToggleStatus(item)}
-          >
-            {item.isActive ? t('deactivate') : t('activate')}
-          </Button>
-
-          {canDelete ? (
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              isLoading={isDeleting}
-              loadingText={common('loading')}
-              onClick={() => onDelete(item)}
-            >
-              {common('delete')}
-            </Button>
-          ) : null}
+          <ActionMenu
+            label={common('moreActions')}
+            items={[
+              ...(linkedSection
+                ? [
+                    {
+                      key: 'section',
+                      label: t('openSection'),
+                      onSelect: () =>
+                        router.push(`/${locale}/admin/sections/${linkedSection.id}/edit`)
+                    }
+                  ]
+                : []),
+              {
+                key: 'toggle',
+                label: isTogglingStatus
+                  ? common('loading')
+                  : item.isActive
+                    ? t('deactivate')
+                    : t('activate'),
+                disabled: isTogglingStatus,
+                onSelect: () => onToggleStatus(item)
+              },
+              ...(canDelete
+                ? [
+                    {
+                      key: 'delete',
+                      label: isDeleting ? common('loading') : common('delete'),
+                      tone: 'danger' as const,
+                      disabled: isDeleting,
+                      onSelect: () => onDelete(item)
+                    }
+                  ]
+                : [])
+            ]}
+          />
         </div>
       </div>
     </article>

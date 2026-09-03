@@ -19,6 +19,13 @@ import type {
 export const PUBLIC_ITEMS_PAGE_SIZE = 24;
 
 /**
+ * How long the server may reuse a public response. Public content changes when
+ * the owner edits it, so a short window turns a burst of visitors into one
+ * backend call while an edit still appears within the minute.
+ */
+const PUBLIC_REVALIDATE_SECONDS = 60;
+
+/**
  * One page of a section's active items, optionally narrowed to a category.
  * The public page reads items this way so a section with hundreds of them
  * does not ship all of them on first load.
@@ -39,9 +46,32 @@ export async function getPublicSectionItemsPage(
 
   return apiClient<PageResponse<PublicSectionItemResponse>>(
     `${endpoints.public.sectionItemsPage(sectionId)}?${params.toString()}`,
-    {method: 'GET'}
+    {method: 'GET', revalidate: PUBLIC_REVALIDATE_SECONDS}
   );
 }
+
+/** One page of a portfolio section's active projects. */
+export async function getPublicPortfolioProjectsPage(
+  sectionId: number,
+  page: number,
+  size: number = PUBLIC_ITEMS_PAGE_SIZE
+): Promise<PageResponse<PortfolioProjectResponse>> {
+  const params = new URLSearchParams({page: String(page), size: String(size)});
+
+  return apiClient<PageResponse<PortfolioProjectResponse>>(
+    `${endpoints.public.portfolioSectionProjectsPage(sectionId)}?${params.toString()}`,
+    {method: 'GET', revalidate: PUBLIC_REVALIDATE_SECONDS}
+  );
+}
+
+const EMPTY_PROJECTS_PAGE: PageResponse<PortfolioProjectResponse> = {
+  content: [],
+  page: 0,
+  size: PUBLIC_ITEMS_PAGE_SIZE,
+  totalElements: 0,
+  totalPages: 0,
+  hasNext: false
+};
 
 const EMPTY_ITEMS_PAGE: PageResponse<PublicSectionItemResponse> = {
   content: [],
@@ -59,15 +89,18 @@ function sortByOrder<T extends {sortOrder: number}>(items: T[]) {
 export async function getPublicHomeData(): Promise<PublicHomeData> {
   const [siteSettings, homeCards, contactMethods] = await Promise.all([
     apiClient<SiteSettingsResponse>(endpoints.public.siteSettings, {
-      method: 'GET'
+      method: 'GET',
+      revalidate: PUBLIC_REVALIDATE_SECONDS
     }).catch(() => null),
 
     apiClient<HomeCardResponse[]>(endpoints.public.homeCards, {
-      method: 'GET'
+      method: 'GET',
+      revalidate: PUBLIC_REVALIDATE_SECONDS
     }).catch(() => []),
 
     apiClient<ContactMethodResponse[]>(endpoints.public.contactMethods, {
-      method: 'GET'
+      method: 'GET',
+      revalidate: PUBLIC_REVALIDATE_SECONDS
     }).catch(() => [])
   ]);
 
@@ -84,7 +117,8 @@ export async function getPublicSectionBySlug(
   slug: string
 ): Promise<SectionResponse | null> {
   return apiClient<SectionResponse>(endpoints.public.sectionBySlug(slug), {
-    method: 'GET'
+    method: 'GET',
+    revalidate: PUBLIC_REVALIDATE_SECONDS
   }).catch(() => null);
 }
 
@@ -94,7 +128,8 @@ export async function getPublicItemMedia(
   const media = await apiClient<SectionItemMediaResponse[]>(
     endpoints.public.itemMedia(itemId),
     {
-      method: 'GET'
+      method: 'GET',
+      revalidate: PUBLIC_REVALIDATE_SECONDS
     }
   ).catch(() => []);
 
@@ -107,7 +142,8 @@ export async function getPublicPortfolioProjectMedia(
   const media = await apiClient<PortfolioProjectMediaResponse[]>(
     endpoints.public.portfolioProjectMedia(projectId),
     {
-      method: 'GET'
+      method: 'GET',
+      revalidate: PUBLIC_REVALIDATE_SECONDS
     }
   ).catch(() => []);
 
@@ -128,13 +164,13 @@ export async function getPublicSectionPageData(
     categories: [] as SectionCategoryResponse[],
     initialItems: null as PageResponse<PublicSectionItemResponse> | null,
     hasUncategorizedItems: false,
-    projects: [] as PortfolioProjectResponse[]
+    initialProjects: null as PageResponse<PortfolioProjectResponse> | null
   };
 
   if (section.sectionType === 'CONTENT') {
     const contentBlocks = await apiClient<SectionContentBlockResponse[]>(
       endpoints.public.sectionContentBlocks(section.id),
-      {method: 'GET'}
+      {method: 'GET', revalidate: PUBLIC_REVALIDATE_SECONDS}
     ).catch(() => []);
 
     return {
@@ -149,7 +185,7 @@ export async function getPublicSectionPageData(
       (
         await apiClient<SectionCategoryResponse[]>(
           endpoints.public.sectionCategories(section.id),
-          {method: 'GET'}
+          {method: 'GET', revalidate: PUBLIC_REVALIDATE_SECONDS}
         ).catch(() => [])
       ).filter((item) => item.isActive)
     );
@@ -191,15 +227,15 @@ export async function getPublicSectionPageData(
   }
 
   if (section.sectionType === 'PORTFOLIO') {
-    const projects = await apiClient<PortfolioProjectResponse[]>(
-      endpoints.public.portfolioSectionProjects(section.id),
-      {method: 'GET'}
-    ).catch(() => []);
+    const initialProjects = await getPublicPortfolioProjectsPage(
+      section.id,
+      0
+    ).catch(() => EMPTY_PROJECTS_PAGE);
 
     return {
       section,
       ...empty,
-      projects: sortByOrder(projects.filter((item) => item.isActive))
+      initialProjects
     };
   }
 
