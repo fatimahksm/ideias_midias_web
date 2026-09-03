@@ -13,9 +13,10 @@ const TYPES: SectionType[] = [
 
 type Props = {
   onSelect: (type: SectionType) => void;
+  selectedType?: SectionType;
 };
 
-export function SectionTypePicker({onSelect}: Props) {
+export function SectionTypePicker({onSelect, selectedType}: Props) {
   const t = useTranslations('SectionForm');
   const commonSections = useTranslations('SectionsCommon');
 
@@ -27,31 +28,44 @@ export function SectionTypePicker({onSelect}: Props) {
       </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {TYPES.map((type) => (
-          <button
-            key={type}
-            type="button"
-            onClick={() => onSelect(type)}
-            className="group flex flex-col items-start gap-3 rounded-3xl border border-slate-200 bg-slate-50/60 p-5 text-left transition hover:border-[var(--color-primary)] hover:bg-white hover:shadow-md"
-          >
-            <SectionTypeBadge type={type} />
+        {TYPES.map((type) => {
+          const isSelected = type === selectedType;
 
-            <p className="text-base font-semibold text-slate-900">
-              {commonSections(`types.${type}.shortMode`)}
-            </p>
+          return (
+            <button
+              key={type}
+              type="button"
+              onClick={() => onSelect(type)}
+              className={`group flex flex-col items-start gap-3 rounded-3xl border p-5 text-left transition hover:border-[var(--color-primary)] hover:bg-white hover:shadow-md ${
+                isSelected
+                  ? 'border-[var(--color-primary)] bg-white shadow-md ring-2 ring-[var(--color-primary)]/20'
+                  : 'border-slate-200 bg-slate-50/60'
+              }`}
+            >
+              <SectionTypeBadge type={type} />
 
-            <p className="text-sm leading-6 text-slate-600">
-              {commonSections(`types.${type}.description`)}
-            </p>
+              <p className="text-base font-semibold text-slate-900">
+                {commonSections(`types.${type}.shortMode`)}
+              </p>
 
-            <span className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-primary)]">
-              {t('pickTypeSelect')}
-              <span aria-hidden="true" className="transition group-hover:translate-x-0.5">
-                &rarr;
+              <p className="text-sm leading-6 text-slate-600">
+                {commonSections(`types.${type}.description`)}
+              </p>
+
+              <span className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-primary)]">
+                {isSelected ? t('pickTypeSelected') : t('pickTypeSelect')}
+                {isSelected ? null : (
+                  <span
+                    aria-hidden="true"
+                    className="transition group-hover:translate-x-0.5"
+                  >
+                    &rarr;
+                  </span>
+                )}
               </span>
-            </span>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
