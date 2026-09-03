@@ -84,10 +84,10 @@
   "MediaLibraryPicker": {
     "titleImage": "Escolher uma imagem",
     "titleVideo": "Escolher um vídeo",
-    "description": "Reutilize um ficheiro já existente na biblioteca de mídia em vez de enviar um novo.",
+    "description": "Reutilize um arquivo já existente na galeria em vez de enviar um novo.",
     "close": "Fechar",
-    "loading": "A carregar biblioteca de mídia...",
-    "empty": "Ainda não há ficheiros na biblioteca. Envie um primeiro."
+    "loading": "Carregando galeria...",
+    "empty": "Ainda não há arquivos na galeria. Envie um primeiro."
   },
   "ItemMediaBulkUploader": {
     "title": "Envio de mídia em lote",
@@ -628,7 +628,7 @@
     "navigationTitle": "Navegação principal",
     "dashboard": "Painel",
     "users": "Usuários",
-    "media": "Biblioteca de mídia",
+    "media": "Galeria",
     "siteSettings": "Site Configurações",
     "themeSettings": "Tema",
     "sections": "Seções",
@@ -643,21 +643,21 @@
     "adminUsers": "Usuários administradores"
   },
   "RouteLoading": {
-  "pageBadge": "Carregando",
-  "pageTitle": "Preparando sua experiência",
-  "pageDescription": "Aguarde um momento enquanto carregamos o conteúdo da página.",
-  "sectionBadge": "Abrindo seção",
-  "sectionTitle": "Carregando esta seção",
-  "sectionDescription": "Estamos buscando os detalhes da seção e preparando tudo para exibição.",
-  "adminBadge": "Área administrativa",
-  "adminTitle": "Carregando o painel",
-  "adminDescription": "Aguarde enquanto preparamos seu espaço administrativo."
-},
-"AppBoot": {
-  "badge": "Iniciando",
-  "title": "Abrindo o site",
-  "description": "Aguarde um momento enquanto preparamos tudo para você."
-},
+    "pageBadge": "Carregando",
+    "pageTitle": "Preparando sua experiência",
+    "pageDescription": "Aguarde um momento enquanto carregamos o conteúdo da página.",
+    "sectionBadge": "Abrindo seção",
+    "sectionTitle": "Carregando esta seção",
+    "sectionDescription": "Estamos buscando os detalhes da seção e preparando tudo para exibição.",
+    "adminBadge": "Área administrativa",
+    "adminTitle": "Carregando o painel",
+    "adminDescription": "Aguarde enquanto preparamos seu espaço administrativo."
+  },
+  "AppBoot": {
+    "badge": "Iniciando",
+    "title": "Abrindo o site",
+    "description": "Aguarde um momento enquanto preparamos tudo para você."
+  },
   "AdminDashboardPage": {
     "title": "Painel",
     "description": "Acompanhe as principais áreas de conteúdo e vá direto para as partes que você mais gerencia.",
@@ -669,7 +669,7 @@
       "categoriesHint": "Text-based categoria groups vinculado to seções.",
       "itemsLabel": "Itens",
       "itemsHint": "Itens publicados e rascunhos, em todas as seções.",
-      "mediaLabel": "Mídia",
+      "mediaLabel": "Galeria",
       "mediaHint": "Arquivos enviados, disponíveis em todo o site.",
       "projectsLabel": "Projetos de portfólio",
       "projectsHint": "Portfolio entries available for showcase seções.",
@@ -694,9 +694,9 @@
     "sectionsCardTitle": "Seções",
     "sectionsCardDescription": "Crie e organize as principais seções que estruturam o site público.",
     "sectionsCardAction": "Gerenciar seções",
-    "mediaCardTitle": "Biblioteca de mídia",
+    "mediaCardTitle": "Galeria",
     "mediaCardDescription": "Reveja os arquivos enviados e reutilize mídia em itens, projetos e conteúdo.",
-    "mediaCardAction": "Abrir biblioteca de mídia",
+    "mediaCardAction": "Abrir galeria",
     "contactMethodsCardTitle": "Contato methods",
     "contactMethodsCardDescription": "Gerencie telefone, e-mail, links sociais e outros canais de contato.",
     "contactMethodsCardAction": "Gerenciar métodos de contato",
@@ -1702,7 +1702,7 @@
     "subtitle": "Gerencie a paleta de cores compartilhada usada em todo o site."
   },
   "MediaLibraryPage": {
-    "title": "Biblioteca de mídia",
+    "title": "Galeria",
     "subtitle": "Gerencie imagens e vídeos enviados a partir de um local central."
   },
   "SectionWorkspacePage": {
@@ -1786,32 +1786,35 @@
     "deleteDialogTitle": "Excluir mídia",
     "deleteAction": "Excluir",
     "uploadCardTitle": "Enviar mídia",
-    "uploadCardDescription": "Adicione imagens e vídeos reutilizáveis à biblioteca de mídia compartilhada.",
+    "uploadCardDescription": "Adicione imagens e vídeos reutilizáveis à galeria compartilhada.",
     "uploadButton": "Enviar arquivo",
     "uploadHint": "Os tipos de arquivo aceitos dependem das regras do backend para imagens e vídeos.",
     "uploading": "Enviando...",
     "uploadSuccess": "Mídia enviada com sucesso.",
-    "libraryCardTitle": "Biblioteca contents",
+    "libraryCardTitle": "Conteúdo da galeria",
     "libraryCardDescription": "Navegue pelos arquivos enviados, copie suas URLs e reutilize-os em todo o site.",
-    "allFilter": "All",
+    "allFilter": "Todos",
     "imageFilter": "Imagens",
     "videoFilter": "Vídeos",
     "resultsCount": "{count} arquivos",
     "refresh": "Atualizar",
     "loadMore": "Carregar mais",
-    "emptyTitle": "No mídia found",
-    "emptyDescription": "Envie o primeiro arquivo para começar a montar a biblioteca de mídia.",
+    "emptyTitle": "Nenhuma mídia encontrada",
+    "emptyDescription": "Envie o primeiro arquivo para começar a montar a galeria compartilhada.",
     "imageType": "Imagem",
     "videoType": "Vídeo",
     "fileSizeLabel": "Tamanho do arquivo",
     "uploadedLabel": "Enviado",
     "fileUrlLabel": "URL do arquivo",
     "copyUrl": "Copiar URL",
-    "openFile": "Abrir file",
+    "openFile": "Abrir arquivo",
     "copySuccess": "URL do arquivo copiada com sucesso.",
     "copyFailed": "Não foi possível copiar a URL do arquivo.",
-    "deleteSuccess": "Media excluído com sucesso.",
-    "deleteConfirm": "Tem certeza de que deseja excluir \"{name}\"?"
+    "deleteSuccess": "Mídia excluída com sucesso.",
+    "deleteConfirm": "Tem certeza de que deseja excluir \"{name}\"?",
+    "bulkProgress": "Enviados {done} de {total}",
+    "bulkAllDone": "Concluído",
+    "bulkFailedCount": "{count} não enviados:"
   },
   "ThemeSettingsForm": {
     "paletteCardTitle": "Paleta de cores",

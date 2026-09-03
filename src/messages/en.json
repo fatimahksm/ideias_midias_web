@@ -20,39 +20,38 @@
     "moreActions": "More"
   },
   "RouteLoading": {
-  "pageBadge": "Loading",
-  "pageTitle": "Preparing your experience",
-  "pageDescription": "Please wait a moment while we load the page content.",
-  "sectionBadge": "Opening section",
-  "sectionTitle": "Loading this section",
-  "sectionDescription": "We are getting the section details and preparing everything for display.",
-  "adminBadge": "Admin area",
-  "adminTitle": "Loading the dashboard",
-  "adminDescription": "Please wait while we prepare your admin workspace."
-},
-"AppBoot": {
-  "badge": "Starting",
-  "title": "Opening the website",
-  "description": "Please wait a moment while we prepare everything for you."
-},
-"MapPickerField": {
-  "mapLoadFailed": "The map could not be loaded. Please try again.",
-  "label": "Map Picker",
-  "clickHint": "Click on the map to choose the company location.",
-  "useMyLocation": "Use My Location",
-  "locating": "Locating...",
-
-  "selectedCoordinates": "Selected Coordinates",
-  "selectedAddress": "Selected Address",
-  "reverseFailed": "Location selected, but address lookup failed.",
-  "permissionDenied": "Location permission was denied.",
-  "geolocationUnsupported": "Geolocation is not supported in this browser.",
-  "searchPlaceholder": "Search for a place, road, area, or landmark...",
-"searchFailed": "Place search failed. Please try again.",
-"resolvingAddress": "Looking up address...",
-"openInMaps": "Open in Google Maps",
-"selectedLocation": "Selected Location"
-},
+    "pageBadge": "Loading",
+    "pageTitle": "Preparing your experience",
+    "pageDescription": "Please wait a moment while we load the page content.",
+    "sectionBadge": "Opening section",
+    "sectionTitle": "Loading this section",
+    "sectionDescription": "We are getting the section details and preparing everything for display.",
+    "adminBadge": "Admin area",
+    "adminTitle": "Loading the dashboard",
+    "adminDescription": "Please wait while we prepare your admin workspace."
+  },
+  "AppBoot": {
+    "badge": "Starting",
+    "title": "Opening the website",
+    "description": "Please wait a moment while we prepare everything for you."
+  },
+  "MapPickerField": {
+    "mapLoadFailed": "The map could not be loaded. Please try again.",
+    "label": "Map Picker",
+    "clickHint": "Click on the map to choose the company location.",
+    "useMyLocation": "Use My Location",
+    "locating": "Locating...",
+    "selectedCoordinates": "Selected Coordinates",
+    "selectedAddress": "Selected Address",
+    "reverseFailed": "Location selected, but address lookup failed.",
+    "permissionDenied": "Location permission was denied.",
+    "geolocationUnsupported": "Geolocation is not supported in this browser.",
+    "searchPlaceholder": "Search for a place, road, area, or landmark...",
+    "searchFailed": "Place search failed. Please try again.",
+    "resolvingAddress": "Looking up address...",
+    "openInMaps": "Open in Google Maps",
+    "selectedLocation": "Selected Location"
+  },
   "SiteSettingsPage": {
     "title": "Website Settings",
     "subtitle": "Manage the global website content and company information."
@@ -101,10 +100,10 @@
   "MediaLibraryPicker": {
     "titleImage": "Choose an image",
     "titleVideo": "Choose a video",
-    "description": "Reuse a file already in the media library instead of uploading a new one.",
+    "description": "Reuse a file already in the gallery instead of uploading a new one.",
     "close": "Close",
-    "loading": "Loading media library...",
-    "empty": "No files in the library yet. Upload one first."
+    "loading": "Loading gallery...",
+    "empty": "No files in the gallery yet. Upload one first."
   },
   "ItemMediaBulkUploader": {
     "title": "Bulk media upload",
@@ -235,8 +234,8 @@
     "bulkSuccess": "{count} media files uploaded successfully."
   },
   "ItemMediaManager": {
-     "deleteDialogTitle": "Delete media",
-  "deleteAction": "Delete",
+    "deleteDialogTitle": "Delete media",
+    "deleteAction": "Delete",
     "bulkUploadSuccess": "Gallery images uploaded successfully.",
     "backToWorkspace": "Back to workspace",
     "studioTitle": "Item media studio",
@@ -349,7 +348,7 @@
   },
   "ContentBlocksManager": {
     "deleteDialogTitle": "Delete content block",
-  "deleteAction": "Delete",
+    "deleteAction": "Delete",
     "studioTitle": "Content blocks studio",
     "studioSubtitle": "These blocks belong only to CONTENT sections.",
     "scopedSubtitlePrefix": "Scoped to section",
@@ -486,7 +485,7 @@
   },
   "ItemsManager": {
     "deleteDialogTitle": "Delete item",
-  "deleteAction": "Delete",
+    "deleteAction": "Delete",
     "noDescription": "No description available",
     "manageMedia": "Manage media",
     "studioTitle": "Items studio",
@@ -645,7 +644,7 @@
     "navigationTitle": "Main navigation",
     "dashboard": "Dashboard",
     "users": "Users",
-    "media": "Media Library",
+    "media": "Gallery",
     "siteSettings": "Website Settings",
     "themeSettings": "Theme",
     "sections": "Sections",
@@ -657,7 +656,6 @@
     "signedInAs": "Signed in as {name}",
     "superAdminBadge": "Super admin",
     "adminBadge": "Admin",
-  
     "adminUsers": "Admin Users"
   },
   "AdminDashboardPage": {
@@ -666,17 +664,17 @@
     "statsLoadError": "Failed to load dashboard statistics.",
     "stats": {
       "stats": {
-    "homeCardsHint": "Manage the cards displayed on the homepage.",
-    "contactMethodsLabel": "Contact methods",
-    "contactMethodsHint": "Control the ways visitors can reach the company."
-  },
+        "homeCardsHint": "Manage the cards displayed on the homepage.",
+        "contactMethodsLabel": "Contact methods",
+        "contactMethodsHint": "Control the ways visitors can reach the company."
+      },
       "sectionsLabel": "Sections",
       "sectionsHint": "Main content areas configured in the website.",
       "categoriesLabel": "Categories",
       "categoriesHint": "Text-based category groups linked to sections.",
       "itemsLabel": "Items",
       "itemsHint": "Published and draft items managed across sections.",
-      "mediaLabel": "Media",
+      "mediaLabel": "Gallery",
       "mediaHint": "Uploaded media assets available across the site.",
       "projectsLabel": "Portfolio projects",
       "projectsHint": "Portfolio entries available for showcase sections.",
@@ -696,9 +694,9 @@
     "sectionsCardTitle": "Sections",
     "sectionsCardDescription": "Create and organize the main sections that structure the public website.",
     "sectionsCardAction": "Manage sections",
-    "mediaCardTitle": "Media library",
+    "mediaCardTitle": "Gallery",
     "mediaCardDescription": "Review uploaded files and reuse media across items, projects and content.",
-    "mediaCardAction": "Open media library",
+    "mediaCardAction": "Open gallery",
     "contactMethodsCardTitle": "Contact methods",
     "contactMethodsCardDescription": "Manage phone, email, social links and other contact channels.",
     "contactMethodsCardAction": "Manage contact methods",
@@ -753,8 +751,8 @@
     }
   },
   "ContactMethodsManager": {
-     "deleteDialogTitle": "Delete contact method",
-  "deleteAction": "Delete",
+    "deleteDialogTitle": "Delete contact method",
+    "deleteAction": "Delete",
     "studioTitle": "Contact methods studio",
     "studioSubtitle": "Keep the public contact layer clean, actionable and easy to maintain.",
     "createMethod": "Create contact method",
@@ -814,7 +812,7 @@
   },
   "PortfolioProjectMediaManager": {
     "deleteDialogTitle": "Delete media",
-  "deleteAction": "Delete",
+    "deleteAction": "Delete",
     "bulkUploadSuccess": "Gallery images uploaded successfully.",
     "backToWorkspace": "Back to workspace",
     "studioTitle": "Portfolio project media studio",
@@ -964,7 +962,7 @@
   },
   "PortfolioProjectsManager": {
     "deleteDialogTitle": "Delete project",
-  "deleteAction": "Delete",
+    "deleteAction": "Delete",
     "manageMedia": "Manage media",
     "studioTitle": "Portfolio projects studio",
     "studioSubtitle": "These projects belong only to PORTFOLIO sections.",
@@ -1239,8 +1237,8 @@
     "editSubtitle": "Refine the homepage card content, image and section link."
   },
   "HomeCardsManager": {
-     "deleteDialogTitle": "Delete home card",
-  "deleteAction": "Delete",
+    "deleteDialogTitle": "Delete home card",
+    "deleteAction": "Delete",
     "studioTitle": "Home cards studio",
     "studioSubtitle": "Shape the homepage entry points that connect visitors to the right sections.",
     "createCard": "Create card",
@@ -1512,8 +1510,8 @@
     "editSubtitle": "Update the category details, media and publishing state."
   },
   "CategoriesManager": {
-      "deleteDialogTitle": "Delete category",
-  "deleteAction": "Delete",
+    "deleteDialogTitle": "Delete category",
+    "deleteAction": "Delete",
     "studioTitle": "Categories studio",
     "studioSubtitle": "Organize category-based sections before filling them with items.",
     "scopedSubtitlePrefix": "Scoped to section",
@@ -1704,7 +1702,7 @@
     "subtitle": "Manage the shared color palette used across the website."
   },
   "MediaLibraryPage": {
-    "title": "Media Library",
+    "title": "Gallery",
     "subtitle": "Manage uploaded images and videos from one central place."
   },
   "SectionWorkspacePage": {
@@ -1786,14 +1784,14 @@
   },
   "MediaLibraryManager": {
     "deleteDialogTitle": "Delete media",
-  "deleteAction": "Delete",
+    "deleteAction": "Delete",
     "uploadCardTitle": "Upload media",
-    "uploadCardDescription": "Add reusable images and videos to the shared media library.",
+    "uploadCardDescription": "Add reusable images and videos to the shared gallery.",
     "uploadButton": "Upload file",
     "uploadHint": "Accepted file types depend on the backend rules for images and videos.",
     "uploading": "Uploading...",
     "uploadSuccess": "Media uploaded successfully.",
-    "libraryCardTitle": "Library contents",
+    "libraryCardTitle": "Gallery contents",
     "libraryCardDescription": "Browse uploaded files, copy their URLs and reuse them across the website.",
     "allFilter": "All",
     "imageFilter": "Images",
@@ -1802,7 +1800,7 @@
     "refresh": "Refresh",
     "loadMore": "Load more",
     "emptyTitle": "No media found",
-    "emptyDescription": "Upload your first file to start building the shared media library.",
+    "emptyDescription": "Upload your first file to start building the shared gallery.",
     "imageType": "Image",
     "videoType": "Video",
     "fileSizeLabel": "File size",
@@ -1813,7 +1811,10 @@
     "copySuccess": "File URL copied successfully.",
     "copyFailed": "Could not copy the file URL.",
     "deleteSuccess": "Media deleted successfully.",
-    "deleteConfirm": "Are you sure you want to delete \"{name}\"?"
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"?",
+    "bulkProgress": "Uploaded {done} of {total}",
+    "bulkAllDone": "All done",
+    "bulkFailedCount": "{count} failed to upload:"
   },
   "ThemeSettingsForm": {
     "paletteCardTitle": "Color palette",
@@ -1866,8 +1867,8 @@
       "superAdmins": "Super admins",
       "admins": "Admins"
     },
-      "deleteDialogTitle": "Delete admin user",
-  "deleteAction": "Delete",
+    "deleteDialogTitle": "Delete admin user",
+    "deleteAction": "Delete",
     "studioTitle": "Admin access studio",
     "studioSubtitle": "Keep access clean, safe, and easy to manage.",
     "createAdmin": "Create admin",
