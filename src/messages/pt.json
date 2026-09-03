@@ -650,7 +650,9 @@
     "superAdminBadge": "Super administrador",
     "adminBadge": "Administrador",
     "adminUsers": "Usuários administradores",
-    "dataImport": "Importar Dados"
+    "dataImport": "Importar Dados",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
   },
   "RouteLoading": {
     "pageBadge": "Carregando",

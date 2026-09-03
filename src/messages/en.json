@@ -666,7 +666,9 @@
     "superAdminBadge": "Super admin",
     "adminBadge": "Admin",
     "adminUsers": "Admin Users",
-    "dataImport": "Import Data"
+    "dataImport": "Import Data",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "AdminDashboardPage": {
     "title": "Dashboard",

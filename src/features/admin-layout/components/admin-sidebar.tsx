@@ -11,7 +11,11 @@ import {adminNavigation} from '../constants/admin-navigation';
 
 type AdminRole = 'ADMIN' | 'SUPER_ADMIN';
 
-export function AdminSidebar() {
+type Props = {
+  onNavigate?: () => void;
+};
+
+export function AdminSidebar({onNavigate}: Props = {}) {
   const t = useTranslations('AdminLayout');
   const locale = useLocale();
   const pathname = usePathname();
@@ -57,6 +61,7 @@ export function AdminSidebar() {
               <Link
                 key={item.key}
                 href={item.href}
+                onClick={onNavigate}
                 className={cn(
                   'rounded-2xl px-4 py-3 text-sm font-medium transition',
                   isActive
