@@ -43,13 +43,17 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html lang={locale}>
-      <head>
-        <style
-          id="theme-variables"
-          dangerouslySetInnerHTML={{__html: themeToCss(theme)}}
-        />
-      </head>
       <body>
+        {/*
+          Hoisted by React into the head via href/precedence. Rendering it as a
+          plain <style> inside a hand-written <head> made the server and client
+          disagree on its attributes, which React reported as a hydration
+          mismatch.
+        */}
+        <style href="theme-variables" precedence="high">
+          {themeToCss(theme)}
+        </style>
+
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <AppBootProvider>{children}</AppBootProvider>
