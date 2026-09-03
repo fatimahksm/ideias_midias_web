@@ -29,6 +29,7 @@ import {FormStepNav} from '@/components/common/form-step-nav';
 import {SectionNextActions} from './section-next-actions';
 import {SectionTypeBadge} from './section-type-badge';
 import {SectionTypePicker} from './section-type-picker';
+import {CopyButton} from '@/components/common/copy-button';
 
 type Props = {
   mode: 'create' | 'edit';
@@ -74,24 +75,6 @@ function LanguageBadge({
       </span>
       {label}
     </span>
-  );
-}
-
-function CopyButton({
-  children,
-  onClick
-}: {
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
-    >
-      {children}
-    </button>
   );
 }
 
