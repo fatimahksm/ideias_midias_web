@@ -62,7 +62,7 @@ function MetricTile({
 }: {
   icon: LucideIcon;
   label: string;
-  value: number;
+  value: number | string;
 }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
@@ -129,15 +129,22 @@ export function AdminDashboardOverview() {
   const isLoading = statsQuery.isPending;
   const hasError = statsQuery.isError;
 
+  // A dash rather than 0 while the counts are unknown: showing zeros next to
+  // a "failed to load" message reads as "you have no content".
+  const unknown = '—';
+
+  const count = (value?: number) =>
+    statsQuery.data ? (value ?? 0) : unknown;
+
   const counts = {
-    sections: statsQuery.data?.sections ?? 0,
-    categories: statsQuery.data?.categories ?? 0,
-    items: statsQuery.data?.items ?? 0,
-    projects: statsQuery.data?.portfolioProjects ?? 0,
-    contentBlocks: statsQuery.data?.contentBlocks ?? 0,
-    media: statsQuery.data?.mediaFiles ?? 0,
-    homeCards: statsQuery.data?.homeCards ?? 0,
-    contactMethods: statsQuery.data?.contactMethods ?? 0
+    sections: count(statsQuery.data?.sections),
+    categories: count(statsQuery.data?.categories),
+    items: count(statsQuery.data?.items),
+    projects: count(statsQuery.data?.portfolioProjects),
+    contentBlocks: count(statsQuery.data?.contentBlocks),
+    media: count(statsQuery.data?.mediaFiles),
+    homeCards: count(statsQuery.data?.homeCards),
+    contactMethods: count(statsQuery.data?.contactMethods)
   };
 
   const analytics = analyticsQuery.data;

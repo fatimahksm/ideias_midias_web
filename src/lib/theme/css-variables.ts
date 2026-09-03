@@ -20,6 +20,15 @@ const VARIABLES: Array<[ColorKey, string]> = [
 ];
 
 /**
+ * Colours are written straight into a stylesheet, so only shapes that are
+ * safe there are accepted: #rgb, #rgba, #rrggbb, #rrggbbaa, rgb()/rgba()/hsl()
+ * and plain colour keywords. Anything else falls back to the default rather
+ * than reaching the page.
+ */
+const SAFE_COLOR =
+  /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla)\([0-9a-z.,%\s/]+\)|[a-z]+)$/i;
+
+/**
  * Fills in any colour the saved theme is missing.
  *
  * A theme that has never been saved used to arrive as an object of nulls, and
@@ -32,8 +41,12 @@ export function resolveTheme(theme?: Partial<ThemeSettings> | null): ThemeSettin
   for (const [key] of VARIABLES) {
     const value = theme?.[key];
 
-    if (typeof value === 'string' && value.trim()) {
-      resolved[key] = value.trim();
+    if (typeof value !== 'string') continue;
+
+    const trimmed = value.trim();
+
+    if (trimmed && SAFE_COLOR.test(trimmed)) {
+      resolved[key] = trimmed;
     }
   }
 
