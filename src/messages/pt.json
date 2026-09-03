@@ -640,7 +640,8 @@
     "signedInAs": "Conectado como {name}",
     "superAdminBadge": "Super administrador",
     "adminBadge": "Administrador",
-    "adminUsers": "Usuários administradores"
+    "adminUsers": "Usuários administradores",
+    "dataImport": "Importar Dados"
   },
   "RouteLoading": {
     "pageBadge": "Carregando",
@@ -1923,5 +1924,30 @@
     "fullNameRequired": "Full name is obrigatório.",
     "invalidEmail": "Informe um e-mail válido.",
     "passwordTooShort": "A senha deve ter pelo menos 8 caracteres."
+  },
+  "DataImportPage": {
+    "title": "Importar Dados",
+    "subtitle": "Traga seções, categorias, itens, projetos de portfólio, blocos de conteúdo, cards da home e formas de contato de um único arquivo Excel."
+  },
+  "DataImportManager": {
+    "templateCardTitle": "1. Baixe o modelo",
+    "templateCardDescription": "Obtenha o arquivo Excel com uma planilha para cada tipo de conteúdo, os nomes exatos das colunas e uma planilha ReadMe com os valores permitidos.",
+    "downloadTemplate": "Baixar modelo",
+    "uploadCardTitle": "2. Envie seu arquivo",
+    "uploadCardDescription": "Preencha apenas as planilhas que precisar e depois envie o arquivo aqui. Faça a pré-visualização antes de confirmar para checar erros.",
+    "selectedFile": "Arquivo selecionado: {name}",
+    "previewAction": "Pré-visualizar (só checar)",
+    "previewing": "Checando...",
+    "commitAction": "Confirmar (salvar no site)",
+    "committing": "Salvando...",
+    "resetAction": "Começar de novo",
+    "resultsPreviewTitle": "Resultado da pré-visualização",
+    "resultsCommittedTitle": "Resultado da importação",
+    "resultsSummary": "{total} linhas checadas, {succeeded} com sucesso, {errors} com erro.",
+    "sheetCounts": "{succeeded} de {total} linhas",
+    "sheetNotPresent": "Não incluída neste arquivo",
+    "sheetAllOk": "Todas as linhas são válidas.",
+    "rowError": "Linha {row}: {message}",
+    "previewHint": "Isso foi só uma checagem — nada foi salvo ainda. Clique em \"Confirmar\" para realmente adicionar esses dados ao site."
   }
 }

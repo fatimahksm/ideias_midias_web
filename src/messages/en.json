@@ -656,7 +656,8 @@
     "signedInAs": "Signed in as {name}",
     "superAdminBadge": "Super admin",
     "adminBadge": "Admin",
-    "adminUsers": "Admin Users"
+    "adminUsers": "Admin Users",
+    "dataImport": "Import Data"
   },
   "AdminDashboardPage": {
     "title": "Dashboard",
@@ -1923,5 +1924,30 @@
     "fullNameRequired": "Full name is required.",
     "invalidEmail": "Please enter a valid email address.",
     "passwordTooShort": "Password must be at least 8 characters long."
+  },
+  "DataImportPage": {
+    "title": "Import Data",
+    "subtitle": "Bring sections, categories, items, portfolio projects, content blocks, home cards and contact methods in from one Excel file."
+  },
+  "DataImportManager": {
+    "templateCardTitle": "1. Download the template",
+    "templateCardDescription": "Get the Excel file with one sheet per content type, the exact column names to use, and a ReadMe sheet with the allowed values.",
+    "downloadTemplate": "Download template",
+    "uploadCardTitle": "2. Upload your file",
+    "uploadCardDescription": "Fill in only the sheets you need, then upload the file here. Preview it first to check for mistakes before committing.",
+    "selectedFile": "Selected file: {name}",
+    "previewAction": "Preview (check only)",
+    "previewing": "Checking...",
+    "commitAction": "Commit (save to the website)",
+    "committing": "Saving...",
+    "resetAction": "Start over",
+    "resultsPreviewTitle": "Preview results",
+    "resultsCommittedTitle": "Import results",
+    "resultsSummary": "{total} rows checked, {succeeded} succeeded, {errors} with errors.",
+    "sheetCounts": "{succeeded} of {total} rows",
+    "sheetNotPresent": "Not included in this file",
+    "sheetAllOk": "All rows are valid.",
+    "rowError": "Row {row}: {message}",
+    "previewHint": "This was only a check — nothing was saved yet. Click \"Commit\" to actually add this data to the website."
   }
 }

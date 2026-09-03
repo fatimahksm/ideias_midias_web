@@ -62,6 +62,10 @@ export const endpoints = {
     mediaLibrary: '/api/admin/media-library',
     mediaUpload: '/api/admin/media-library/upload',
 
+    dataImportTemplate: '/api/admin/data-import/template',
+    dataImportPreview: '/api/admin/data-import/preview',
+    dataImportCommit: '/api/admin/data-import/commit',
+
     analyticsSummary: '/api/admin/analytics/summary',
     statsSummary: '/api/admin/stats/summary'
   }
