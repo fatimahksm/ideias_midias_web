@@ -1856,7 +1856,8 @@
     "previewTitle": "Ideias Midias",
     "previewDescription": "Esta pré-visualização ajuda a avaliar contraste, hierarquia e equilíbrio visual antes de salvar.",
     "previewPrimaryButton": "Ação principal",
-    "previewSecondaryButton": "Ação secundária"
+    "previewSecondaryButton": "Ação secundária",
+    "colorInvalidFormat": "Digite uma cor válida: um código hex como #0f172a, ou rgb()/hsl()."
   },
   "CommonErrors": {
     "networkError": "Erro de rede. Tente novamente.",

@@ -1856,7 +1856,8 @@
     "previewTitle": "Ideias Midias",
     "previewDescription": "This preview helps you judge contrast, hierarchy and visual balance before saving.",
     "previewPrimaryButton": "Primary action",
-    "previewSecondaryButton": "Secondary action"
+    "previewSecondaryButton": "Secondary action",
+    "colorInvalidFormat": "Enter a valid color: a hex code like #0f172a, or rgb()/hsl()."
   },
   "CommonErrors": {
     "networkError": "Network error. Please try again.",
