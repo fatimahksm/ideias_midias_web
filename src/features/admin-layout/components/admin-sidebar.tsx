@@ -11,7 +11,11 @@ import {adminNavigation} from '../constants/admin-navigation';
 
 type AdminRole = 'ADMIN' | 'SUPER_ADMIN';
 
-export function AdminSidebar() {
+type Props = {
+  onNavigate?: () => void;
+};
+
+export function AdminSidebar({onNavigate}: Props = {}) {
   const t = useTranslations('AdminLayout');
   const locale = useLocale();
   const pathname = usePathname();
@@ -57,11 +61,12 @@ export function AdminSidebar() {
               <Link
                 key={item.key}
                 href={item.href}
+                onClick={onNavigate}
                 className={cn(
                   'rounded-2xl px-4 py-3 text-sm font-medium transition',
                   isActive
                     ? 'bg-[var(--color-primary)] text-white shadow-sm'
-                    : 'border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                    : 'border border-slate-200 bg-white text-slate-700 hover:border-[var(--color-primary)] hover:bg-[color-mix(in_srgb,var(--color-primary)_6%,white)]'
                 )}
               >
                 {t(item.labelKey)}

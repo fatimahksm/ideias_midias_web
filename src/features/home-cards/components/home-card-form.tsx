@@ -29,6 +29,7 @@ import type {HomeCardPayload} from '../types';
 import {emptyToNull, getNextHomeCardSortOrder} from '../utils';
 import {HomeCardFormSidebar} from './home-card-form-sidebar';
 import {HomeCardIconPicker} from './home-card-icon-picker';
+import {CopyButton} from '@/components/common/copy-button';
 
 /** Which cards each edit step shows: content first, then publishing. */
 const EDIT_STEP_CARDS = [[0, 1, 2, 3], [4]];
@@ -74,24 +75,6 @@ function LanguageBadge({
       </span>
       {label}
     </span>
-  );
-}
-
-function CopyButton({
-  children,
-  onClick
-}: {
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
-    >
-      {children}
-    </button>
   );
 }
 

@@ -5,12 +5,16 @@ import {
   LoaderCircle,
   LocateFixed,
   MapPin,
+  Maximize2,
   Search,
   X
 } from 'lucide-react';
-import maplibregl, {type StyleSpecification} from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
+import {apiClient} from '@/lib/api/client';
+import {endpoints} from '@/lib/api/endpoints';
+import {getAdminToken} from '@/lib/auth/token';
 
 type MapPickerValue = {
   lat: number;
@@ -23,6 +27,8 @@ type Props = {
   lat?: number;
   lng?: number;
   onChange: (value: MapPickerValue) => void;
+  /** 'modal' renders the same picker taller, without its own expand button — used when this component renders itself inside the expanded view. */
+  variant?: 'inline' | 'modal';
 };
 
 type SearchPlaceResult = {
@@ -41,31 +47,73 @@ const DEFAULT_ZOOM = 14.5;
 const SELECTED_ZOOM = 17;
 const SEARCH_MIN_CHARS = 3;
 
-const MAP_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors'
-    }
-  },
-  layers: [
-    {
-      id: 'osm',
-      type: 'raster',
-      source: 'osm'
-    }
-  ]
-};
+// CARTO's free "Voyager" vector style: colored roads, parks and water, and
+// place labels, so the picker looks like a real map to a non-technical
+// owner instead of the plain grey OpenStreetMap raster tiles. No API key
+// required; attribution is baked into the style itself.
+const MAP_STYLE_URL = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
 
 function buildMapUrl(lat: number, lng: number) {
   return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+function isValidLatLng(lat: number, lng: number) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
+const COORDINATE_PATTERNS = [
+  /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
+  /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+  /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/,
+  /[?&]ll=(-?\d+\.\d+),(-?\d+\.\d+)/
+];
+
+/**
+ * Reads coordinates straight out of a full Google Maps link, or out of a
+ * bare "lat,lng" pasted from Maps' own "copy coordinates" action — no
+ * network round trip needed. A shortened link (maps.app.goo.gl) has no
+ * coordinates in the URL itself, so this returns null and the caller falls
+ * back to asking the backend to resolve it.
+ */
+function extractLatLngFromText(raw: string): {lat: number; lng: number} | null {
+  for (const pattern of COORDINATE_PATTERNS) {
+    const match = raw.match(pattern);
+    if (match) {
+      const lat = Number(match[1]);
+      const lng = Number(match[2]);
+      if (isValidLatLng(lat, lng)) {
+        return {lat, lng};
+      }
+    }
+  }
+
+  const bare = raw.trim().match(/^(-?\d{1,2}(?:\.\d+)?),\s*(-?\d{1,3}(?:\.\d+)?)$/);
+  if (bare) {
+    const lat = Number(bare[1]);
+    const lng = Number(bare[2]);
+    if (isValidLatLng(lat, lng)) {
+      return {lat, lng};
+    }
+  }
+
+  return null;
+}
+
+async function resolveGoogleMapsLink(url: string): Promise<{lat: number; lng: number}> {
+  const token = getAdminToken();
+
+  return apiClient<{lat: number; lng: number}>(endpoints.admin.resolveMapsLink, {
+    method: 'POST',
+    body: {url},
+    token: token ?? undefined
+  });
 }
 
 async function reverseGeocode(lat: number, lng: number) {
@@ -180,7 +228,7 @@ function createPopupContent(label: string, lat: number, lng: number) {
   return container;
 }
 
-export default function MapPickerField({lat, lng, onChange}: Props) {
+export default function MapPickerField({lat, lng, onChange, variant = 'inline'}: Props) {
   const t = useTranslations('MapPickerField');
   const common = useTranslations('Common');
 
@@ -208,6 +256,10 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchPlaceResult[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [linkInput, setLinkInput] = useState('');
+  const [isResolvingLink, setIsResolvingLink] = useState(false);
+  const [linkError, setLinkError] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const isBusy = isLocating || isResolving;
 
@@ -324,7 +376,7 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLE,
+      style: MAP_STYLE_URL,
       center: [initialLng, initialLat],
       zoom: lat != null && lng != null ? SELECTED_ZOOM : DEFAULT_ZOOM,
       minZoom: 3,
@@ -501,15 +553,43 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
     setLocalError('');
   }
 
+  async function handleUseLink() {
+    const raw = linkInput.trim();
+    if (!raw) return;
+
+    setLinkError('');
+    setLocalError('');
+
+    const direct = extractLatLngFromText(raw);
+    if (direct) {
+      await handlePick(direct.lat, direct.lng);
+      setLinkInput('');
+      return;
+    }
+
+    setIsResolvingLink(true);
+    try {
+      const resolved = await resolveGoogleMapsLink(raw);
+      await handlePick(resolved.lat, resolved.lng);
+      setLinkInput('');
+    } catch {
+      setLinkError(t('linkResolveFailed'));
+    } finally {
+      setIsResolvingLink(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-3">
-        <div>
-          <p className="text-sm font-medium text-[var(--color-text)]">
-            {t('label')}
-          </p>
-          <p className="mt-1 text-sm text-slate-500">{t('clickHint')}</p>
-        </div>
+        {variant === 'inline' ? (
+          <div>
+            <p className="text-sm font-medium text-[var(--color-text)]">
+              {t('label')}
+            </p>
+            <p className="mt-1 text-sm text-slate-500">{t('clickHint')}</p>
+          </div>
+        ) : null}
 
         <div className="relative">
           <div className="flex h-14 items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 shadow-sm">
@@ -565,7 +645,14 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
           ) : null}
         </div>
 
-        <div className="flex justify-end">
+        <div className={variant === 'inline' ? 'flex justify-between gap-3' : 'flex justify-end'}>
+          {variant === 'inline' ? (
+            <Button type="button" variant="ghost" onClick={() => setIsExpanded(true)}>
+              <Maximize2 className="h-4 w-4" />
+              {t('expandMap')}
+            </Button>
+          ) : null}
+
           <Button
             type="button"
             variant="outline"
@@ -577,11 +664,49 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
             {t('useMyLocation')}
           </Button>
         </div>
+
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+          <p className="text-sm font-medium text-[var(--color-text)]">
+            {t('pasteLinkLabel')}
+          </p>
+          <p className="mt-1 text-sm text-slate-500">{t('pasteLinkHint')}</p>
+
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={linkInput}
+              onChange={(event) => {
+                setLinkInput(event.target.value);
+                setLinkError('');
+              }}
+              placeholder={t('pasteLinkPlaceholder')}
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+            />
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!linkInput.trim()}
+              isLoading={isResolvingLink}
+              loadingText={t('resolvingLink')}
+              onClick={handleUseLink}
+            >
+              {t('pasteLinkAction')}
+            </Button>
+          </div>
+
+          {linkError ? (
+            <p className="mt-2 text-sm text-red-600">{linkError}</p>
+          ) : null}
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
         <div className="relative">
-          <div ref={mapContainerRef} className="h-[460px] w-full" />
+          <div
+            ref={mapContainerRef}
+            className={variant === 'modal' ? 'h-[70vh] w-full' : 'h-[460px] w-full'}
+          />
 
           {isBusy ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/25 backdrop-blur-[2px]">
@@ -623,6 +748,40 @@ export default function MapPickerField({lat, lng, onChange}: Props) {
       {localError ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {localError}
+        </div>
+      ) : null}
+
+      {variant === 'inline' && isExpanded ? (
+        <div
+          className="fixed inset-0 z-[150] bg-black/50 backdrop-blur-sm"
+          onClick={() => setIsExpanded(false)}
+        >
+          <div
+            className="flex min-h-full items-center justify-center p-4"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="w-full max-w-5xl rounded-[32px] bg-white p-5 shadow-2xl md:p-6">
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-black text-slate-950">
+                    {t('expandedTitle')}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">{t('clickHint')}</p>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsExpanded(false)}
+                >
+                  {t('doneButton')}
+                </Button>
+              </div>
+
+              <MapPickerField lat={lat} lng={lng} onChange={onChange} variant="modal" />
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

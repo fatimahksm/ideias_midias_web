@@ -8,6 +8,7 @@ export type AdminNavigationKey =
   | 'media'
   | 'contactMethods'
   | 'themeSettings'
+  | 'dataImport'
   | 'adminUsers';
 
 export type AdminNavigationItem = {
@@ -21,6 +22,7 @@ export type AdminNavigationItem = {
     | '/admin/media'
     | '/admin/contact-methods'
     | '/admin/theme-settings'
+    | '/admin/data-import'
     | '/admin/users';
   visibleFor?: AdminRole[];
 };
@@ -60,6 +62,11 @@ export const adminNavigation: AdminNavigationItem[] = [
     key: 'themeSettings',
     labelKey: 'themeSettings',
     href: '/admin/theme-settings'
+  },
+  {
+    key: 'dataImport',
+    labelKey: 'dataImport',
+    href: '/admin/data-import'
   },
   {
     key: 'adminUsers',

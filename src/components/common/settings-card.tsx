@@ -17,7 +17,7 @@ export function SettingsCard({
   return (
     <section
       className={cn(
-        'rounded-3xl border border-slate-200 bg-white p-6 shadow-sm',
+        'rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm',
         className
       )}
     >

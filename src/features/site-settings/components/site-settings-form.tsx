@@ -18,6 +18,7 @@ import {MediaUploadField} from '@/features/media-library/components/media-upload
 import {siteSettingsSchema, type SiteSettingsFormValues} from '../schema';
 import {getAdminSiteSettings, updateAdminSiteSettings} from '../api';
 import type {SiteSettingsPayload, SiteSettingsResponse} from '../types';
+import {CopyButton} from '@/components/common/copy-button';
 
 const MapPickerField = dynamic(
   () => import('@/components/common/map-picker-field'),
@@ -70,24 +71,6 @@ function LanguageBadge({
       </span>
       {label}
     </span>
-  );
-}
-
-function CopyButton({
-  children,
-  onClick
-}: {
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
-    >
-      {children}
-    </button>
   );
 }
 

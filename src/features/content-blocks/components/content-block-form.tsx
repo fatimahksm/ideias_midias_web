@@ -29,6 +29,7 @@ import {contentBlockSchema, type ContentBlockFormValues} from '../schema';
 import type {SectionContentBlockPayload} from '../types';
 import {emptyToNull, getNextContentBlockSortOrder} from '../utils';
 import {ContentBlockFormSidebar} from './content-block-form-sidebar';
+import {CopyButton} from '@/components/common/copy-button';
 
 type Props = {
   mode: 'create' | 'edit';
@@ -72,24 +73,6 @@ function LanguageBadge({
       </span>
       {label}
     </span>
-  );
-}
-
-function CopyButton({
-  children,
-  onClick
-}: {
-  children: ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
-    >
-      {children}
-    </button>
   );
 }
 

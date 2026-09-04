@@ -92,12 +92,12 @@ export default function MediaLibraryManager() {
 
   return (
     <div className="space-y-6">
-      <MediaLibraryUploader
-        onUploaded={() => {
-          setFeedbackTone('success');
-          setFeedback(t('uploadSuccess'));
-        }}
-      />
+      {/*
+        The uploader now handles a batch of files and shows its own
+        progress and any per-file failures inline, so a blanket "uploaded
+        successfully" banner here would be wrong when some files fail.
+      */}
+      <MediaLibraryUploader />
 
       <SettingsCard
         title={t('libraryCardTitle')}

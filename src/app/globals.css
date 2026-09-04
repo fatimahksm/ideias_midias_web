@@ -9,13 +9,19 @@
   --color-text: #0f172a;
   --color-hero-overlay: rgba(15, 23, 42, 0.65);
 
-  --color-surface: color-mix(in srgb, white 78%, var(--color-background));
+  /*
+   * Cards/panels are the majority of what's actually on screen, so a weak
+   * mix here means changing Background Color barely shows anywhere except
+   * the thin gaps between cards. Weighted toward the owner's color instead
+   * of toward white, so picking a color visibly changes the whole page.
+   */
+  --color-surface: color-mix(in srgb, var(--color-background) 55%, white);
   --color-surface-muted: color-mix(
     in srgb,
     var(--color-background) 88%,
     var(--color-secondary) 12%
   );
-  --color-surface-soft: color-mix(in srgb, white 92%, var(--color-background));
+  --color-surface-soft: color-mix(in srgb, var(--color-background) 35%, white);
   --color-border: color-mix(in srgb, var(--color-text) 12%, transparent);
   --color-text-muted: color-mix(in srgb, var(--color-text) 72%, transparent);
   --color-primary-soft: color-mix(in srgb, var(--color-primary) 10%, white);

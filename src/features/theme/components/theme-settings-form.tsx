@@ -12,6 +12,7 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {applyThemeVariables} from '@/lib/theme/css-variables';
 import {defaultTheme} from '@/lib/theme/default-theme';
+import {deriveTheme} from '@/lib/theme/derive-theme';
 import type {ThemeSettings} from '@/lib/theme/types';
 import {
   getAdminThemeSettings,
@@ -37,15 +38,14 @@ function ColorField({
   value,
   onChange
 }: ColorFieldProps) {
-  const normalizedValue =
-    /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(value) ? value : '#000000';
+  const normalizedValue = /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#000000';
 
   return (
     <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-start gap-3">
         <input
           type="color"
-          value={normalizedValue.slice(0, 7)}
+          value={normalizedValue}
           onChange={(event) => onChange(event.target.value)}
           className="h-12 w-14 cursor-pointer rounded-lg border border-slate-200 bg-white p-1"
           aria-label={label}
@@ -67,30 +67,25 @@ function ColorField({
 }
 
 function ThemePreview({
-  values,
+  derivedTheme,
   t
 }: {
-  values: ThemeSettingsFormValues;
+  derivedTheme: ThemeSettings;
   t: ReturnType<typeof useTranslations<'ThemeSettingsForm'>>;
 }) {
-  const previewTheme = {
-    ...defaultTheme,
-    ...values
-  };
-
   return (
     <div
       className="rounded-3xl border p-5 shadow-sm"
       style={{
-        backgroundColor: previewTheme.backgroundColor,
-        color: previewTheme.textColor,
-        borderColor: previewTheme.secondaryColor
+        backgroundColor: derivedTheme.backgroundColor,
+        color: derivedTheme.textColor,
+        borderColor: derivedTheme.secondaryColor
       }}
     >
       <div
         className="rounded-3xl p-6"
         style={{
-          background: `linear-gradient(135deg, ${previewTheme.heroOverlayColor}, ${previewTheme.secondaryColor})`,
+          background: `linear-gradient(135deg, ${derivedTheme.heroOverlayColor}, ${derivedTheme.secondaryColor})`,
           color: '#ffffff'
         }}
       >
@@ -105,7 +100,7 @@ function ThemePreview({
             type="button"
             className="rounded-xl px-4 py-2 text-sm font-medium"
             style={{
-              backgroundColor: previewTheme.primaryColor,
+              backgroundColor: derivedTheme.primaryColor,
               color: '#ffffff'
             }}
           >
@@ -116,9 +111,9 @@ function ThemePreview({
             type="button"
             className="rounded-xl border px-4 py-2 text-sm font-medium"
             style={{
-              borderColor: '#ffffff',
-              color: '#ffffff',
-              backgroundColor: 'transparent'
+              backgroundColor: derivedTheme.accentColor,
+              borderColor: derivedTheme.accentColor,
+              color: '#ffffff'
             }}
           >
             {t('previewSecondaryButton')}
@@ -127,20 +122,27 @@ function ThemePreview({
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {[
-          ['primaryColor', values.primaryColor],
-          ['secondaryColor', values.secondaryColor],
-          ['accentColor', values.accentColor],
-          ['backgroundColor', values.backgroundColor],
-          ['textColor', values.textColor],
-          ['heroOverlayColor', values.heroOverlayColor]
-        ].map(([key, value]) => (
+        {(
+          [
+            ['primaryColor', derivedTheme.primaryColor, false],
+            ['secondaryColor', derivedTheme.secondaryColor, true],
+            ['accentColor', derivedTheme.accentColor, true],
+            ['backgroundColor', derivedTheme.backgroundColor, true],
+            ['textColor', derivedTheme.textColor, false],
+            ['heroOverlayColor', derivedTheme.heroOverlayColor, true]
+          ] as const
+        ).map(([key, value, isDerived]) => (
           <div
             key={key}
             className="rounded-2xl border border-slate-200 bg-white p-3"
           >
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              {t(key as keyof ThemeSettingsFormValues)}
+            <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              {t(key)}
+              {isDerived ? (
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-slate-500">
+                  {t('autoLabel')}
+                </span>
+              ) : null}
             </p>
             <div className="flex items-center gap-3">
               <span
@@ -172,7 +174,10 @@ export default function ThemeSettingsForm() {
     formState: {errors, isSubmitting}
   } = useForm<ThemeSettingsFormValues>({
     resolver: zodResolver(themeSettingsSchema),
-    defaultValues: defaultTheme
+    defaultValues: {
+      primaryColor: defaultTheme.primaryColor,
+      textColor: defaultTheme.textColor
+    }
   });
 
   const themeQuery = useQuery({
@@ -185,25 +190,26 @@ export default function ThemeSettingsForm() {
 
     reset({
       primaryColor: themeQuery.data.primaryColor || defaultTheme.primaryColor,
-      secondaryColor:
-        themeQuery.data.secondaryColor || defaultTheme.secondaryColor,
-      accentColor: themeQuery.data.accentColor || defaultTheme.accentColor,
-      backgroundColor:
-        themeQuery.data.backgroundColor || defaultTheme.backgroundColor,
-      textColor: themeQuery.data.textColor || defaultTheme.textColor,
-      heroOverlayColor:
-        themeQuery.data.heroOverlayColor || defaultTheme.heroOverlayColor
+      textColor: themeQuery.data.textColor || defaultTheme.textColor
     });
   }, [reset, themeQuery.data]);
 
-  const themeValues = watch();
+  const watchedValues = watch();
+
+  const derivedTheme = useMemo(
+    () => deriveTheme(watchedValues.primaryColor, watchedValues.textColor),
+    [watchedValues.primaryColor, watchedValues.textColor]
+  );
 
   const saveMutation = useMutation({
     mutationFn: updateAdminThemeSettings,
     onSuccess: (savedTheme) => {
       setServerError('');
       setSuccessMessage(t('saveSuccess'));
-      reset(savedTheme);
+      reset({
+        primaryColor: savedTheme.primaryColor,
+        textColor: savedTheme.textColor
+      });
       applyThemeVariables({
         ...defaultTheme,
         ...savedTheme
@@ -220,20 +226,8 @@ export default function ThemeSettingsForm() {
       primaryColor: errors.primaryColor?.message
         ? t(errors.primaryColor.message as never)
         : undefined,
-      secondaryColor: errors.secondaryColor?.message
-        ? t(errors.secondaryColor.message as never)
-        : undefined,
-      accentColor: errors.accentColor?.message
-        ? t(errors.accentColor.message as never)
-        : undefined,
-      backgroundColor: errors.backgroundColor?.message
-        ? t(errors.backgroundColor.message as never)
-        : undefined,
       textColor: errors.textColor?.message
         ? t(errors.textColor.message as never)
-        : undefined,
-      heroOverlayColor: errors.heroOverlayColor?.message
-        ? t(errors.heroOverlayColor.message as never)
         : undefined
     }),
     [errors, t]
@@ -242,7 +236,8 @@ export default function ThemeSettingsForm() {
   async function onSubmit(values: ThemeSettingsFormValues) {
     setServerError('');
     setSuccessMessage('');
-    await saveMutation.mutateAsync(values as ThemeSettings);
+    const fullTheme = deriveTheme(values.primaryColor, values.textColor);
+    await saveMutation.mutateAsync(fullTheme);
   }
 
   if (themeQuery.isPending) {
@@ -283,48 +278,6 @@ export default function ThemeSettingsForm() {
           />
 
           <Controller
-            name="secondaryColor"
-            control={control}
-            render={({field}) => (
-              <ColorField
-                label={t('secondaryColor')}
-                hint={t('secondaryColorHint')}
-                error={fieldErrors.secondaryColor}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-
-          <Controller
-            name="accentColor"
-            control={control}
-            render={({field}) => (
-              <ColorField
-                label={t('accentColor')}
-                hint={t('accentColorHint')}
-                error={fieldErrors.accentColor}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-
-          <Controller
-            name="backgroundColor"
-            control={control}
-            render={({field}) => (
-              <ColorField
-                label={t('backgroundColor')}
-                hint={t('backgroundColorHint')}
-                error={fieldErrors.backgroundColor}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-
-          <Controller
             name="textColor"
             control={control}
             render={({field}) => (
@@ -337,20 +290,6 @@ export default function ThemeSettingsForm() {
               />
             )}
           />
-
-          <Controller
-            name="heroOverlayColor"
-            control={control}
-            render={({field}) => (
-              <ColorField
-                label={t('heroOverlayColor')}
-                hint={t('heroOverlayColorHint')}
-                error={fieldErrors.heroOverlayColor}
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
         </div>
       </SettingsCard>
 
@@ -358,7 +297,7 @@ export default function ThemeSettingsForm() {
         title={t('previewCardTitle')}
         description={t('previewCardDescription')}
       >
-        <ThemePreview values={themeValues} t={t} />
+        <ThemePreview derivedTheme={derivedTheme} t={t} />
       </SettingsCard>
 
       {serverError ? (

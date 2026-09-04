@@ -17,7 +17,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   secondary:
     'bg-[var(--color-secondary)] text-white hover:opacity-90 disabled:opacity-50',
   outline:
-    'border border-[var(--color-primary)] bg-white text-[var(--color-primary)] hover:bg-slate-50 disabled:opacity-50',
+    'border border-[var(--color-primary)] bg-white text-[var(--color-primary)] hover:bg-[color-mix(in_srgb,var(--color-primary)_8%,white)] disabled:opacity-50',
   danger:
     'bg-red-600 text-white hover:bg-red-700 disabled:opacity-50',
   ghost:
