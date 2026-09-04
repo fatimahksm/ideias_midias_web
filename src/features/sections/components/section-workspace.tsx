@@ -22,11 +22,11 @@ type Props = {
 
 function InfoCard({label, value}: {label: string; value: string | number}) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-        {label}
-      </p>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
+    <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+        {label}:
+      </span>
+      <span className="text-xs font-semibold text-slate-800">{value}</span>
     </div>
   );
 }
@@ -82,32 +82,31 @@ export function SectionWorkspace({sectionId}: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-1.5">
               <SectionTypeBadge type={section.sectionType} />
               <SectionStatusBadge isActive={section.isActive} />
-            </div>
-
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-slate-900">
+              <h2 className="truncate text-base font-semibold text-slate-900">
                 {section.nameEn}
               </h2>
-              <p className="text-sm font-medium text-slate-500">
+              <span className="truncate text-xs text-slate-400">
                 {section.namePt}
-              </p>
+              </span>
             </div>
 
-            <p className="max-w-3xl text-sm leading-6 text-slate-600">
-              {section.descriptionEn ||
-                section.descriptionPt ||
-                sectionsCommon(`types.${section.sectionType}.description`)}
-            </p>
+            <div className="flex flex-wrap gap-1.5">
+              <InfoCard
+                label={t('contentModeLabel')}
+                value={sectionsCommon(`types.${section.sectionType}.shortMode`)}
+              />
+              <InfoCard label={t('sortOrderLabel')} value={section.sortOrder} />
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex shrink-0 flex-wrap gap-2">
             <Link href={`/admin/sections/${section.id}/edit`}>
               <Button type="button" variant="outline" size="sm">
                 {t('editSection')}
@@ -121,18 +120,10 @@ export function SectionWorkspace({sectionId}: Props) {
             </a>
           </div>
         </div>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <InfoCard
-            label={t('contentModeLabel')}
-            value={sectionsCommon(`types.${section.sectionType}.shortMode`)}
-          />
-          <InfoCard label={t('sortOrderLabel')} value={section.sortOrder} />
-        </div>
       </div>
 
       {section.sectionType === 'CATEGORY_ITEMS' ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('CATEGORY_ITEMS.embeddedTitle')}
           </h3>
@@ -143,7 +134,7 @@ export function SectionWorkspace({sectionId}: Props) {
       ) : null}
 
       {section.sectionType === 'DIRECT_ITEMS' ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('DIRECT_ITEMS.embeddedTitle')}
           </h3>
@@ -153,7 +144,7 @@ export function SectionWorkspace({sectionId}: Props) {
       ) : null}
 
       {section.sectionType === 'CONTENT' ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('CONTENT.embeddedTitle')}
           </h3>
@@ -163,7 +154,7 @@ export function SectionWorkspace({sectionId}: Props) {
       ) : null}
 
       {section.sectionType === 'PORTFOLIO' ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <h3 className="text-lg font-semibold text-slate-900">
             {t('PORTFOLIO.embeddedTitle')}
           </h3>
