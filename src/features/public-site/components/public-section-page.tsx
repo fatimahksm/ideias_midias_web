@@ -5,6 +5,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {useTranslations} from 'next-intl';
 import {
   ArrowLeft,
+  ArrowRight,
   CalendarDays,
   CircleX,
   FileText,
@@ -235,13 +236,16 @@ function ContentBlocksSection({
         viewport={{once: true, amount: 0.12}}
         className="space-y-10"
       >
-        {blocks.map((block) => {
+        {blocks.map((block, index) => {
           const title =
             getLocalizedValue(locale, block.titlePt, block.titleEn) || '';
           const subtitle =
             getLocalizedValue(locale, block.subtitlePt, block.subtitleEn) || '';
           const content =
             getLocalizedValue(locale, block.contentPt, block.contentEn) || '';
+          const hasMedia = Boolean(
+            resolveMediaUrl(block.imageUrl) || resolveMediaUrl(block.videoUrl)
+          );
 
           return (
             <motion.div
@@ -257,20 +261,41 @@ function ContentBlocksSection({
               />
 
               <div className="p-8 md:p-10">
+                {!hasMedia ? (
+                  <div className="mb-5 flex items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                      <FileText className="h-5 w-5" />
+                    </span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-primary)]">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+                ) : null}
+
+                {subtitle && !hasMedia ? (
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">
+                    {subtitle}
+                  </p>
+                ) : null}
+
                 {title ? (
                   <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950 md:text-4xl">
                     {title}
                   </h2>
                 ) : null}
 
-                {subtitle ? (
+                {subtitle && hasMedia ? (
                   <p className="mt-3 text-lg font-medium text-slate-700">
                     {subtitle}
                   </p>
                 ) : null}
 
                 {content ? (
-                  <div className="mt-5 whitespace-pre-line text-base leading-8 text-slate-600">
+                  <div
+                    className={`whitespace-pre-line text-base leading-8 text-slate-600 ${
+                      hasMedia ? 'mt-5' : 'mt-4 max-w-3xl'
+                    }`}
+                  >
                     {content}
                   </div>
                 ) : null}
@@ -329,51 +354,41 @@ function ItemCard({
               fill
               className="object-cover transition duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/0 to-transparent" />
           </>
         ) : (
-          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
-            {noImageLabel}
+          <div className="flex h-full flex-col items-center justify-center gap-2 bg-slate-50 text-slate-300">
+            <Package className="h-10 w-10" strokeWidth={1.5} />
+            <span className="text-xs font-medium text-slate-400">{noImageLabel}</span>
           </div>
         )}
 
-        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-          {item.isFeatured ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
-              <Star className="h-3.5 w-3.5" />
-              {featuredLabel}
-            </div>
-          ) : (
-            <div />
-          )}
-
-          <div className="rounded-full bg-slate-950/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur">
-            {detailsLabel}
+        {item.isFeatured ? (
+          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
+            <Star className="h-3.5 w-3.5" />
+            {featuredLabel}
           </div>
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          <h3 className="text-2xl font-black tracking-[-0.03em] text-white drop-shadow-sm">
-            {title}
-          </h3>
-        </div>
+        ) : null}
       </div>
 
-      <div className="space-y-4 p-6">
+      <div className="space-y-3 p-6">
+        <h3 className="text-xl font-black tracking-[-0.02em] text-slate-950">
+          {title}
+        </h3>
+
         {shortDescription ? (
           <p className="line-clamp-3 text-base leading-7 text-slate-600">
             {shortDescription}
           </p>
-        ) : (
-          <p className="text-sm text-slate-400">{detailsLabel}</p>
-        )}
+        ) : null}
 
         <div className="flex items-center justify-between border-t border-slate-100 pt-4">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
             {itemLabel}
           </span>
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]">
             {detailsLabel}
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </span>
         </div>
       </div>
@@ -386,11 +401,9 @@ function ProjectCard({
   project,
   onOpen,
   featuredLabel,
-  detailsLabel,
   noImageLabel,
   untitledLabel,
   portfolioLabel,
-  portfolioProjectLabel,
   visitProjectLabel,
   notAvailableLabel
 }: {
@@ -398,11 +411,9 @@ function ProjectCard({
   project: PortfolioProjectResponse;
   onOpen: (project: PortfolioProjectResponse) => void;
   featuredLabel: string;
-  detailsLabel: string;
   noImageLabel: string;
   untitledLabel: string;
   portfolioLabel: string;
-  portfolioProjectLabel: string;
   visitProjectLabel: string;
   notAvailableLabel: string;
 }) {
@@ -433,52 +444,42 @@ function ProjectCard({
               fill
               className="object-cover transition duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/0 to-transparent" />
           </>
         ) : (
-          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
-            {noImageLabel}
+          <div className="flex h-full flex-col items-center justify-center gap-2 bg-slate-50 text-slate-300">
+            <FolderKanban className="h-10 w-10" strokeWidth={1.5} />
+            <span className="text-xs font-medium text-slate-400">{noImageLabel}</span>
           </div>
         )}
 
-        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-          {project.isFeatured ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
-              <Star className="h-3.5 w-3.5" />
-              {featuredLabel}
-            </div>
-          ) : (
-            <div />
-          )}
-
-          <div className="rounded-full bg-slate-950/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur">
-            {detailsLabel}
+        {project.isFeatured ? (
+          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
+            <Star className="h-3.5 w-3.5" />
+            {featuredLabel}
           </div>
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          <h3 className="text-2xl font-black tracking-[-0.03em] text-white drop-shadow-sm">
-            {title}
-          </h3>
-        </div>
+        ) : null}
       </div>
 
-      <div className="space-y-4 p-6">
+      <div className="space-y-3 p-6">
+        <h3 className="text-xl font-black tracking-[-0.02em] text-slate-950">
+          {title}
+        </h3>
+
         {shortDescription ? (
           <p className="line-clamp-3 text-base leading-7 text-slate-600">
             {shortDescription}
           </p>
-        ) : (
-          <p className="text-sm text-slate-400">{portfolioProjectLabel}</p>
-        )}
+        ) : null}
 
         <div className="flex items-center justify-between border-t border-slate-100 pt-4">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
             {portfolioLabel}
           </span>
 
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]">
             {project.projectUrl ? visitProjectLabel : notAvailableLabel}
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </span>
         </div>
       </div>
@@ -1385,11 +1386,9 @@ export default function PublicSectionPage({locale, data}: Props) {
                       setActiveModal({type: 'project', project: value})
                     }
                     featuredLabel={t('featured')}
-                    detailsLabel={t('details')}
                     noImageLabel={t('noImage')}
                     untitledLabel={t('untitled')}
                     portfolioLabel={t('portfolioLabel')}
-                    portfolioProjectLabel={t('portfolioProjectLabel')}
                     visitProjectLabel={t('visitProject')}
                     notAvailableLabel={t('notAvailable')}
                   />
