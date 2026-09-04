@@ -1117,7 +1117,6 @@ export default function PublicSectionPage({locale, data}: Props) {
     [itemsQuery.data]
   );
 
-  const totalItems = itemsQuery.data?.pages[0]?.totalElements ?? 0;
   const selectedCategoryItems = loadedItems;
 
   return (
@@ -1210,51 +1209,27 @@ export default function PublicSectionPage({locale, data}: Props) {
             </motion.div>
           ) : null}
 
-          {selectedCategory ? (
-            <motion.div
-  initial={{opacity: 0, y: 20}}
-  whileInView={{opacity: 1, y: 0}}
-  viewport={{once: true, amount: 0.2}}
-  transition={{duration: 0.5}}
-  className="mb-8 flex flex-wrap gap-3"
->
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                    <Layers3 className="h-3.5 w-3.5" />
-                    {t('categoryLabel')}
-                  </div>
-
-                  <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
-                    {getLocalizedValue(
-                      locale,
-                      selectedCategory.namePt,
-                      selectedCategory.nameEn
-                    ) || t('categoryLabel')}
-                  </h3>
-
-                  {hasMeaningfulText(
-                    getLocalizedValue(
-                      locale,
-                      selectedCategory.descriptionPt,
-                      selectedCategory.descriptionEn
-                    )
-                  ) ? (
-                    <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--color-text-muted)]">
-                      {getLocalizedValue(
-                        locale,
-                        selectedCategory.descriptionPt,
-                        selectedCategory.descriptionEn
-                      )}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="inline-flex h-12 min-w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 text-sm font-bold text-[var(--color-text)]">
-                  {totalItems}
-                </div>
-              </div>
-            </motion.div>
+          {selectedCategory &&
+          hasMeaningfulText(
+            getLocalizedValue(
+              locale,
+              selectedCategory.descriptionPt,
+              selectedCategory.descriptionEn
+            )
+          ) ? (
+            <motion.p
+              initial={{opacity: 0, y: 20}}
+              whileInView={{opacity: 1, y: 0}}
+              viewport={{once: true, amount: 0.2}}
+              transition={{duration: 0.5}}
+              className="mb-8 max-w-3xl text-base leading-8 text-[var(--color-text-muted)]"
+            >
+              {getLocalizedValue(
+                locale,
+                selectedCategory.descriptionPt,
+                selectedCategory.descriptionEn
+              )}
+            </motion.p>
           ) : null}
 
           {selectedCategoryItems.length ? (
