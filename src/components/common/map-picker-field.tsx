@@ -15,7 +15,7 @@ import {Button} from '@/components/ui/button';
 import {apiClient} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
-import {OSM_RASTER_STYLE} from '@/lib/map/tile-style';
+import {SATELLITE_RASTER_STYLE} from '@/lib/map/tile-style';
 
 type MapPickerValue = {
   lat: number;
@@ -371,7 +371,7 @@ export default function MapPickerField({lat, lng, onChange, variant = 'inline'}:
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: OSM_RASTER_STYLE,
+      style: SATELLITE_RASTER_STYLE,
       center: [initialLng, initialLat],
       zoom: lat != null && lng != null ? SELECTED_ZOOM : DEFAULT_ZOOM,
       minZoom: 3,

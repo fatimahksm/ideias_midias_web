@@ -1,33 +1,41 @@
 import type {StyleSpecification} from 'maplibre-gl';
 
 /**
- * Plain OpenStreetMap raster tiles — used by both the admin location picker
- * and the public map so they show the same data. A prettier vector style
- * (CARTO Voyager) was tried for the admin picker, but its place-label
- * coverage is much thinner outside a handful of major cities, so a real
- * address can end up on an almost blank map. Standard OSM tiles carry the
- * richer local data (street names, shops, landmarks) everywhere the public
- * map already relies on.
+ * Satellite photo tiles with place/road labels on top — used by both the
+ * admin location picker and the public map so they show the same view,
+ * closer to how Google Maps' satellite mode looks. Esri's World Imagery +
+ * World Boundaries and Places services are free to use and need no API key
+ * or account, unlike Google Maps tiles.
  */
-export const OSM_RASTER_STYLE: StyleSpecification = {
+export const SATELLITE_RASTER_STYLE: StyleSpecification = {
   version: 8,
   sources: {
-    osm: {
+    'esri-imagery': {
       type: 'raster',
       tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
       ],
       tileSize: 256,
-      attribution: '© OpenStreetMap contributors'
+      attribution: 'Esri, Maxar, Earthstar Geographics'
+    },
+    'esri-labels': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256
     }
   },
   layers: [
     {
-      id: 'osm',
+      id: 'esri-imagery',
       type: 'raster',
-      source: 'osm'
+      source: 'esri-imagery'
+    },
+    {
+      id: 'esri-labels',
+      type: 'raster',
+      source: 'esri-labels'
     }
   ]
 };
