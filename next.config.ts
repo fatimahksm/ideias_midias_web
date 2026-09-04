@@ -51,12 +51,24 @@ const localPatterns: RemotePattern[] = [
   }
 ];
 
+// Media is served directly from Cloudflare R2's public dev URL
+// (pub-<hash>.r2.dev), not proxied through the backend, so it needs its
+// own allowlist entry regardless of which bucket is configured.
+const r2Patterns: RemotePattern[] = [
+  {
+    protocol: 'https',
+    hostname: '*.r2.dev',
+    pathname: '/**'
+  }
+];
+
 const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowLocalIP: !isProduction,
     remotePatterns: [
       ...localPatterns,
-      ...dynamicPatterns
+      ...dynamicPatterns,
+      ...r2Patterns
     ],
     formats: ['image/webp', 'image/avif']
   }
