@@ -1,14 +1,9 @@
 'use client';
 
-import {Pencil} from 'lucide-react';
-import {useLocale, useTranslations} from 'next-intl';
-import {Button} from '@/components/ui/button';
+import {Copy, ExternalLink, LoaderCircle, Pencil, Trash2} from 'lucide-react';
+import {useTranslations} from 'next-intl';
 import type {MediaLibraryItem} from '../types';
-import {
-  formatFileSize,
-  formatMediaDate,
-  resolveMediaUrl
-} from '../utils';
+import {resolveMediaUrl} from '../utils';
 
 type Props = {
   item: MediaLibraryItem;
@@ -19,8 +14,8 @@ type Props = {
   onDelete: (item: MediaLibraryItem) => void;
 };
 
-const anchorClassName =
-  'inline-flex h-9 items-center justify-center rounded-xl border border-[var(--color-primary)] bg-white px-3 text-sm font-medium text-[var(--color-primary)] transition hover:bg-slate-50';
+const iconButtonClassName =
+  'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-50';
 
 export function MediaLibraryCard({
   item,
@@ -32,13 +27,12 @@ export function MediaLibraryCard({
 }: Props) {
   const t = useTranslations('MediaLibraryManager');
   const common = useTranslations('Common');
-  const locale = useLocale();
 
   const previewUrl = resolveMediaUrl(item.fileUrl);
 
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div className="h-56 overflow-hidden bg-slate-100">
+      <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100">
         {previewUrl ? (
           item.fileType === 'VIDEO' ? (
             <video
@@ -60,76 +54,61 @@ export function MediaLibraryCard({
         )}
       </div>
 
-      <div className="space-y-4 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold text-slate-900">
-              {item.originalName}
-            </h3>
-            <p className="truncate text-xs text-slate-500">{item.fileName}</p>
-          </div>
+      <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-3 py-2">
+        <p
+          className="min-w-0 truncate text-sm font-medium text-slate-800"
+          title={item.originalName}
+        >
+          {item.originalName}
+        </p>
 
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-            {item.fileType === 'IMAGE' ? t('imageType') : t('videoType')}
-          </span>
-        </div>
-
-        <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-2xl bg-slate-50 p-3">
-            <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              {t('fileSizeLabel')}
-            </dt>
-            <dd className="mt-1 text-slate-800">
-              {formatFileSize(item.fileSize)}
-            </dd>
-          </div>
-
-          <div className="rounded-2xl bg-slate-50 p-3">
-            <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              {t('uploadedLabel')}
-            </dt>
-            <dd className="mt-1 text-slate-800">
-              {formatMediaDate(item.createdAt, locale)}
-            </dd>
-          </div>
-        </dl>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
+        <div className="flex shrink-0 items-center gap-0.5">
+          <button
             type="button"
-            className="w-full grow sm:w-auto sm:grow-0"
+            title={t('copyUrl')}
             onClick={() => onCopyUrl(item)}
+            className={iconButtonClassName}
           >
-            {t('copyUrl')}
-          </Button>
+            <Copy className="h-4 w-4" />
+          </button>
 
           {item.fileType === 'IMAGE' ? (
-            <Button
+            <button
               type="button"
-              variant="outline"
+              title={t('editButton')}
               onClick={() => onEdit(item)}
+              className={iconButtonClassName}
             >
               <Pencil className="h-4 w-4" />
-              {t('editButton')}
-            </Button>
+            </button>
           ) : null}
 
           {previewUrl ? (
-            <a href={previewUrl} target="_blank" rel="noreferrer" className={anchorClassName}>
-              {t('openFile')}
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noreferrer"
+              title={t('openFile')}
+              className={iconButtonClassName}
+            >
+              <ExternalLink className="h-4 w-4" />
             </a>
           ) : null}
 
           {canDelete ? (
-            <Button
+            <button
               type="button"
-              variant="danger"
-              isLoading={isDeleting}
-              loadingText={common('loading')}
+              title={common('delete')}
+              disabled={isDeleting}
               onClick={() => onDelete(item)}
+              className={`${iconButtonClassName} hover:bg-red-50 hover:text-red-600`}
             >
-              {common('delete')}
-            </Button>
+              {isDeleting ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+            </button>
           ) : null}
         </div>
       </div>

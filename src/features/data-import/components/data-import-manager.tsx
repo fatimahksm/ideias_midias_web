@@ -2,6 +2,7 @@
 
 import {Fragment, useMemo, useRef, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
+import {ChevronDown, ChevronUp} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
 import {SettingsCard} from '@/components/common/settings-card';
@@ -398,7 +399,7 @@ function SheetReview({
                 </th>
               ))}
               {secondaryFields.length > 0 ? (
-                <th className="border-b border-slate-200 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500" />
+                <th className="w-10 border-b border-l border-slate-200 bg-slate-50" />
               ) : null}
             </tr>
           </thead>
@@ -446,12 +447,17 @@ function SheetReview({
                     ))}
 
                     {secondaryFields.length > 0 ? (
-                      <td className={`px-2.5 py-1.5 align-top ${rowBg}`}>
+                      <td className={`border-l border-slate-100 px-1.5 py-1.5 align-top ${rowBg}`}>
                         <button
                           type="button"
                           onClick={() => toggleRow(row.rowNumber)}
-                          className="whitespace-nowrap text-xs font-medium text-[var(--color-primary)] underline-offset-2 hover:underline"
+                          className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
                         >
+                          {isExpanded ? (
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          ) : (
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          )}
                           {isExpanded ? t('hideMoreFields') : t('showMoreFields')}
                         </button>
                       </td>
@@ -537,7 +543,11 @@ function FieldEditor({
               <img src={resolvedUrl} alt="" className="h-full w-full object-cover" />
             )}
           </div>
-        ) : null}
+        ) : (
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-slate-50 text-center text-[8px] leading-tight text-slate-400">
+            {t('noImage')}
+          </div>
+        )}
 
         <button
           type="button"
