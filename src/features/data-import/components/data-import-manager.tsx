@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useRef, useState} from 'react';
+import {Fragment, useMemo, useRef, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
@@ -334,6 +334,8 @@ function SheetReview({
   clearOverride,
   onPickMedia
 }: SheetReviewProps) {
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
   const errorsByRow = useMemo(() => {
     const map = new Map<number, string>();
     for (const err of sheet.errors) {
@@ -341,6 +343,37 @@ function SheetReview({
     }
     return map;
   }, [sheet.errors]);
+
+  // Only the fields that matter at a glance (required ones, plus images —
+  // the main thing this screen is for editing) get their own column; every
+  // optional text/number field is one click away instead of stretching the
+  // table with columns most rows leave blank.
+  const primaryFields = useMemo(
+    () =>
+      sheet.fieldsMeta.filter(
+        (meta) => meta.required || meta.type === 'IMAGE' || meta.type === 'VIDEO'
+      ),
+    [sheet.fieldsMeta]
+  );
+  const secondaryFields = useMemo(
+    () =>
+      sheet.fieldsMeta.filter(
+        (meta) => !meta.required && meta.type !== 'IMAGE' && meta.type !== 'VIDEO'
+      ),
+    [sheet.fieldsMeta]
+  );
+
+  function toggleRow(rowNumber: number) {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowNumber)) {
+        next.delete(rowNumber);
+      } else {
+        next.add(rowNumber);
+      }
+      return next;
+    });
+  }
 
   return (
     <div>
@@ -355,7 +388,7 @@ function SheetReview({
               <th className="sticky left-0 z-10 border-b border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {t('rowNumberColumn')}
               </th>
-              {sheet.fieldsMeta.map((meta) => (
+              {primaryFields.map((meta) => (
                 <th
                   key={meta.field}
                   className="border-b border-slate-200 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
@@ -364,6 +397,9 @@ function SheetReview({
                   {meta.required ? ' *' : ''}
                 </th>
               ))}
+              {secondaryFields.length > 0 ? (
+                <th className="border-b border-slate-200 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500" />
+              ) : null}
             </tr>
           </thead>
 
@@ -372,41 +408,88 @@ function SheetReview({
               const rowError = errorsByRow.get(row.rowNumber);
               const sectionSlugForFiltering = fieldValue(sheet.sheet, row, 'section_slug');
               const rowBg = rowError ? 'bg-red-50/60' : 'bg-white';
+              const isExpanded = expandedRows.has(row.rowNumber);
 
               return (
-                <tr key={row.rowNumber} className="border-b border-slate-100 last:border-b-0">
-                  <td className={`sticky left-0 z-10 px-2.5 py-1.5 align-top ${rowBg}`}>
-                    <p className="text-sm font-medium text-slate-800">#{row.rowNumber}</p>
-                    {rowError ? (
-                      <p className="mt-1 max-w-[12rem] text-xs text-red-700">{rowError}</p>
-                    ) : null}
-                  </td>
-
-                  {sheet.fieldsMeta.map((meta) => (
-                    <td key={meta.field} className={`px-2.5 py-1.5 align-top ${rowBg}`}>
-                      <FieldEditor
-                        meta={meta}
-                        value={fieldValue(sheet.sheet, row, meta.field)}
-                        options={sheet.fieldOptions[meta.field] ?? []}
-                        groupFilter={
-                          meta.field === 'category_name_en' ? sectionSlugForFiltering : undefined
-                        }
-                        t={t}
-                        onChange={(value) =>
-                          setOverride(sheet.sheet, row.rowNumber, meta.field, value)
-                        }
-                        onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
-                        onPickMedia={() =>
-                          onPickMedia(
-                            row.rowNumber,
-                            meta.field,
-                            meta.type === 'VIDEO' ? 'VIDEO' : 'IMAGE'
-                          )
-                        }
-                      />
+                <Fragment key={row.rowNumber}>
+                  <tr className="border-b border-slate-100 last:border-b-0">
+                    <td className={`sticky left-0 z-10 px-2.5 py-1.5 align-top ${rowBg}`}>
+                      <p className="text-sm font-medium text-slate-800">#{row.rowNumber}</p>
+                      {rowError ? (
+                        <p className="mt-1 max-w-[12rem] text-xs text-red-700">{rowError}</p>
+                      ) : null}
                     </td>
-                  ))}
-                </tr>
+
+                    {primaryFields.map((meta) => (
+                      <td key={meta.field} className={`px-2.5 py-1.5 align-top ${rowBg}`}>
+                        <FieldEditor
+                          meta={meta}
+                          value={fieldValue(sheet.sheet, row, meta.field)}
+                          options={sheet.fieldOptions[meta.field] ?? []}
+                          groupFilter={
+                            meta.field === 'category_name_en' ? sectionSlugForFiltering : undefined
+                          }
+                          t={t}
+                          onChange={(value) =>
+                            setOverride(sheet.sheet, row.rowNumber, meta.field, value)
+                          }
+                          onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
+                          onPickMedia={() =>
+                            onPickMedia(
+                              row.rowNumber,
+                              meta.field,
+                              meta.type === 'VIDEO' ? 'VIDEO' : 'IMAGE'
+                            )
+                          }
+                        />
+                      </td>
+                    ))}
+
+                    {secondaryFields.length > 0 ? (
+                      <td className={`px-2.5 py-1.5 align-top ${rowBg}`}>
+                        <button
+                          type="button"
+                          onClick={() => toggleRow(row.rowNumber)}
+                          className="whitespace-nowrap text-xs font-medium text-[var(--color-primary)] underline-offset-2 hover:underline"
+                        >
+                          {isExpanded ? t('hideMoreFields') : t('showMoreFields')}
+                        </button>
+                      </td>
+                    ) : null}
+                  </tr>
+
+                  {isExpanded && secondaryFields.length > 0 ? (
+                    <tr className="border-b border-slate-100 last:border-b-0">
+                      <td colSpan={primaryFields.length + 2} className={`px-2.5 py-3 ${rowBg}`}>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {secondaryFields.map((meta) => (
+                            <label key={meta.field} className="block space-y-1">
+                              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                {t(`field_${meta.field}` as never)}
+                              </span>
+                              <FieldEditor
+                                meta={meta}
+                                value={fieldValue(sheet.sheet, row, meta.field)}
+                                options={sheet.fieldOptions[meta.field] ?? []}
+                                groupFilter={
+                                  meta.field === 'category_name_en'
+                                    ? sectionSlugForFiltering
+                                    : undefined
+                                }
+                                t={t}
+                                onChange={(value) =>
+                                  setOverride(sheet.sheet, row.rowNumber, meta.field, value)
+                                }
+                                onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
+                                onPickMedia={() => {}}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
               );
             })}
           </tbody>

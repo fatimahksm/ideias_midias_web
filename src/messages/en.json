@@ -1976,6 +1976,8 @@
     "imagesCardTitle": "3. Attach images (optional)",
     "imagesCardDescription": "An Excel cell can only hold text, not a picture file. Pick each image or video from the Gallery instead of typing a URL — this also works to fix a row that has no image yet.",
     "rowNumberColumn": "Row",
+    "showMoreFields": "More fields",
+    "hideMoreFields": "Hide fields",
     "noImage": "No image",
     "pickImage": "Pick from Gallery",
     "changeImage": "Change",

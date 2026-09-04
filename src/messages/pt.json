@@ -1976,6 +1976,8 @@
     "imagesCardTitle": "3. Anexar imagens (opcional)",
     "imagesCardDescription": "Uma célula do Excel só guarda texto, não um arquivo de imagem. Escolha cada imagem ou vídeo na Galeria em vez de digitar uma URL — também serve para corrigir uma linha que ainda não tem imagem.",
     "rowNumberColumn": "Linha",
+    "showMoreFields": "Mais campos",
+    "hideMoreFields": "Ocultar campos",
     "noImage": "Sem imagem",
     "pickImage": "Escolher da Galeria",
     "changeImage": "Trocar",
