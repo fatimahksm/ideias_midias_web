@@ -1,8 +1,8 @@
 'use client';
 
-import {Fragment, useMemo, useRef, useState} from 'react';
+import {useMemo, useRef, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
-import {ChevronDown, ChevronUp} from 'lucide-react';
+import {SlidersHorizontal, X} from 'lucide-react';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
 import {SettingsCard} from '@/components/common/settings-card';
@@ -335,7 +335,7 @@ function SheetReview({
   clearOverride,
   onPickMedia
 }: SheetReviewProps) {
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [moreFieldsRow, setMoreFieldsRow] = useState<number | null>(null);
 
   const errorsByRow = useMemo(() => {
     const map = new Map<number, string>();
@@ -345,14 +345,19 @@ function SheetReview({
     return map;
   }, [sheet.errors]);
 
-  // Only the fields that matter at a glance (required ones, plus images —
-  // the main thing this screen is for editing) get their own column; every
-  // optional text/number field is one click away instead of stretching the
-  // table with columns most rows leave blank.
-  const primaryFields = useMemo(
+  // One field carries the card's thumbnail; the other required fields ride
+  // along in a single compact line under the title. Everything optional
+  // stays out of the card entirely — it's one tap away in a popup instead of
+  // pushing the rows below it around, which is what made the old inline
+  // "more fields" expander disorienting to use.
+  const imageField = useMemo(
+    () => sheet.fieldsMeta.find((meta) => meta.type === 'IMAGE' || meta.type === 'VIDEO'),
+    [sheet.fieldsMeta]
+  );
+  const lineFields = useMemo(
     () =>
       sheet.fieldsMeta.filter(
-        (meta) => meta.required || meta.type === 'IMAGE' || meta.type === 'VIDEO'
+        (meta) => meta.required && meta.type !== 'IMAGE' && meta.type !== 'VIDEO'
       ),
     [sheet.fieldsMeta]
   );
@@ -364,17 +369,8 @@ function SheetReview({
     [sheet.fieldsMeta]
   );
 
-  function toggleRow(rowNumber: number) {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(rowNumber)) {
-        next.delete(rowNumber);
-      } else {
-        next.add(rowNumber);
-      }
-      return next;
-    });
-  }
+  const activeRow =
+    moreFieldsRow != null ? (sheet.rows.find((row) => row.rowNumber === moreFieldsRow) ?? null) : null;
 
   return (
     <div>
@@ -382,125 +378,122 @@ function SheetReview({
         {t(SHEET_LABEL_KEYS[sheet.sheet] as never)}
       </h3>
 
-      <div className="overflow-x-auto rounded-2xl border border-slate-200">
-        <table className="w-full min-w-max border-collapse text-sm">
-          <thead>
-            <tr className="bg-slate-50">
-              <th className="sticky left-0 z-10 border-b border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                {t('rowNumberColumn')}
-              </th>
-              {primaryFields.map((meta) => (
-                <th
-                  key={meta.field}
-                  className="border-b border-slate-200 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
-                >
-                  {t(`field_${meta.field}` as never)}
-                  {meta.required ? ' *' : ''}
-                </th>
-              ))}
-              {secondaryFields.length > 0 ? (
-                <th className="w-10 border-b border-l border-slate-200 bg-slate-50" />
+      <div className="space-y-2">
+        {sheet.rows.map((row) => {
+          const rowError = errorsByRow.get(row.rowNumber);
+          const sectionNameEnForFiltering = fieldValue(sheet.sheet, row, 'section_name_en');
+
+          return (
+            <article
+              key={row.rowNumber}
+              className={`flex items-start gap-3 rounded-2xl border p-3 ${
+                rowError ? 'border-red-200 bg-red-50/60' : 'border-slate-200 bg-white'
+              }`}
+            >
+              {imageField ? (
+                <FieldEditor
+                  meta={imageField}
+                  value={fieldValue(sheet.sheet, row, imageField.field)}
+                  options={sheet.fieldOptions[imageField.field] ?? []}
+                  t={t}
+                  layout="stacked"
+                  onChange={(value) => setOverride(sheet.sheet, row.rowNumber, imageField.field, value)}
+                  onClear={() => clearOverride(sheet.sheet, row.rowNumber, imageField.field)}
+                  onPickMedia={() =>
+                    onPickMedia(row.rowNumber, imageField.field, imageField.type === 'VIDEO' ? 'VIDEO' : 'IMAGE')
+                  }
+                />
               ) : null}
-            </tr>
-          </thead>
 
-          <tbody>
-            {sheet.rows.map((row) => {
-              const rowError = errorsByRow.get(row.rowNumber);
-              const sectionNameEnForFiltering = fieldValue(sheet.sheet, row, 'section_name_en');
-              const rowBg = rowError ? 'bg-red-50/60' : 'bg-white';
-              const isExpanded = expandedRows.has(row.rowNumber);
-
-              return (
-                <Fragment key={row.rowNumber}>
-                  <tr className="border-b border-slate-100 last:border-b-0">
-                    <td className={`sticky left-0 z-10 px-2.5 py-1.5 align-top ${rowBg}`}>
-                      <p className="text-sm font-medium text-slate-800">#{row.rowNumber}</p>
-                      {rowError ? (
-                        <p className="mt-1 max-w-[12rem] text-xs text-red-700">{rowError}</p>
-                      ) : null}
-                    </td>
-
-                    {primaryFields.map((meta) => (
-                      <td key={meta.field} className={`px-2.5 py-1.5 align-top ${rowBg}`}>
-                        <FieldEditor
-                          meta={meta}
-                          value={fieldValue(sheet.sheet, row, meta.field)}
-                          options={sheet.fieldOptions[meta.field] ?? []}
-                          groupFilter={
-                            meta.field === 'category_name_en' ? sectionNameEnForFiltering : undefined
-                          }
-                          t={t}
-                          onChange={(value) =>
-                            setOverride(sheet.sheet, row.rowNumber, meta.field, value)
-                          }
-                          onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
-                          onPickMedia={() =>
-                            onPickMedia(
-                              row.rowNumber,
-                              meta.field,
-                              meta.type === 'VIDEO' ? 'VIDEO' : 'IMAGE'
-                            )
-                          }
-                        />
-                      </td>
-                    ))}
-
-                    {secondaryFields.length > 0 ? (
-                      <td className={`border-l border-slate-100 px-1.5 py-1.5 align-top ${rowBg}`}>
-                        <button
-                          type="button"
-                          onClick={() => toggleRow(row.rowNumber)}
-                          className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="h-3.5 w-3.5" />
-                          ) : (
-                            <ChevronDown className="h-3.5 w-3.5" />
-                          )}
-                          {isExpanded ? t('hideMoreFields') : t('showMoreFields')}
-                        </button>
-                      </td>
-                    ) : null}
-                  </tr>
-
-                  {isExpanded && secondaryFields.length > 0 ? (
-                    <tr className="border-b border-slate-100 last:border-b-0">
-                      <td colSpan={primaryFields.length + 2} className={`px-2.5 py-3 ${rowBg}`}>
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                          {secondaryFields.map((meta) => (
-                            <label key={meta.field} className="block space-y-1">
-                              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                                {t(`field_${meta.field}` as never)}
-                              </span>
-                              <FieldEditor
-                                meta={meta}
-                                value={fieldValue(sheet.sheet, row, meta.field)}
-                                options={sheet.fieldOptions[meta.field] ?? []}
-                                groupFilter={
-                                  meta.field === 'category_name_en'
-                                    ? sectionNameEnForFiltering
-                                    : undefined
-                                }
-                                t={t}
-                                onChange={(value) =>
-                                  setOverride(sheet.sheet, row.rowNumber, meta.field, value)
-                                }
-                                onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
-                                onPickMedia={() => {}}
-                              />
-                            </label>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="truncate text-sm font-semibold text-slate-900">
+                    {row.label || `#${row.rowNumber}`}
+                  </p>
+                  {secondaryFields.length > 0 ? (
+                    <button
+                      type="button"
+                      title={t('showMoreFields')}
+                      onClick={() => setMoreFieldsRow(row.rowNumber)}
+                      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                    </button>
                   ) : null}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+                </div>
+
+                {rowError ? <p className="mt-0.5 text-xs text-red-700">{rowError}</p> : null}
+
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-xs text-slate-400">#{row.rowNumber}</span>
+                  {lineFields.map((meta) => (
+                    <FieldEditor
+                      key={meta.field}
+                      meta={meta}
+                      value={fieldValue(sheet.sheet, row, meta.field)}
+                      options={sheet.fieldOptions[meta.field] ?? []}
+                      groupFilter={meta.field === 'category_name_en' ? sectionNameEnForFiltering : undefined}
+                      t={t}
+                      compact
+                      onChange={(value) => setOverride(sheet.sheet, row.rowNumber, meta.field, value)}
+                      onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
+                      onPickMedia={() => {}}
+                    />
+                  ))}
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
+
+      {activeRow ? (
+        <div
+          className="fixed inset-0 z-[135] bg-black/45 backdrop-blur-sm"
+          onClick={() => setMoreFieldsRow(null)}
+        >
+          <div
+            className="flex min-h-full items-center justify-center p-4"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="w-full max-w-lg overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <h4 className="truncate text-base font-semibold text-slate-900">
+                  {activeRow.label || `#${activeRow.rowNumber}`}
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setMoreFieldsRow(null)}
+                  className="shrink-0 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {secondaryFields.map((meta) => (
+                    <label key={meta.field} className="block space-y-1">
+                      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                        {t(`field_${meta.field}` as never)}
+                      </span>
+                      <FieldEditor
+                        meta={meta}
+                        value={fieldValue(sheet.sheet, activeRow, meta.field)}
+                        options={sheet.fieldOptions[meta.field] ?? []}
+                        t={t}
+                        onChange={(value) => setOverride(sheet.sheet, activeRow.rowNumber, meta.field, value)}
+                        onClear={() => clearOverride(sheet.sheet, activeRow.rowNumber, meta.field)}
+                        onPickMedia={() => {}}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -514,6 +507,11 @@ type FieldEditorProps = {
   onChange: (value: string) => void;
   onClear: () => void;
   onPickMedia: () => void;
+  // "compact" shrinks a text/select/etc. control to sit inline in the
+  // card's one-line summary; "stacked" lays an image/video field out as a
+  // card's leading thumbnail instead of the default beside-the-text form.
+  compact?: boolean;
+  layout?: 'inline' | 'stacked';
 };
 
 function FieldEditor({
@@ -524,13 +522,55 @@ function FieldEditor({
   t,
   onChange,
   onClear,
-  onPickMedia
+  onPickMedia,
+  compact = false,
+  layout = 'inline'
 }: FieldEditorProps) {
-  const inputClassName =
-    'w-full min-w-[11rem] rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10';
+  const inputClassName = compact
+    ? 'w-auto min-w-[5rem] max-w-[10rem] rounded-lg border border-slate-300 bg-white px-2 py-0.5 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10'
+    : 'w-full min-w-[11rem] rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10';
 
   if (meta.type === 'IMAGE' || meta.type === 'VIDEO') {
     const resolvedUrl = resolveMediaUrl(value || undefined);
+
+    if (layout === 'stacked') {
+      return (
+        <div className="flex w-16 shrink-0 flex-col items-center gap-1">
+          {resolvedUrl ? (
+            <div className="h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+              {meta.type === 'VIDEO' ? (
+                <video src={resolvedUrl} className="h-full w-full object-cover" muted />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={resolvedUrl} alt="" className="h-full w-full object-cover" />
+              )}
+            </div>
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-center text-[9px] leading-tight text-slate-400">
+              {t('noImage')}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={onPickMedia}
+            className="text-center text-[11px] font-medium leading-tight text-[var(--color-primary)] hover:underline"
+          >
+            {resolvedUrl ? t('changeImage') : t('pickImage')}
+          </button>
+
+          {value ? (
+            <button
+              type="button"
+              onClick={onClear}
+              className="text-center text-[11px] font-medium leading-tight text-red-600 hover:underline"
+            >
+              {t('clearImage')}
+            </button>
+          ) : null}
+        </div>
+      );
+    }
 
     return (
       <div className="flex items-center gap-1.5 whitespace-nowrap">
@@ -630,7 +670,7 @@ function FieldEditor({
         type="number"
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`${inputClassName} min-w-[6rem]`}
+        className={compact ? inputClassName : `${inputClassName} min-w-[6rem]`}
       />
     );
   }
