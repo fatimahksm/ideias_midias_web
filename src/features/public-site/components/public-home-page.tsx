@@ -338,7 +338,7 @@ export default function PublicHomePage({locale, data}: Props) {
       </section>
 
       <section id="home-sections" className="relative py-20 md:py-28">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-50/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--color-surface-muted)]/60 to-transparent" />
 
         <div className="relative mx-auto max-w-7xl px-6 md:px-8">
           <motion.div

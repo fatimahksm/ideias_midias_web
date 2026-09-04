@@ -2,7 +2,8 @@
 
 import {useEffect, useRef} from 'react';
 import {MapPin} from 'lucide-react';
-import maplibregl, {type StyleSpecification} from 'maplibre-gl';
+import maplibregl from 'maplibre-gl';
+import {OSM_RASTER_STYLE} from '@/lib/map/tile-style';
 
 type Props = {
   lat: number;
@@ -14,29 +15,6 @@ type Props = {
 };
 
 const MAP_ZOOM = 15;
-
-const MAP_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    osm: {
-      type: 'raster',
-      tiles: [
-        'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-      ],
-      tileSize: 256,
-      attribution: '© OpenStreetMap contributors'
-    }
-  },
-  layers: [
-    {
-      id: 'osm',
-      type: 'raster',
-      source: 'osm'
-    }
-  ]
-};
 
 function createMarkerElement() {
   const wrapper = document.createElement('div');
@@ -133,7 +111,7 @@ export default function PublicLocationMap({
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLE,
+      style: OSM_RASTER_STYLE,
       center: [lng, lat],
       zoom: MAP_ZOOM,
       minZoom: 3,

@@ -15,6 +15,7 @@ import {Button} from '@/components/ui/button';
 import {apiClient} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
+import {OSM_RASTER_STYLE} from '@/lib/map/tile-style';
 
 type MapPickerValue = {
   lat: number;
@@ -46,12 +47,6 @@ const DEFAULT_CENTER = {
 const DEFAULT_ZOOM = 14.5;
 const SELECTED_ZOOM = 17;
 const SEARCH_MIN_CHARS = 3;
-
-// CARTO's free "Voyager" vector style: colored roads, parks and water, and
-// place labels, so the picker looks like a real map to a non-technical
-// owner instead of the plain grey OpenStreetMap raster tiles. No API key
-// required; attribution is baked into the style itself.
-const MAP_STYLE_URL = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
 
 function buildMapUrl(lat: number, lng: number) {
   return `https://www.google.com/maps?q=${lat},${lng}`;
@@ -376,7 +371,7 @@ export default function MapPickerField({lat, lng, onChange, variant = 'inline'}:
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLE_URL,
+      style: OSM_RASTER_STYLE,
       center: [initialLng, initialLat],
       zoom: lat != null && lng != null ? SELECTED_ZOOM : DEFAULT_ZOOM,
       minZoom: 3,
