@@ -407,7 +407,7 @@ function SheetReview({
           <tbody>
             {sheet.rows.map((row) => {
               const rowError = errorsByRow.get(row.rowNumber);
-              const sectionSlugForFiltering = fieldValue(sheet.sheet, row, 'section_slug');
+              const sectionNameEnForFiltering = fieldValue(sheet.sheet, row, 'section_name_en');
               const rowBg = rowError ? 'bg-red-50/60' : 'bg-white';
               const isExpanded = expandedRows.has(row.rowNumber);
 
@@ -428,7 +428,7 @@ function SheetReview({
                           value={fieldValue(sheet.sheet, row, meta.field)}
                           options={sheet.fieldOptions[meta.field] ?? []}
                           groupFilter={
-                            meta.field === 'category_name_en' ? sectionSlugForFiltering : undefined
+                            meta.field === 'category_name_en' ? sectionNameEnForFiltering : undefined
                           }
                           t={t}
                           onChange={(value) =>
@@ -479,7 +479,7 @@ function SheetReview({
                                 options={sheet.fieldOptions[meta.field] ?? []}
                                 groupFilter={
                                   meta.field === 'category_name_en'
-                                    ? sectionSlugForFiltering
+                                    ? sectionNameEnForFiltering
                                     : undefined
                                 }
                                 t={t}
