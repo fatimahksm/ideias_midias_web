@@ -1728,8 +1728,6 @@
     "backToSections": "Back to sections",
     "editSection": "Edit section settings",
     "previewSection": "Preview section",
-    "sectionIdLabel": "Section record",
-    "slugLabel": "Page link",
     "contentModeLabel": "Content mode",
     "sortOrderLabel": "Sort order",
     "CONTENT": {
