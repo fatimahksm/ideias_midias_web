@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  Link2,
   LoaderCircle,
   LocateFixed,
   MapPin,
@@ -255,6 +256,7 @@ export default function MapPickerField({lat, lng, onChange, variant = 'inline'}:
   const [isResolvingLink, setIsResolvingLink] = useState(false);
   const [linkError, setLinkError] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLinkPanelOpen, setIsLinkPanelOpen] = useState(variant !== 'modal');
 
   const isBusy = isLocating || isResolving;
 
@@ -660,40 +662,65 @@ export default function MapPickerField({lat, lng, onChange, variant = 'inline'}:
           </Button>
         </div>
 
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
-          <p className="text-sm font-medium text-[var(--color-text)]">
+        {variant === 'modal' && !isLinkPanelOpen ? (
+          <button
+            type="button"
+            onClick={() => setIsLinkPanelOpen(true)}
+            className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm font-medium text-[var(--color-text)] transition hover:bg-slate-100"
+          >
+            <Link2 className="h-4 w-4 shrink-0 text-slate-500" />
             {t('pasteLinkLabel')}
-          </p>
-          <p className="mt-1 text-sm text-slate-500">{t('pasteLinkHint')}</p>
+          </button>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-[var(--color-text)]">
+                  {t('pasteLinkLabel')}
+                </p>
+                <p className="mt-1 text-sm text-slate-500">{t('pasteLinkHint')}</p>
+              </div>
 
-          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-            <input
-              type="text"
-              value={linkInput}
-              onChange={(event) => {
-                setLinkInput(event.target.value);
-                setLinkError('');
-              }}
-              placeholder={t('pasteLinkPlaceholder')}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none placeholder:text-slate-400"
-            />
+              {variant === 'modal' ? (
+                <button
+                  type="button"
+                  onClick={() => setIsLinkPanelOpen(false)}
+                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : null}
+            </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!linkInput.trim()}
-              isLoading={isResolvingLink}
-              loadingText={t('resolvingLink')}
-              onClick={handleUseLink}
-            >
-              {t('pasteLinkAction')}
-            </Button>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                value={linkInput}
+                onChange={(event) => {
+                  setLinkInput(event.target.value);
+                  setLinkError('');
+                }}
+                placeholder={t('pasteLinkPlaceholder')}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled={!linkInput.trim()}
+                isLoading={isResolvingLink}
+                loadingText={t('resolvingLink')}
+                onClick={handleUseLink}
+              >
+                {t('pasteLinkAction')}
+              </Button>
+            </div>
+
+            {linkError ? (
+              <p className="mt-2 text-sm text-red-600">{linkError}</p>
+            ) : null}
           </div>
-
-          {linkError ? (
-            <p className="mt-2 text-sm text-red-600">{linkError}</p>
-          ) : null}
-        </div>
+        )}
       </div>
 
       <div
