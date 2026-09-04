@@ -1,3 +1,4 @@
+import {authorizedFetch} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
 import {HttpError} from '@/lib/api/http-error';
@@ -11,7 +12,7 @@ function getRequiredToken() {
     throw new Error('No admin token found.');
   }
 
-  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+  return token;
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -66,13 +67,10 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export async function downloadImportTemplate(): Promise<void> {
   const token = getRequiredToken();
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoints.admin.dataImportTemplate}`,
-    {
-      method: 'GET',
-      headers: {Authorization: token}
-    }
-  );
+  const response = await authorizedFetch(endpoints.admin.dataImportTemplate, {
+    method: 'GET',
+    token
+  });
 
   if (!response.ok) {
     throw new HttpError({
@@ -106,9 +104,9 @@ async function uploadWorkbook(
     formData.append('fieldOverrides', JSON.stringify(fieldOverrides));
   }
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}${path}`, {
+  const response = await authorizedFetch(path, {
     method: 'POST',
-    headers: {Authorization: token},
+    token,
     body: formData
   });
 
