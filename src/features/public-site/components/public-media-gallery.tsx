@@ -102,7 +102,7 @@ export default function PublicMediaGallery({
 
   if (isLoading && !preparedMedia.length) {
     return (
-      <div className="flex aspect-[16/10] w-full items-center justify-center bg-slate-100 text-slate-500">
+      <div className="flex aspect-[16/10] w-full items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
         <div className="flex items-center gap-3 text-sm font-medium">
           <LoaderCircle className="h-5 w-5 animate-spin" />
           <span>{loadingLabel}</span>
@@ -113,7 +113,7 @@ export default function PublicMediaGallery({
 
   if (!preparedMedia.length) {
     return (
-      <div className="flex aspect-[16/10] w-full items-center justify-center bg-slate-100 text-slate-500">
+      <div className="flex aspect-[16/10] w-full items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
         <div className="flex flex-col items-center gap-3 text-center">
           <ImageIcon className="h-10 w-10" />
           <span className="text-sm font-medium">{noMediaLabel}</span>
@@ -137,7 +137,7 @@ export default function PublicMediaGallery({
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-100">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-muted)]">
         {activeMedia.mediaType === 'IMAGE' ? (
           <Image
             src={activeMedia.mediaUrl || ''}
@@ -185,11 +185,11 @@ export default function PublicMediaGallery({
                 onClick={() => setActiveIndex(index)}
                 className={`group relative overflow-hidden rounded-2xl border transition ${
                   safeActiveIndex === index
-                    ? 'border-slate-950 ring-2 ring-slate-950/10'
-                    : 'border-slate-200 hover:border-slate-300'
+                    ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/15'
+                    : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/50'
                 }`}
               >
-                <div className="relative aspect-[4/3] w-full bg-slate-100">
+                <div className="relative aspect-[4/3] w-full bg-[var(--color-surface-muted)]">
                   {mediaItem.mediaType === 'IMAGE' ? (
                     <Image
                       src={resolvedThumbnailUrl}
@@ -207,7 +207,7 @@ export default function PublicMediaGallery({
                       />
                       <div className="absolute inset-0 bg-black/30" />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-slate-950 shadow-lg">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] shadow-lg">
                           <Play className="ml-0.5 h-4 w-4" />
                         </div>
                       </div>

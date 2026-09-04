@@ -5,6 +5,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {useTranslations} from 'next-intl';
 import {
   ArrowLeft,
+  ArrowRight,
   CalendarDays,
   CircleX,
   FileText,
@@ -17,7 +18,6 @@ import {
   UserRound
 } from 'lucide-react';
 import {Link} from '@/i18n/navigation';
-import type {SectionCategoryResponse} from '@/features/categories/types';
 import type {SectionContentBlockResponse} from '@/features/content-blocks/types';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
 import type {SectionItemMediaResponse} from '@/features/item-media/types';
@@ -186,7 +186,7 @@ function BlockMedia({
   return (
     <>
       {resolvedImageUrl ? (
-        <div className="relative h-[280px] w-full bg-slate-100 md:h-[440px]">
+        <div className="relative h-[280px] w-full bg-[var(--color-surface-muted)] md:h-[440px]">
           <Image
             src={resolvedImageUrl}
             alt={title}
@@ -235,13 +235,16 @@ function ContentBlocksSection({
         viewport={{once: true, amount: 0.12}}
         className="space-y-10"
       >
-        {blocks.map((block) => {
+        {blocks.map((block, index) => {
           const title =
             getLocalizedValue(locale, block.titlePt, block.titleEn) || '';
           const subtitle =
             getLocalizedValue(locale, block.subtitlePt, block.subtitleEn) || '';
           const content =
             getLocalizedValue(locale, block.contentPt, block.contentEn) || '';
+          const hasMedia = Boolean(
+            resolveMediaUrl(block.imageUrl) || resolveMediaUrl(block.videoUrl)
+          );
 
           return (
             <motion.div
@@ -257,20 +260,41 @@ function ContentBlocksSection({
               />
 
               <div className="p-8 md:p-10">
+                {!hasMedia ? (
+                  <div className="mb-5 flex items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                      <FileText className="h-5 w-5" />
+                    </span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-primary)]">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+                ) : null}
+
+                {subtitle && !hasMedia ? (
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">
+                    {subtitle}
+                  </p>
+                ) : null}
+
                 {title ? (
-                  <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950 md:text-4xl">
+                  <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-4xl">
                     {title}
                   </h2>
                 ) : null}
 
-                {subtitle ? (
-                  <p className="mt-3 text-lg font-medium text-slate-700">
+                {subtitle && hasMedia ? (
+                  <p className="mt-3 text-lg font-medium text-[var(--color-text-muted)]">
                     {subtitle}
                   </p>
                 ) : null}
 
                 {content ? (
-                  <div className="mt-5 whitespace-pre-line text-base leading-8 text-slate-600">
+                  <div
+                    className={`whitespace-pre-line text-base leading-8 text-[var(--color-text-muted)] ${
+                      hasMedia ? 'mt-5' : 'mt-4 max-w-3xl'
+                    }`}
+                  >
                     {content}
                   </div>
                 ) : null}
@@ -320,7 +344,7 @@ function ItemCard({
       onClick={() => onOpen(item)}
       className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
         {itemImageUrl ? (
           <>
             <Image
@@ -329,51 +353,41 @@ function ItemCard({
               fill
               className="object-cover transition duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/0 to-transparent" />
           </>
         ) : (
-          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
-            {noImageLabel}
+          <div className="flex h-full flex-col items-center justify-center gap-2 bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
+            <Package className="h-10 w-10 text-[var(--color-primary)]/50" strokeWidth={1.5} />
+            <span className="text-xs font-medium text-[var(--color-text-muted)]">{noImageLabel}</span>
           </div>
         )}
 
-        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-          {item.isFeatured ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
-              <Star className="h-3.5 w-3.5" />
-              {featuredLabel}
-            </div>
-          ) : (
-            <div />
-          )}
-
-          <div className="rounded-full bg-slate-950/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur">
-            {detailsLabel}
+        {item.isFeatured ? (
+          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text)] shadow-lg backdrop-blur">
+            <Star className="h-3.5 w-3.5" />
+            {featuredLabel}
           </div>
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          <h3 className="text-2xl font-black tracking-[-0.03em] text-white drop-shadow-sm">
-            {title}
-          </h3>
-        </div>
+        ) : null}
       </div>
 
-      <div className="space-y-4 p-6">
+      <div className="space-y-3 p-6">
+        <h3 className="text-xl font-black tracking-[-0.02em] text-[var(--color-text)]">
+          {title}
+        </h3>
+
         {shortDescription ? (
-          <p className="line-clamp-3 text-base leading-7 text-slate-600">
+          <p className="line-clamp-3 text-base leading-7 text-[var(--color-text-muted)]">
             {shortDescription}
           </p>
-        ) : (
-          <p className="text-sm text-slate-400">{detailsLabel}</p>
-        )}
+        ) : null}
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-4">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
             {itemLabel}
           </span>
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]">
             {detailsLabel}
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </span>
         </div>
       </div>
@@ -386,11 +400,9 @@ function ProjectCard({
   project,
   onOpen,
   featuredLabel,
-  detailsLabel,
   noImageLabel,
   untitledLabel,
   portfolioLabel,
-  portfolioProjectLabel,
   visitProjectLabel,
   notAvailableLabel
 }: {
@@ -398,11 +410,9 @@ function ProjectCard({
   project: PortfolioProjectResponse;
   onOpen: (project: PortfolioProjectResponse) => void;
   featuredLabel: string;
-  detailsLabel: string;
   noImageLabel: string;
   untitledLabel: string;
   portfolioLabel: string;
-  portfolioProjectLabel: string;
   visitProjectLabel: string;
   notAvailableLabel: string;
 }) {
@@ -424,7 +434,7 @@ function ProjectCard({
       onClick={() => onOpen(project)}
       className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
         {projectImageUrl ? (
           <>
             <Image
@@ -433,143 +443,46 @@ function ProjectCard({
               fill
               className="object-cover transition duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/0 to-transparent" />
           </>
         ) : (
-          <div className="flex h-full items-center justify-center bg-slate-100 text-slate-500">
-            {noImageLabel}
+          <div className="flex h-full flex-col items-center justify-center gap-2 bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
+            <FolderKanban className="h-10 w-10 text-[var(--color-primary)]/50" strokeWidth={1.5} />
+            <span className="text-xs font-medium text-[var(--color-text-muted)]">{noImageLabel}</span>
           </div>
         )}
 
-        <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-          {project.isFeatured ? (
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-900 shadow-lg backdrop-blur">
-              <Star className="h-3.5 w-3.5" />
-              {featuredLabel}
-            </div>
-          ) : (
-            <div />
-          )}
-
-          <div className="rounded-full bg-slate-950/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur">
-            {detailsLabel}
+        {project.isFeatured ? (
+          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text)] shadow-lg backdrop-blur">
+            <Star className="h-3.5 w-3.5" />
+            {featuredLabel}
           </div>
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          <h3 className="text-2xl font-black tracking-[-0.03em] text-white drop-shadow-sm">
-            {title}
-          </h3>
-        </div>
+        ) : null}
       </div>
 
-      <div className="space-y-4 p-6">
+      <div className="space-y-3 p-6">
+        <h3 className="text-xl font-black tracking-[-0.02em] text-[var(--color-text)]">
+          {title}
+        </h3>
+
         {shortDescription ? (
-          <p className="line-clamp-3 text-base leading-7 text-slate-600">
+          <p className="line-clamp-3 text-base leading-7 text-[var(--color-text-muted)]">
             {shortDescription}
           </p>
-        ) : (
-          <p className="text-sm text-slate-400">{portfolioProjectLabel}</p>
-        )}
+        ) : null}
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-4">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
             {portfolioLabel}
           </span>
 
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition group-hover:text-slate-950">
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]">
             {project.projectUrl ? visitProjectLabel : notAvailableLabel}
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </span>
         </div>
       </div>
     </button>
-  );
-}
-
-function CategorySection({
-  locale,
-  category,
-  items,
-  noImageLabel,
-  featuredLabel,
-  detailsLabel,
-  onOpenItem,
-  categoryLabel,
-  itemLabel,
-  untitledLabel,
-  emptyCategoryItemsLabel
-}: {
-  locale: string;
-  category: SectionCategoryResponse;
-  items: PublicSectionItemResponse[];
-  noImageLabel: string;
-  featuredLabel: string;
-  detailsLabel: string;
-  onOpenItem: (item: PublicSectionItemResponse) => void;
-  categoryLabel: string;
-  itemLabel: string;
-  untitledLabel: string;
-  emptyCategoryItemsLabel: string;
-}) {
-  const title =
-    getLocalizedValue(locale, category.namePt, category.nameEn) || categoryLabel;
-
-  const description =
-    getLocalizedValue(
-      locale,
-      category.descriptionPt,
-      category.descriptionEn
-    ) || '';
-
-  return (
-    <motion.div variants={fadeUp} className="space-y-7">
-      <div className="rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm md:p-10">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
-              <Layers3 className="h-4 w-4" />
-              {categoryLabel}
-            </div>
-
-            <h3 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
-              {title || untitledLabel}
-            </h3>
-
-            {description ? (
-              <p className="mt-4 max-w-3xl text-base leading-8 text-slate-600">
-                {description}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-sm font-semibold text-slate-700">
-            {items.length}
-          </div>
-        </div>
-      </div>
-
-      {items.length ? (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              locale={locale}
-              item={item}
-              onOpen={onOpenItem}
-              featuredLabel={featuredLabel}
-              detailsLabel={detailsLabel}
-              noImageLabel={noImageLabel}
-              itemLabel={itemLabel}
-              untitledLabel={untitledLabel}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-[28px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-8 text-center text-slate-500">
-          {emptyCategoryItemsLabel}
-        </div>
-      )}
-    </motion.div>
   );
 }
 
@@ -662,12 +575,12 @@ function ItemModal({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-            <h3 className="text-xl font-black text-slate-950">{title}</h3>
+            <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
             <button
               type="button"
               onClick={onClose}
               aria-label={t('close') }
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-border)]"
             >
               <CircleX className="h-5 w-5" />
             </button>
@@ -688,14 +601,14 @@ function ItemModal({
             <div className="space-y-8 p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3">
                 {item.isFeatured ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
                     <Star className="h-3.5 w-3.5" />
                     {t('featured')}
                   </span>
                 ) : null}
 
                 {item.itemType ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-700">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-surface-muted)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
                     <Tag className="h-3.5 w-3.5" />
                     {item.itemType}
                   </span>
@@ -703,7 +616,7 @@ function ItemModal({
               </div>
 
               {hasShortDescription ? (
-                <p className="break-words text-lg leading-8 text-slate-700 [overflow-wrap:anywhere]">
+                <p className="break-words text-lg leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                   {shortDescription}
                 </p>
               ) : null}
@@ -718,11 +631,11 @@ function ItemModal({
                 >
                   {hasFullDescription ? (
                     <div className="min-w-0">
-                      <h4 className="text-2xl font-black text-slate-950">
+                      <h4 className="text-2xl font-black text-[var(--color-text)]">
                         {t('details')}
                       </h4>
 
-                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-slate-600 [overflow-wrap:anywhere]">
+                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                         {fullDescription}
                       </div>
                     </div>
@@ -730,11 +643,11 @@ function ItemModal({
 
                   {hasSpecifications ? (
                     <div className="min-w-0 rounded-[24px] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5">
-                      <h4 className="text-xl font-black text-slate-950">
+                      <h4 className="text-xl font-black text-[var(--color-text)]">
                         {t('specifications')}
                       </h4>
 
-                      <div className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-slate-600 [overflow-wrap:anywhere]">
+                      <div className="mt-4 whitespace-pre-line break-words text-sm leading-7 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                         {specifications}
                       </div>
                     </div>
@@ -873,12 +786,12 @@ function ProjectModal({
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-            <h3 className="text-xl font-black text-slate-950">{title}</h3>
+            <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
             <button
               type="button"
               onClick={onClose}
               aria-label={t('close')}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-border)]"
             >
               <CircleX className="h-5 w-5" />
             </button>
@@ -899,7 +812,7 @@ function ProjectModal({
             <div className="space-y-8 p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3">
                 {project.isFeatured ? (
-                  <span className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-white">
                     <Star className="h-3.5 w-3.5" />
                     {t('featured')}
                   </span>
@@ -907,7 +820,7 @@ function ProjectModal({
               </div>
 
               {hasShortDescription ? (
-                <p className="break-words text-lg leading-8 text-slate-700 [overflow-wrap:anywhere]">
+                <p className="break-words text-lg leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                   {shortDescription}
                 </p>
               ) : null}
@@ -922,11 +835,11 @@ function ProjectModal({
                 >
                   {hasFullDescription ? (
                     <div className="min-w-0">
-                      <h4 className="text-2xl font-black text-slate-950">
+                      <h4 className="text-2xl font-black text-[var(--color-text)]">
                         {t('details')}
                       </h4>
 
-                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-slate-600 [overflow-wrap:anywhere]">
+                      <div className="mt-4 whitespace-pre-line break-words text-base leading-8 text-[var(--color-text-muted)] [overflow-wrap:anywhere]">
                         {fullDescription}
                       </div>
                     </div>
@@ -934,15 +847,15 @@ function ProjectModal({
 
                   {hasClient || hasProjectDate || hasLocation ? (
                     <div className="space-y-4 rounded-[24px] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5">
-                      <h4 className="text-xl font-black text-slate-950">
+                      <h4 className="text-xl font-black text-[var(--color-text)]">
                         {t('projectInfo')}
                       </h4>
 
                       {hasClient ? (
-                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                          <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                        <div className="flex items-start gap-3 text-sm leading-7 text-[var(--color-text-muted)]">
+                          <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-800">{t('client')}</p>
+                            <p className="font-semibold text-[var(--color-text)]">{t('client')}</p>
                             <p className="break-words [overflow-wrap:anywhere]">
                               {project.clientName}
                             </p>
@@ -951,20 +864,20 @@ function ProjectModal({
                       ) : null}
 
                       {hasProjectDate ? (
-                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                        <div className="flex items-start gap-3 text-sm leading-7 text-[var(--color-text-muted)]">
+                          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-800">{t('date')}</p>
+                            <p className="font-semibold text-[var(--color-text)]">{t('date')}</p>
                             <p>{projectDate}</p>
                           </div>
                         </div>
                       ) : null}
 
                       {hasLocation ? (
-                        <div className="flex items-start gap-3 text-sm leading-7 text-slate-600">
-                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+                        <div className="flex items-start gap-3 text-sm leading-7 text-[var(--color-text-muted)]">
+                          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-800">{t('location')}</p>
+                            <p className="font-semibold text-[var(--color-text)]">{t('location')}</p>
                             <p className="break-words [overflow-wrap:anywhere]">
                               {location}
                             </p>
@@ -1116,7 +1029,6 @@ export default function PublicSectionPage({locale, data}: Props) {
     [itemsQuery.data]
   );
 
-  const totalItems = itemsQuery.data?.pages[0]?.totalElements ?? 0;
   const selectedCategoryItems = loadedItems;
 
   return (
@@ -1209,51 +1121,27 @@ export default function PublicSectionPage({locale, data}: Props) {
             </motion.div>
           ) : null}
 
-          {selectedCategory ? (
-            <motion.div
-  initial={{opacity: 0, y: 20}}
-  whileInView={{opacity: 1, y: 0}}
-  viewport={{once: true, amount: 0.2}}
-  transition={{duration: 0.5}}
-  className="mb-8 flex flex-wrap gap-3"
->
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                    <Layers3 className="h-3.5 w-3.5" />
-                    {t('categoryLabel')}
-                  </div>
-
-                  <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
-                    {getLocalizedValue(
-                      locale,
-                      selectedCategory.namePt,
-                      selectedCategory.nameEn
-                    ) || t('categoryLabel')}
-                  </h3>
-
-                  {hasMeaningfulText(
-                    getLocalizedValue(
-                      locale,
-                      selectedCategory.descriptionPt,
-                      selectedCategory.descriptionEn
-                    )
-                  ) ? (
-                    <p className="mt-3 max-w-3xl text-base leading-8 text-[var(--color-text-muted)]">
-                      {getLocalizedValue(
-                        locale,
-                        selectedCategory.descriptionPt,
-                        selectedCategory.descriptionEn
-                      )}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="inline-flex h-12 min-w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 text-sm font-bold text-[var(--color-text)]">
-                  {totalItems}
-                </div>
-              </div>
-            </motion.div>
+          {selectedCategory &&
+          hasMeaningfulText(
+            getLocalizedValue(
+              locale,
+              selectedCategory.descriptionPt,
+              selectedCategory.descriptionEn
+            )
+          ) ? (
+            <motion.p
+              initial={{opacity: 0, y: 20}}
+              whileInView={{opacity: 1, y: 0}}
+              viewport={{once: true, amount: 0.2}}
+              transition={{duration: 0.5}}
+              className="mb-8 max-w-3xl text-base leading-8 text-[var(--color-text-muted)]"
+            >
+              {getLocalizedValue(
+                locale,
+                selectedCategory.descriptionPt,
+                selectedCategory.descriptionEn
+              )}
+            </motion.p>
           ) : null}
 
           {selectedCategoryItems.length ? (
@@ -1299,14 +1187,14 @@ export default function PublicSectionPage({locale, data}: Props) {
             transition={{duration: 0.6}}
             className="mb-12 flex items-center gap-3"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white">
               <Package className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
+              <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
                 {t('items')}
               </h2>
-              <p className="mt-1 text-slate-600">{t('itemsDescription')}</p>
+              <p className="mt-1 text-[var(--color-text-muted)]">{t('itemsDescription')}</p>
             </div>
           </motion.div>
 
@@ -1335,8 +1223,8 @@ export default function PublicSectionPage({locale, data}: Props) {
             </motion.div>
           ) : itemsQuery.isPending ? null : (
             <div className="rounded-[32px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-10 text-center">
-              <Package className="mx-auto h-10 w-10 text-slate-400" />
-              <h2 className="mt-5 text-3xl font-black text-slate-950">
+              <Package className="mx-auto h-10 w-10 text-[var(--color-primary)]/50" />
+              <h2 className="mt-5 text-3xl font-black text-[var(--color-text)]">
                 {t('noItemsYet')}
               </h2>
             </div>
@@ -1355,14 +1243,14 @@ export default function PublicSectionPage({locale, data}: Props) {
             transition={{duration: 0.6}}
             className="mb-12 flex items-center gap-3"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white">
               <FolderKanban className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-3xl font-black tracking-[-0.03em] text-slate-950">
+              <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
                 {t('portfolioProjects')}
               </h2>
-              <p className="mt-1 text-slate-600">
+              <p className="mt-1 text-[var(--color-text-muted)]">
                 {t('portfolioProjectsDescription')}
               </p>
             </div>
@@ -1385,11 +1273,9 @@ export default function PublicSectionPage({locale, data}: Props) {
                       setActiveModal({type: 'project', project: value})
                     }
                     featuredLabel={t('featured')}
-                    detailsLabel={t('details')}
                     noImageLabel={t('noImage')}
                     untitledLabel={t('untitled')}
                     portfolioLabel={t('portfolioLabel')}
-                    portfolioProjectLabel={t('portfolioProjectLabel')}
                     visitProjectLabel={t('visitProject')}
                     notAvailableLabel={t('notAvailable')}
                   />
@@ -1398,8 +1284,8 @@ export default function PublicSectionPage({locale, data}: Props) {
             </motion.div>
           ) : projectsQuery.isPending ? null : (
             <div className="rounded-[32px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-10 text-center">
-              <FolderKanban className="mx-auto h-10 w-10 text-slate-400" />
-              <h2 className="mt-5 text-3xl font-black text-slate-950">
+              <FolderKanban className="mx-auto h-10 w-10 text-[var(--color-primary)]/50" />
+              <h2 className="mt-5 text-3xl font-black text-[var(--color-text)]">
                 {t('noProjectsYet')}
               </h2>
             </div>
