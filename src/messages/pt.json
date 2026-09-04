@@ -1732,67 +1732,17 @@
     "slugLabel": "Pré-visualização path",
     "contentModeLabel": "Modo de conteúdo",
     "sortOrderLabel": "Ordem de exibição",
-    "manageHomepage": "Gerenciar a página inicial",
-    "nextStepTitle": "Próximo passo para esta seção",
-    "nextStepSubtitle": "Esta área de trabalho indica o módulo certo conforme o tipo da seção.",
-    "integrationNoticeTitle": "Seção-aware management comes next",
-    "integrationNoticeDescription": "No próximo passo, estes módulos ficam embutidos aqui dentro, para não ser preciso saltar entre páginas soltas do admin.",
     "CONTENT": {
-      "introTitle": "Espaço de trabalho da seção de conteúdo",
-      "introDescription": "Esta seção usa um fluxo de conteúdo livre. Tudo deve ser gerenciado dentro da própria seção.",
-      "embeddedTitle": "Gerencie os blocos de conteúdo aqui",
-      "embeddedDescription": "Esta área de trabalho mantém todo o fluxo de blocos de conteúdo dentro da seção, o que é bem mais fácil de gerenciar.",
-      "actions": {
-        "contentBlocks": {
-          "title": "Blocos de conteúdo",
-          "description": "Gerencie texto bilíngue, blocos de mídia e conteúdo de apresentação para este tipo de seção.",
-          "button": "Abrir blocos de conteúdo"
-        }
-      }
+      "embeddedTitle": "Blocos de conteúdo"
     },
     "CATEGORY_ITEMS": {
-      "introTitle": "Espaço de trabalho de categoria + itens",
-      "introDescription": "Esta seção tem duas camadas: primeiro as categorias e depois os itens dentro delas.",
-      "embeddedTitle": "Gerencie categorias e itens aqui",
-      "embeddedDescription": "Esta área de trabalho mostra o fluxo real desta seção: primeiro as categorias e depois os itens, tudo no mesmo lugar.",
-      "actions": {
-        "categories": {
-          "title": "Categorias",
-          "description": "Crie e organize os grupos que pertencem a esta seção antes de preenchê-los com itens.",
-          "button": "Abrir categorias"
-        },
-        "items": {
-          "title": "Itens",
-          "description": "Gerencie os itens que depois serão vinculados sob as categorias corretas dentro desta seção.",
-          "button": "Abrir itens"
-        }
-      }
+      "embeddedTitle": "Categorias e itens"
     },
     "DIRECT_ITEMS": {
-      "introTitle": "Espaço de trabalho de itens diretos",
-      "introDescription": "Esta seção lista os itens diretamente, sem camada de categorias.",
-      "embeddedTitle": "Gerencie os itens diretos aqui",
-      "embeddedDescription": "Esta área de trabalho mantém o fluxo de itens dentro da própria seção, sem a confusão das categorias.",
-      "actions": {
-        "items": {
-          "title": "Itens",
-          "description": "Gerencie os itens diretos que pertencem a esta seção sem aninhamento de categorias.",
-          "button": "Abrir itens"
-        }
-      }
+      "embeddedTitle": "Itens"
     },
     "PORTFOLIO": {
-      "introTitle": "Portfolio espaço de trabalho",
-      "introDescription": "Esta seção serve para apresentação por projetos e narrativa com bastante mídia.",
-      "embeddedTitle": "Gerencie os projetos de portfólio aqui",
-      "embeddedDescription": "Esta área de trabalho mantém o fluxo de projetos dentro da própria seção de portfólio, em vez de espalhar por várias páginas do admin.",
-      "actions": {
-        "projects": {
-          "title": "Portfolio Projetos",
-          "description": "Gerencie os projetos visuais que aparecerão dentro desta seção de portfólio.",
-          "button": "Abrir portfolio projetos"
-        }
-      }
+      "embeddedTitle": "Projetos de portfólio"
     }
   },
   "MediaLibraryManager": {

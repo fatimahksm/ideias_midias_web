@@ -1732,67 +1732,17 @@
     "slugLabel": "Preview path",
     "contentModeLabel": "Content mode",
     "sortOrderLabel": "Sort order",
-    "manageHomepage": "Manage homepage",
-    "nextStepTitle": "Next step for this section",
-    "nextStepSubtitle": "This workspace now points the owner to the correct module based on the section type.",
-    "integrationNoticeTitle": "Section-aware management comes next",
-    "integrationNoticeDescription": "In the next step, these modules will be embedded directly into this workspace so the owner no longer has to jump between global admin pages.",
     "CONTENT": {
-      "introTitle": "Content section workspace",
-      "introDescription": "This section uses a flexible content flow. Everything should now be managed inside the section itself.",
-      "embeddedTitle": "Manage content blocks here",
-      "embeddedDescription": "This workspace now keeps the full content-block flow inside the section, which is much easier for the owner to manage.",
-      "actions": {
-        "contentBlocks": {
-          "title": "Content Blocks",
-          "description": "Manage bilingual text, media blocks and presentation content for this section type.",
-          "button": "Open content blocks"
-        }
-      }
+      "embeddedTitle": "Content blocks"
     },
     "CATEGORY_ITEMS": {
-      "introTitle": "Category + items workspace",
-      "introDescription": "This section is structured in two layers: categories first, then items inside those categories.",
-      "embeddedTitle": "Manage categories and items here",
-      "embeddedDescription": "This workspace now shows the real management flow for this section: categories first, then items inside the same section.",
-      "actions": {
-        "categories": {
-          "title": "Categories",
-          "description": "Create and organize the groups that belong to this section before filling them with items.",
-          "button": "Open categories"
-        },
-        "items": {
-          "title": "Items",
-          "description": "Manage the items that will later be linked under the correct categories inside this section.",
-          "button": "Open items"
-        }
-      }
+      "embeddedTitle": "Categories & items"
     },
     "DIRECT_ITEMS": {
-      "introTitle": "Direct items workspace",
-      "introDescription": "This section lists items directly, without a category layer.",
-      "embeddedTitle": "Manage direct items here",
-      "embeddedDescription": "This workspace now keeps the item flow inside the section itself, without category clutter.",
-      "actions": {
-        "items": {
-          "title": "Items",
-          "description": "Manage the direct items that belong to this section without category nesting.",
-          "button": "Open items"
-        }
-      }
+      "embeddedTitle": "Items"
     },
     "PORTFOLIO": {
-      "introTitle": "Portfolio workspace",
-      "introDescription": "This section is meant for project-driven presentation and media-heavy storytelling.",
-      "embeddedTitle": "Manage portfolio projects here",
-      "embeddedDescription": "This workspace now keeps the project flow inside the portfolio section itself instead of sending the owner to scattered admin pages.",
-      "actions": {
-        "projects": {
-          "title": "Portfolio Projects",
-          "description": "Manage the visual projects that will appear inside this portfolio section.",
-          "button": "Open portfolio projects"
-        }
-      }
+      "embeddedTitle": "Portfolio projects"
     }
   },
   "MediaLibraryManager": {

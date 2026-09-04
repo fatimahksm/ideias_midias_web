@@ -9,7 +9,6 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {getSectionById} from '../api';
 import {getSectionPreviewPath} from '../utils';
-import type {SectionType} from '../types';
 import {SectionStatusBadge} from './section-status-badge';
 import {SectionTypeBadge} from './section-type-badge';
 import CategoriesManager from '@/features/categories/components/categories-manager';
@@ -19,19 +18,6 @@ import PortfolioProjectsManager from '@/features/portfolio-projects/components/p
 
 type Props = {
   sectionId: number;
-};
-
-type WorkspaceAction = {
-  titleKey: string;
-  descriptionKey: string;
-  href: string;
-  buttonKey: string;
-};
-
-type WorkspaceModel = {
-  introTitleKey: string;
-  introDescriptionKey: string;
-  actions: WorkspaceAction[];
 };
 
 function InfoCard({
@@ -49,62 +35,6 @@ function InfoCard({
       <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
     </div>
   );
-}
-
-function WorkspaceActionCard({
-  title,
-  description,
-  href,
-  buttonLabel
-}: {
-  title: string;
-  description: string;
-  href: string;
-  buttonLabel: string;
-}) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="space-y-2">
-        <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-        <p className="text-sm leading-6 text-slate-600">{description}</p>
-      </div>
-
-      <div className="mt-4">
-        <Link href={href}>
-          <Button type="button" size="sm">
-            {buttonLabel}
-          </Button>
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function getWorkspaceModel(sectionType: SectionType): WorkspaceModel {
-  const model: Record<SectionType, WorkspaceModel> = {
-    CONTENT: {
-      introTitleKey: 'CONTENT.introTitle',
-      introDescriptionKey: 'CONTENT.introDescription',
-      actions: []
-    },
-    CATEGORY_ITEMS: {
-      introTitleKey: 'CATEGORY_ITEMS.introTitle',
-      introDescriptionKey: 'CATEGORY_ITEMS.introDescription',
-      actions: []
-    },
-    DIRECT_ITEMS: {
-      introTitleKey: 'DIRECT_ITEMS.introTitle',
-      introDescriptionKey: 'DIRECT_ITEMS.introDescription',
-      actions: []
-    },
-    PORTFOLIO: {
-      introTitleKey: 'PORTFOLIO.introTitle',
-      introDescriptionKey: 'PORTFOLIO.introDescription',
-      actions: []
-    }
-  };
-
-  return model[sectionType];
 }
 
 export function SectionWorkspace({sectionId}: Props) {
@@ -156,8 +86,6 @@ export function SectionWorkspace({sectionId}: Props) {
       </div>
     );
   }
-
-  const workspaceModel = getWorkspaceModel(section.sectionType);
 
   return (
     <div className="space-y-6">
@@ -211,39 +139,11 @@ export function SectionWorkspace({sectionId}: Props) {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-        <p className="text-sm font-semibold text-blue-900">
-          {t(workspaceModel.introTitleKey)}
-        </p>
-        <p className="mt-2 text-sm leading-6 text-blue-800">
-          {t(workspaceModel.introDescriptionKey)}
-        </p>
-
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link href="/admin/sections">
-            <Button type="button" variant="outline" size="sm">
-              {t('backToSections')}
-            </Button>
-          </Link>
-
-          <Link href="/admin/home-cards">
-            <Button type="button" variant="outline" size="sm">
-              {t('manageHomepage')}
-            </Button>
-          </Link>
-        </div>
-      </div>
-
       {section.sectionType === 'CATEGORY_ITEMS' ? (
         <div className="space-y-6">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-900">
-              {t('CATEGORY_ITEMS.embeddedTitle')}
-            </h3>
-            <p className="text-sm text-slate-600">
-              {t('CATEGORY_ITEMS.embeddedDescription')}
-            </p>
-          </div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            {t('CATEGORY_ITEMS.embeddedTitle')}
+          </h3>
 
           <CategoriesManager sectionId={section.id} compact />
           <ItemsManager sectionId={section.id} compact />
@@ -252,14 +152,9 @@ export function SectionWorkspace({sectionId}: Props) {
 
       {section.sectionType === 'DIRECT_ITEMS' ? (
         <div className="space-y-6">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-900">
-              {t('DIRECT_ITEMS.embeddedTitle')}
-            </h3>
-            <p className="text-sm text-slate-600">
-              {t('DIRECT_ITEMS.embeddedDescription')}
-            </p>
-          </div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            {t('DIRECT_ITEMS.embeddedTitle')}
+          </h3>
 
           <ItemsManager sectionId={section.id} compact forceDirectMode />
         </div>
@@ -267,14 +162,9 @@ export function SectionWorkspace({sectionId}: Props) {
 
       {section.sectionType === 'CONTENT' ? (
         <div className="space-y-6">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-900">
-              {t('CONTENT.embeddedTitle')}
-            </h3>
-            <p className="text-sm text-slate-600">
-              {t('CONTENT.embeddedDescription')}
-            </p>
-          </div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            {t('CONTENT.embeddedTitle')}
+          </h3>
 
           <ContentBlocksManager sectionId={section.id} compact />
         </div>
@@ -282,45 +172,11 @@ export function SectionWorkspace({sectionId}: Props) {
 
       {section.sectionType === 'PORTFOLIO' ? (
         <div className="space-y-6">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-900">
-              {t('PORTFOLIO.embeddedTitle')}
-            </h3>
-            <p className="text-sm text-slate-600">
-              {t('PORTFOLIO.embeddedDescription')}
-            </p>
-          </div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            {t('PORTFOLIO.embeddedTitle')}
+          </h3>
 
           <PortfolioProjectsManager sectionId={section.id} compact />
-        </div>
-      ) : null}
-
-      {workspaceModel.actions.length > 0 ? (
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-900">
-              {t('nextStepTitle')}
-            </h3>
-            <p className="text-sm text-slate-600">{t('nextStepSubtitle')}</p>
-          </div>
-
-          <div
-            className={`grid gap-4 ${
-              workspaceModel.actions.length > 1
-                ? 'xl:grid-cols-2'
-                : 'xl:grid-cols-1'
-            }`}
-          >
-            {workspaceModel.actions.map((action) => (
-              <WorkspaceActionCard
-                key={action.href}
-                title={t(action.titleKey)}
-                description={t(action.descriptionKey)}
-                href={action.href}
-                buttonLabel={t(action.buttonKey)}
-              />
-            ))}
-          </div>
         </div>
       ) : null}
     </div>
