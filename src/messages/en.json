@@ -1430,7 +1430,6 @@
     "searchEmptyDescription": "Try another keyword, or create a new section if this one does not exist yet.",
     "createFirst": "Create first section",
     "sortOrder": "Sort order",
-    "slugLabel": "Page link",
     "updatedAt": "Last updated",
     "contentMode": "Content mode",
     "noDescription": "No description added yet.",

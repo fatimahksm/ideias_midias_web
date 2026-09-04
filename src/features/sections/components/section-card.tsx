@@ -102,13 +102,6 @@ export function SectionCard({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              {t('slugLabel')}
-            </p>
-            <p className="text-sm font-medium text-slate-800">{previewPath}</p>
-          </div>
-
           <p className="line-clamp-3 text-sm leading-6 text-slate-600">
             {item.descriptionEn || item.descriptionPt || t('noDescription')}
           </p>
