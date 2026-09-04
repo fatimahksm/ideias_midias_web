@@ -284,7 +284,7 @@ export default function PortfolioProjectsManager({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {isSectionScoped && selectedSection ? (
+          {isSectionScoped && selectedSection && !compact ? (
             <Link href={`/admin/sections/${selectedSection.id}`}>
               <Button type="button" variant="outline">
                 {t('backToWorkspace')}
