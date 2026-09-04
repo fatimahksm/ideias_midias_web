@@ -301,7 +301,7 @@ export default function PublicHomePage({locale, data}: Props) {
               >
                 <a
                   href="#home-sections"
-                  className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-white px-7 py-3 text-base font-semibold text-slate-950 shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
+                  className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-white px-7 py-3 text-base font-semibold text-[var(--color-text)] shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
                 >
                   {t('exploreSections')}
                 </a>
@@ -700,12 +700,12 @@ export default function PublicHomePage({locale, data}: Props) {
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-black text-slate-950">
+                <p className="text-sm font-black text-[var(--color-text)]">
                   {t('location')}
                 </p>
 
                 {hasMeaningfulText(address) ? (
-                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                  <p className="mt-1 text-sm leading-6 text-[var(--color-text-muted)]">
                     {address}
                   </p>
                 ) : null}
@@ -718,7 +718,7 @@ export default function PublicHomePage({locale, data}: Props) {
                   href={mapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
                 >
                   <ExternalLink className="h-4 w-4" />
                   {t('openInMaps')}
