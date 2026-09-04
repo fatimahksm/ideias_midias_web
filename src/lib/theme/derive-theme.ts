@@ -130,13 +130,17 @@ export function deriveTheme(
     l: clamp(primaryHsl.l * 0.6, 10, 24)
   });
 
-  // Hue rotated so it actually contrasts with primary instead of reading
-  // as "primary but a bit different", with vibrancy boosted so it pops on
-  // both light and dark surfaces.
+  // Same hue as primary — so the whole palette reads as "shades of your
+  // color" rather than primary plus one unrelated accent — pushed to a
+  // richer saturation and shifted away from primary's own lightness so it
+  // still stands out as a distinct, vivid accent rather than a duplicate.
   const accentColor = fromHsl({
-    h: (primaryHsl.h + 150) % 360,
-    s: clamp(Math.max(primaryHsl.s, 55), 55, 85),
-    l: 52
+    h: primaryHsl.h,
+    s: clamp(Math.max(primaryHsl.s, 60), 60, 90),
+    l:
+      primaryHsl.l >= 50
+        ? clamp(primaryHsl.l - 22, 28, 45)
+        : clamp(primaryHsl.l + 22, 55, 72)
   });
 
   // A faint tint of primary's hue rather than a flat neutral, so the page
