@@ -18,7 +18,6 @@ import {
   UserRound
 } from 'lucide-react';
 import {Link} from '@/i18n/navigation';
-import type {SectionCategoryResponse} from '@/features/categories/types';
 import type {SectionContentBlockResponse} from '@/features/content-blocks/types';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
 import type {SectionItemMediaResponse} from '@/features/item-media/types';
@@ -484,93 +483,6 @@ function ProjectCard({
         </div>
       </div>
     </button>
-  );
-}
-
-function CategorySection({
-  locale,
-  category,
-  items,
-  noImageLabel,
-  featuredLabel,
-  detailsLabel,
-  onOpenItem,
-  categoryLabel,
-  itemLabel,
-  untitledLabel,
-  emptyCategoryItemsLabel
-}: {
-  locale: string;
-  category: SectionCategoryResponse;
-  items: PublicSectionItemResponse[];
-  noImageLabel: string;
-  featuredLabel: string;
-  detailsLabel: string;
-  onOpenItem: (item: PublicSectionItemResponse) => void;
-  categoryLabel: string;
-  itemLabel: string;
-  untitledLabel: string;
-  emptyCategoryItemsLabel: string;
-}) {
-  const title =
-    getLocalizedValue(locale, category.namePt, category.nameEn) || categoryLabel;
-
-  const description =
-    getLocalizedValue(
-      locale,
-      category.descriptionPt,
-      category.descriptionEn
-    ) || '';
-
-  return (
-    <motion.div variants={fadeUp} className="space-y-7">
-      <div className="rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm md:p-10">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              <Layers3 className="h-4 w-4" />
-              {categoryLabel}
-            </div>
-
-            <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)]">
-              {title || untitledLabel}
-            </h3>
-
-            {description ? (
-              <p className="mt-4 max-w-3xl text-base leading-8 text-[var(--color-text-muted)]">
-                {description}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-sm font-semibold text-[var(--color-text-muted)]">
-            {items.length}
-          </div>
-        </div>
-      </div>
-
-      {items.length ? (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              locale={locale}
-              item={item}
-              onOpen={onOpenItem}
-              featuredLabel={featuredLabel}
-              detailsLabel={detailsLabel}
-              noImageLabel={noImageLabel}
-              itemLabel={itemLabel}
-              untitledLabel={untitledLabel}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-[28px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-8 text-center text-[var(--color-text-muted)]">
-          {emptyCategoryItemsLabel}
-        </div>
-      )}
-    </motion.div>
   );
 }
 
