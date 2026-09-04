@@ -247,6 +247,50 @@ async function executeRequest<T>(
   return parseResponse<T>(response);
 }
 
+/**
+ * For callers that can't go through {@link apiClient} — a multipart file
+ * upload needs a real FormData body, which apiClient's JSON-only body
+ * doesn't support. Same silent-refresh-and-retry-once behavior as apiClient,
+ * so an expired access token doesn't surface as a raw 401 mid-upload; just
+ * returns the raw Response so the caller parses it (JSON, blob, ...) itself.
+ */
+export async function authorizedFetch(
+  path: string,
+  init: Omit<RequestInit, 'headers'> & {token: unknown; headers?: HeadersInit}
+): Promise<Response> {
+  const {token, headers, ...rest} = init;
+
+  const doFetch = (authToken: unknown) =>
+    fetch(buildUrl(path), {
+      ...rest,
+      headers: {
+        ...(headers || {}),
+        ...(buildAuthorizationHeader(authToken)
+          ? {Authorization: buildAuthorizationHeader(authToken)!}
+          : {})
+      },
+      credentials: rest.credentials ?? 'include'
+    });
+
+  const response = await doFetch(token);
+
+  if (
+    (response.status === 401 || response.status === 403) &&
+    typeof window !== 'undefined' &&
+    isAdminApiPath(path)
+  ) {
+    const refreshedToken = await refreshAdminAccessToken();
+
+    if (refreshedToken) {
+      return doFetch(refreshedToken);
+    }
+
+    handleAuthFailure(response.status);
+  }
+
+  return response;
+}
+
 export async function apiClient<T>(
   path: string,
   options: RequestOptions = {}

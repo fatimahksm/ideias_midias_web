@@ -1,4 +1,4 @@
-import {apiClient} from '@/lib/api/client';
+import {apiClient, authorizedFetch} from '@/lib/api/client';
 import {endpoints} from '@/lib/api/endpoints';
 import {getAdminToken} from '@/lib/auth/token';
 import {HttpError} from '@/lib/api/http-error';
@@ -12,7 +12,7 @@ function getRequiredToken() {
     throw new Error('No admin token found.');
   }
 
-  return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+  return token;
 }
 
 async function parseJsonResponse<T>(response: Response): Promise<T> {
@@ -69,16 +69,11 @@ export async function uploadMedia(file: File): Promise<MediaLibraryItem> {
 
   formData.append('file', file);
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoints.admin.mediaUpload}`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: token
-      },
-      body: formData
-    }
-  );
+  const response = await authorizedFetch(endpoints.admin.mediaUpload, {
+    method: 'POST',
+    token,
+    body: formData
+  });
 
   return parseJsonResponse<MediaLibraryItem>(response);
 }
@@ -136,13 +131,11 @@ export async function getMediaByType(
 export async function fetchMediaAsFile(item: MediaLibraryItem): Promise<File> {
   const token = getRequiredToken();
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoints.admin.mediaLibrary}/${item.id}/raw`,
+  const response = await authorizedFetch(
+    `${endpoints.admin.mediaLibrary}/${item.id}/raw`,
     {
       method: 'GET',
-      headers: {
-        Authorization: token
-      }
+      token
     }
   );
 
