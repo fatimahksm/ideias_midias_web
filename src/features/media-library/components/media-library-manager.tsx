@@ -10,12 +10,20 @@ import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {hasAdminToken} from '@/lib/auth/token';
 import {useAdminSession} from '@/features/admin-layout/hooks/use-admin-session';
-import {deleteMedia, getMediaPage} from '../api';
+import {deleteMedia, fetchMediaAsFile, getMediaPage, uploadMedia} from '../api';
 import type {MediaFileType, MediaLibraryItem} from '../types';
+import {ImageCropModal} from './image-crop-modal';
 import {MediaLibraryCard} from './media-library-card';
 import {MediaLibraryUploader} from './media-library-uploader';
 
 type MediaFilter = 'ALL' | MediaFileType;
+
+const ASPECT_PRESETS_KEY = [
+  {labelKey: 'aspectSquare', value: 1} as const,
+  {labelKey: 'aspectLandscape', value: 4 / 3} as const,
+  {labelKey: 'aspectWide', value: 16 / 9} as const,
+  {labelKey: 'aspectPortrait', value: 3 / 4} as const
+];
 
 export default function MediaLibraryManager() {
   const t = useTranslations('MediaLibraryManager');
@@ -31,6 +39,9 @@ export default function MediaLibraryManager() {
   const [deleteTarget, setDeleteTarget] = useState<MediaLibraryItem | null>(
     null
   );
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const [isLoadingEditFile, setIsLoadingEditFile] = useState(false);
+  const [editAspect, setEditAspect] = useState(4 / 3);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
@@ -50,6 +61,20 @@ export default function MediaLibraryManager() {
       setFeedbackTone('success');
       setFeedback(t('deleteSuccess'));
       await queryClient.invalidateQueries({queryKey: ['media-library']});
+    },
+    onError: (error) => {
+      setFeedbackTone('error');
+      setFeedback(getErrorMessage(toAppError(error), (key) => errorT(key)));
+    }
+  });
+
+  const uploadCroppedMutation = useMutation({
+    mutationFn: uploadMedia,
+    onSuccess: async () => {
+      setFeedbackTone('success');
+      setFeedback(t('editSuccess'));
+      await queryClient.invalidateQueries({queryKey: ['media-library']});
+      setEditFile(null);
     },
     onError: (error) => {
       setFeedbackTone('error');
@@ -89,6 +114,36 @@ export default function MediaLibraryManager() {
     await deleteMutation.mutateAsync(deleteTarget.id);
     setDeleteTarget(null);
   }
+
+  async function handleEdit(item: MediaLibraryItem) {
+    setFeedback('');
+    setEditAspect(4 / 3);
+    setIsLoadingEditFile(true);
+
+    try {
+      const file = await fetchMediaAsFile(item);
+      setEditFile(file);
+    } catch {
+      setFeedbackTone('error');
+      setFeedback(t('editLoadFailed'));
+    } finally {
+      setIsLoadingEditFile(false);
+    }
+  }
+
+  function handleCloseCrop() {
+    setEditFile(null);
+  }
+
+  async function handleApplyCrop(croppedFile: File, croppedPreviewUrl: string) {
+    await uploadCroppedMutation.mutateAsync(croppedFile);
+    URL.revokeObjectURL(croppedPreviewUrl);
+  }
+
+  const aspectPresets = ASPECT_PRESETS_KEY.map((preset) => ({
+    label: t(preset.labelKey),
+    value: preset.value
+  }));
 
   return (
     <div className="space-y-6">
@@ -195,6 +250,7 @@ export default function MediaLibraryManager() {
                     deleteMutation.variables === item.id
                   }
                   onCopyUrl={handleCopyUrl}
+                  onEdit={handleEdit}
                   onDelete={handleDelete}
                 />
               ))}
@@ -231,6 +287,36 @@ export default function MediaLibraryManager() {
         onConfirm={confirmDelete}
         isLoading={deleteMutation.isPending}
         tone="danger"
+      />
+
+      {isLoadingEditFile ? (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="rounded-2xl bg-white px-5 py-3 text-sm font-medium text-slate-700 shadow-xl">
+            {common('loading')}
+          </div>
+        </div>
+      ) : null}
+
+      <ImageCropModal
+        open={Boolean(editFile)}
+        file={editFile}
+        title={t('editModalTitle')}
+        description={t('editModalDescription')}
+        zoomLabel={t('editZoomLabel')}
+        resetLabel={t('editResetLabel')}
+        cancelLabel={common('cancel')}
+        confirmLabel={t('editConfirm')}
+        helperText={t('editHelperText')}
+        loadImageErrorText={t('editLoadFailed')}
+        cropCanvasErrorText={t('editCropCanvasError')}
+        generateBlobErrorText={t('editGenerateBlobError')}
+        cropFailedErrorText={t('editCropFailed')}
+        aspect={editAspect}
+        aspectPresets={aspectPresets}
+        onAspectSelect={setEditAspect}
+        isApplying={uploadCroppedMutation.isPending}
+        onClose={handleCloseCrop}
+        onApply={handleApplyCrop}
       />
     </div>
   );

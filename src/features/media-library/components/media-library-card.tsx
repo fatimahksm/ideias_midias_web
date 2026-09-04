@@ -1,7 +1,7 @@
 'use client';
 
+import {Pencil} from 'lucide-react';
 import {useLocale, useTranslations} from 'next-intl';
-import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
 import type {MediaLibraryItem} from '../types';
 import {
@@ -15,6 +15,7 @@ type Props = {
   canDelete: boolean;
   isDeleting: boolean;
   onCopyUrl: (item: MediaLibraryItem) => void;
+  onEdit: (item: MediaLibraryItem) => void;
   onDelete: (item: MediaLibraryItem) => void;
 };
 
@@ -26,6 +27,7 @@ export function MediaLibraryCard({
   canDelete,
   isDeleting,
   onCopyUrl,
+  onEdit,
   onDelete
 }: Props) {
   const t = useTranslations('MediaLibraryManager');
@@ -92,13 +94,6 @@ export function MediaLibraryCard({
           </div>
         </dl>
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-            {t('fileUrlLabel')}
-          </p>
-          <p className="truncate text-sm text-slate-700">{item.fileUrl}</p>
-        </div>
-
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -108,32 +103,34 @@ export function MediaLibraryCard({
             {t('copyUrl')}
           </Button>
 
-          <ActionMenu
-            label={common('moreActions')}
-            items={[
-              ...(previewUrl
-                ? [
-                    {
-                      key: 'open',
-                      label: t('openFile'),
-                      href: previewUrl,
-                      external: true
-                    }
-                  ]
-                : []),
-              ...(canDelete
-                ? [
-                    {
-                      key: 'delete',
-                      label: isDeleting ? common('loading') : common('delete'),
-                      tone: 'danger' as const,
-                      disabled: isDeleting,
-                      onSelect: () => onDelete(item)
-                    }
-                  ]
-                : [])
-            ]}
-          />
+          {item.fileType === 'IMAGE' ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onEdit(item)}
+            >
+              <Pencil className="h-4 w-4" />
+              {t('editButton')}
+            </Button>
+          ) : null}
+
+          {previewUrl ? (
+            <a href={previewUrl} target="_blank" rel="noreferrer" className={anchorClassName}>
+              {t('openFile')}
+            </a>
+          ) : null}
+
+          {canDelete ? (
+            <Button
+              type="button"
+              variant="danger"
+              isLoading={isDeleting}
+              loadingText={common('loading')}
+              onClick={() => onDelete(item)}
+            >
+              {common('delete')}
+            </Button>
+          ) : null}
         </div>
       </div>
     </article>
