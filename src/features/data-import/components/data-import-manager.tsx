@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useRef, useState} from 'react';
+import {Fragment, useMemo, useRef, useState} from 'react';
 import {useMutation} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Button} from '@/components/ui/button';
@@ -334,6 +334,8 @@ function SheetReview({
   clearOverride,
   onPickMedia
 }: SheetReviewProps) {
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+
   const errorsByRow = useMemo(() => {
     const map = new Map<number, string>();
     for (const err of sheet.errors) {
@@ -342,65 +344,156 @@ function SheetReview({
     return map;
   }, [sheet.errors]);
 
+  // Only the fields that matter at a glance (required ones, plus images —
+  // the main thing this screen is for editing) get their own column; every
+  // optional text/number field is one click away instead of stretching the
+  // table with columns most rows leave blank.
+  const primaryFields = useMemo(
+    () =>
+      sheet.fieldsMeta.filter(
+        (meta) => meta.required || meta.type === 'IMAGE' || meta.type === 'VIDEO'
+      ),
+    [sheet.fieldsMeta]
+  );
+  const secondaryFields = useMemo(
+    () =>
+      sheet.fieldsMeta.filter(
+        (meta) => !meta.required && meta.type !== 'IMAGE' && meta.type !== 'VIDEO'
+      ),
+    [sheet.fieldsMeta]
+  );
+
+  function toggleRow(rowNumber: number) {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowNumber)) {
+        next.delete(rowNumber);
+      } else {
+        next.add(rowNumber);
+      }
+      return next;
+    });
+  }
+
   return (
     <div>
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
         {t(SHEET_LABEL_KEYS[sheet.sheet] as never)}
       </h3>
 
-      <div className="space-y-4">
-        {sheet.rows.map((row) => {
-          const rowError = errorsByRow.get(row.rowNumber);
-          const sectionSlugForFiltering = fieldValue(sheet.sheet, row, 'section_slug');
-
-          return (
-            <div
-              key={row.rowNumber}
-              className={`rounded-2xl border p-4 ${
-                rowError ? 'border-red-300 bg-red-50/40' : 'border-slate-200'
-              }`}
-            >
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-medium text-slate-800">
-                  {t('rowLabel', {row: row.rowNumber, label: row.label || t('untitledRow')})}
-                </p>
-                {rowError ? (
-                  <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
-                    {t('rowHasError')}
-                  </span>
-                ) : null}
-              </div>
-
-              {rowError ? (
-                <p className="mb-3 text-sm text-red-700">{rowError}</p>
+      <div className="overflow-x-auto rounded-2xl border border-slate-200">
+        <table className="w-full min-w-max border-collapse text-sm">
+          <thead>
+            <tr className="bg-slate-50">
+              <th className="sticky left-0 z-10 border-b border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {t('rowNumberColumn')}
+              </th>
+              {primaryFields.map((meta) => (
+                <th
+                  key={meta.field}
+                  className="border-b border-slate-200 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+                >
+                  {t(`field_${meta.field}` as never)}
+                  {meta.required ? ' *' : ''}
+                </th>
+              ))}
+              {secondaryFields.length > 0 ? (
+                <th className="border-b border-slate-200 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500" />
               ) : null}
+            </tr>
+          </thead>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                {sheet.fieldsMeta.map((meta) => (
-                  <FieldEditor
-                    key={meta.field}
-                    meta={meta}
-                    value={fieldValue(sheet.sheet, row, meta.field)}
-                    options={sheet.fieldOptions[meta.field] ?? []}
-                    groupFilter={
-                      meta.field === 'category_name_en' ? sectionSlugForFiltering : undefined
-                    }
-                    t={t}
-                    onChange={(value) => setOverride(sheet.sheet, row.rowNumber, meta.field, value)}
-                    onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
-                    onPickMedia={() =>
-                      onPickMedia(
-                        row.rowNumber,
-                        meta.field,
-                        meta.type === 'VIDEO' ? 'VIDEO' : 'IMAGE'
-                      )
-                    }
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+          <tbody>
+            {sheet.rows.map((row) => {
+              const rowError = errorsByRow.get(row.rowNumber);
+              const sectionSlugForFiltering = fieldValue(sheet.sheet, row, 'section_slug');
+              const rowBg = rowError ? 'bg-red-50/60' : 'bg-white';
+              const isExpanded = expandedRows.has(row.rowNumber);
+
+              return (
+                <Fragment key={row.rowNumber}>
+                  <tr className="border-b border-slate-100 last:border-b-0">
+                    <td className={`sticky left-0 z-10 px-2.5 py-1.5 align-top ${rowBg}`}>
+                      <p className="text-sm font-medium text-slate-800">#{row.rowNumber}</p>
+                      {rowError ? (
+                        <p className="mt-1 max-w-[12rem] text-xs text-red-700">{rowError}</p>
+                      ) : null}
+                    </td>
+
+                    {primaryFields.map((meta) => (
+                      <td key={meta.field} className={`px-2.5 py-1.5 align-top ${rowBg}`}>
+                        <FieldEditor
+                          meta={meta}
+                          value={fieldValue(sheet.sheet, row, meta.field)}
+                          options={sheet.fieldOptions[meta.field] ?? []}
+                          groupFilter={
+                            meta.field === 'category_name_en' ? sectionSlugForFiltering : undefined
+                          }
+                          t={t}
+                          onChange={(value) =>
+                            setOverride(sheet.sheet, row.rowNumber, meta.field, value)
+                          }
+                          onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
+                          onPickMedia={() =>
+                            onPickMedia(
+                              row.rowNumber,
+                              meta.field,
+                              meta.type === 'VIDEO' ? 'VIDEO' : 'IMAGE'
+                            )
+                          }
+                        />
+                      </td>
+                    ))}
+
+                    {secondaryFields.length > 0 ? (
+                      <td className={`px-2.5 py-1.5 align-top ${rowBg}`}>
+                        <button
+                          type="button"
+                          onClick={() => toggleRow(row.rowNumber)}
+                          className="whitespace-nowrap text-xs font-medium text-[var(--color-primary)] underline-offset-2 hover:underline"
+                        >
+                          {isExpanded ? t('hideMoreFields') : t('showMoreFields')}
+                        </button>
+                      </td>
+                    ) : null}
+                  </tr>
+
+                  {isExpanded && secondaryFields.length > 0 ? (
+                    <tr className="border-b border-slate-100 last:border-b-0">
+                      <td colSpan={primaryFields.length + 2} className={`px-2.5 py-3 ${rowBg}`}>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {secondaryFields.map((meta) => (
+                            <label key={meta.field} className="block space-y-1">
+                              <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                                {t(`field_${meta.field}` as never)}
+                              </span>
+                              <FieldEditor
+                                meta={meta}
+                                value={fieldValue(sheet.sheet, row, meta.field)}
+                                options={sheet.fieldOptions[meta.field] ?? []}
+                                groupFilter={
+                                  meta.field === 'category_name_en'
+                                    ? sectionSlugForFiltering
+                                    : undefined
+                                }
+                                t={t}
+                                onChange={(value) =>
+                                  setOverride(sheet.sheet, row.rowNumber, meta.field, value)
+                                }
+                                onClear={() => clearOverride(sheet.sheet, row.rowNumber, meta.field)}
+                                onPickMedia={() => {}}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ) : null}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -427,58 +520,57 @@ function FieldEditor({
   onClear,
   onPickMedia
 }: FieldEditorProps) {
-  const label = t(`field_${meta.field}` as never) + (meta.required ? ' *' : '');
   const inputClassName =
-    'w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10';
+    'w-full min-w-[11rem] rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10';
 
   if (meta.type === 'IMAGE' || meta.type === 'VIDEO') {
     const resolvedUrl = resolveMediaUrl(value || undefined);
 
     return (
-      <div className="space-y-2">
-        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
-        <div className="h-24 w-full max-w-[9rem] overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50">
-          {resolvedUrl ? (
-            meta.type === 'VIDEO' ? (
+      <div className="flex items-center gap-1.5 whitespace-nowrap">
+        {resolvedUrl ? (
+          <div className="h-7 w-7 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+            {meta.type === 'VIDEO' ? (
               <video src={resolvedUrl} className="h-full w-full object-cover" muted />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={resolvedUrl} alt="" className="h-full w-full object-cover" />
-            )
-          ) : (
-            <div className="flex h-full items-center justify-center px-2 text-center text-xs text-slate-400">
-              {t('noImage')}
-            </div>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={onPickMedia}>
-            {resolvedUrl ? t('changeImage') : t('pickImage')}
-          </Button>
-          {value ? (
-            <Button type="button" variant="ghost" size="sm" onClick={onClear}>
-              {t('clearImage')}
-            </Button>
-          ) : null}
-        </div>
+            )}
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onPickMedia}
+          className="text-xs font-medium text-[var(--color-primary)] underline-offset-2 hover:underline"
+        >
+          {resolvedUrl ? t('changeImage') : t('pickImage')}
+        </button>
+
+        {value ? (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-xs font-medium text-red-600 underline-offset-2 hover:underline"
+          >
+            {t('clearImage')}
+          </button>
+        ) : null}
       </div>
     );
   }
 
   if (meta.type === 'BOOLEAN') {
     return (
-      <label className="block space-y-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
-        <select
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className={inputClassName}
-        >
-          <option value="">{t('booleanDefault')}</option>
-          <option value="true">{t('booleanYes')}</option>
-          <option value="false">{t('booleanNo')}</option>
-        </select>
-      </label>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={inputClassName}
+      >
+        <option value="">{t('booleanDefault')}</option>
+        <option value="true">{t('booleanYes')}</option>
+        <option value="false">{t('booleanNo')}</option>
+      </select>
     );
   }
 
@@ -489,8 +581,7 @@ function FieldEditor({
         : options;
 
     return (
-      <label className="block space-y-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
+      <div className="space-y-1">
         <select
           value={value}
           onChange={(event) => onChange(event.target.value)}
@@ -504,49 +595,42 @@ function FieldEditor({
           ))}
         </select>
         {filteredOptions.length === 0 ? (
-          <span className="block text-xs text-amber-700">{t('noOptionsAvailable')}</span>
+          <span className="block text-xs whitespace-nowrap text-amber-700">
+            {t('noOptionsAvailable')}
+          </span>
         ) : null}
-      </label>
+      </div>
     );
   }
 
   if (meta.type === 'DATE') {
     return (
-      <label className="block space-y-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
-        <input
-          type="date"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className={inputClassName}
-        />
-      </label>
+      <input
+        type="date"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={inputClassName}
+      />
     );
   }
 
   if (meta.type === 'INTEGER') {
     return (
-      <label className="block space-y-1">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
-        <input
-          type="number"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className={inputClassName}
-        />
-      </label>
+      <input
+        type="number"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className={`${inputClassName} min-w-[6rem]`}
+      />
     );
   }
 
   return (
-    <label className="block space-y-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</span>
-      <input
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className={inputClassName}
-      />
-    </label>
+    <input
+      type="text"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={inputClassName}
+    />
   );
 }
