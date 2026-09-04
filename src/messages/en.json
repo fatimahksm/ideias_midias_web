@@ -675,11 +675,6 @@
     "description": "Track the main content areas and jump quickly into the parts you manage most.",
     "statsLoadError": "Failed to load dashboard statistics.",
     "stats": {
-      "stats": {
-        "homeCardsHint": "Manage the cards displayed on the homepage.",
-        "contactMethodsLabel": "Contact methods",
-        "contactMethodsHint": "Control the ways visitors can reach the company."
-      },
       "sectionsLabel": "Sections",
       "sectionsHint": "Main content areas configured in the website.",
       "categoriesLabel": "Categories",
@@ -697,24 +692,6 @@
       "contactMethodsLabel": "Contact methods",
       "contactMethodsHint": "Visible contact channels and direct actions."
     },
-    "siteSettingsCardTitle": "Site settings",
-    "siteSettingsCardDescription": "Update the public identity, hero content and global website information.",
-    "siteSettingsCardAction": "Open site settings",
-    "homeCardsCardTitle": "Home cards",
-    "homeCardsCardDescription": "Manage the cards shown on the homepage and control their order.",
-    "homeCardsCardAction": "Manage home cards",
-    "sectionsCardTitle": "Sections",
-    "sectionsCardDescription": "Create and organize the main sections that structure the public website.",
-    "sectionsCardAction": "Manage sections",
-    "mediaCardTitle": "Gallery",
-    "mediaCardDescription": "Review uploaded files and reuse media across items, projects and content.",
-    "mediaCardAction": "Open gallery",
-    "contactMethodsCardTitle": "Contact methods",
-    "contactMethodsCardDescription": "Manage phone, email, social links and other contact channels.",
-    "contactMethodsCardAction": "Manage contact methods",
-    "themeSettingsCardTitle": "Theme settings",
-    "themeSettingsCardDescription": "Adjust colors, typography and visual style used across the website.",
-    "themeSettingsCardAction": "Open theme settings",
     "analyticsTitle": "Traffic overview",
     "analyticsDescription": "Visitor activity across the public website.",
     "analyticsAllTimeCaption": "{count} views all-time",
@@ -739,8 +716,7 @@
     "topSectionsEmpty": "No section views recorded yet.",
     "topSectionsViewsUnit": "views",
     "contentOverviewTitle": "Content overview",
-    "contentOverviewDescription": "Snapshot of everything currently published across the site.",
-    "quickActionsTitle": "Quick actions"
+    "contentOverviewDescription": "Snapshot of everything currently published across the site."
   },
   "ContactMethodsPage": {
     "title": "Contact",

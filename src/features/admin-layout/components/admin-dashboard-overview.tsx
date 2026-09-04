@@ -10,15 +10,11 @@ import {
   Image as ImageIcon,
   LayoutGrid,
   Package,
-  Palette,
   Phone,
-  Settings,
   Tags,
   type LucideIcon
 } from 'lucide-react';
-import {Link} from '@/i18n/navigation';
 import {SettingsCard} from '@/components/common/settings-card';
-import {Button} from '@/components/ui/button';
 import {getAnalyticsSummary} from '@/features/analytics/api';
 import {getContentStats} from '@/features/stats/api';
 import {DEFAULT_ANALYTICS_RANGE_DAYS, type AnalyticsRangeDays} from '@/features/analytics/constants';
@@ -73,35 +69,6 @@ function MetricTile({
         <p className="text-lg font-bold leading-none text-slate-950">{value}</p>
         <p className="text-xs leading-tight text-slate-500">{label}</p>
       </div>
-    </div>
-  );
-}
-
-function ActionLinkCard({
-  icon: Icon,
-  title,
-  description,
-  href,
-  actionLabel
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  href: string;
-  actionLabel: string;
-}) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-slate-300 hover:shadow-md">
-      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-        <Icon className="h-5 w-5" />
-      </div>
-      <h3 className="text-lg font-semibold text-[var(--color-text)]">{title}</h3>
-      <p className="mt-1 text-sm text-slate-500">{description}</p>
-      <Link href={href} className="mt-4 inline-block">
-        <Button type="button" size="sm">
-          {actionLabel}
-        </Button>
-      </Link>
     </div>
   );
 }
@@ -258,62 +225,6 @@ export function AdminDashboardOverview() {
             <p className="text-sm text-red-700">{t('statsLoadError')}</p>
           </div>
         ) : null}
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-[var(--color-text)]">
-          {t('quickActionsTitle')}
-        </h2>
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          <ActionLinkCard
-            icon={Settings}
-            title={t('siteSettingsCardTitle')}
-            description={t('siteSettingsCardDescription')}
-            href="/admin/site-settings"
-            actionLabel={t('siteSettingsCardAction')}
-          />
-
-          <ActionLinkCard
-            icon={Home}
-            title={t('homeCardsCardTitle')}
-            description={t('homeCardsCardDescription')}
-            href="/admin/home-cards"
-            actionLabel={t('homeCardsCardAction')}
-          />
-
-          <ActionLinkCard
-            icon={LayoutGrid}
-            title={t('sectionsCardTitle')}
-            description={t('sectionsCardDescription')}
-            href="/admin/sections"
-            actionLabel={t('sectionsCardAction')}
-          />
-
-          <ActionLinkCard
-            icon={ImageIcon}
-            title={t('mediaCardTitle')}
-            description={t('mediaCardDescription')}
-            href="/admin/media"
-            actionLabel={t('mediaCardAction')}
-          />
-
-          <ActionLinkCard
-            icon={Phone}
-            title={t('contactMethodsCardTitle')}
-            description={t('contactMethodsCardDescription')}
-            href="/admin/contact-methods"
-            actionLabel={t('contactMethodsCardAction')}
-          />
-
-          <ActionLinkCard
-            icon={Palette}
-            title={t('themeSettingsCardTitle')}
-            description={t('themeSettingsCardDescription')}
-            href="/admin/theme-settings"
-            actionLabel={t('themeSettingsCardAction')}
-          />
-        </div>
       </section>
     </div>
   );

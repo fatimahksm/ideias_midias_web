@@ -690,31 +690,8 @@
       "homeCardsLabel": "Cartões iniciais",
       "homeCardsHint": "Cartões de atalho e destaque da página inicial.",
       "contactMethodsLabel": "Contato methods",
-      "contactMethodsHint": "Canais de contato visíveis e ações diretas.",
-      "stats": {
-        "homeCardsHint": "Gerencie os cartões exibidos na página inicial.",
-        "contactMethodsLabel": "Formas de contato",
-        "contactMethodsHint": "Controle como os visitantes podem falar com a empresa."
-      }
+      "contactMethodsHint": "Canais de contato visíveis e ações diretas."
     },
-    "siteSettingsCardTitle": "Configurações do site",
-    "siteSettingsCardDescription": "Atualize a identidade pública, o destaque e as informações gerais do site.",
-    "siteSettingsCardAction": "Abrir configurações do site",
-    "homeCardsCardTitle": "Cartões iniciais",
-    "homeCardsCardDescription": "Gerencie os cartões exibidos na página inicial e controle sua ordem.",
-    "homeCardsCardAction": "Gerenciar cartões iniciais",
-    "sectionsCardTitle": "Seções",
-    "sectionsCardDescription": "Crie e organize as principais seções que estruturam o site público.",
-    "sectionsCardAction": "Gerenciar seções",
-    "mediaCardTitle": "Galeria",
-    "mediaCardDescription": "Reveja os arquivos enviados e reutilize mídia em itens, projetos e conteúdo.",
-    "mediaCardAction": "Abrir galeria",
-    "contactMethodsCardTitle": "Contato methods",
-    "contactMethodsCardDescription": "Gerencie telefone, e-mail, links sociais e outros canais de contato.",
-    "contactMethodsCardAction": "Gerenciar métodos de contato",
-    "themeSettingsCardTitle": "Tema configurações",
-    "themeSettingsCardDescription": "Ajuste as cores, a tipografia e o estilo visual usados em todo o site.",
-    "themeSettingsCardAction": "Abrir configurações do tema",
     "analyticsTitle": "Visão geral de tráfego",
     "analyticsDescription": "Atividade dos visitantes no site público.",
     "analyticsAllTimeCaption": "{count} visualizações no total",
@@ -739,8 +716,7 @@
     "topSectionsEmpty": "Nenhuma visualização de seção registrada ainda.",
     "topSectionsViewsUnit": "visualizações",
     "contentOverviewTitle": "Visão geral do conteúdo",
-    "contentOverviewDescription": "Retrato de tudo o que está publicado atualmente no site.",
-    "quickActionsTitle": "Ações rápidas"
+    "contentOverviewDescription": "Retrato de tudo o que está publicado atualmente no site."
   },
   "ContactMethodsPage": {
     "title": "Contato",
