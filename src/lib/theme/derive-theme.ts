@@ -100,6 +100,24 @@ function fromHsl(hsl: HSL): string {
   return rgbToHex(hslToRgb(hsl));
 }
 
+/**
+ * Blends two colors by directly mixing their red/green/blue channels
+ * (`amount` = how much of `to` to mix in) — unlike an HSL recompute, this
+ * carries the exact hue and chroma of a dark or low-saturation color like a
+ * navy primary straight through into a light background, instead of
+ * washing it out toward gray.
+ */
+function mixHex(from: string, to: string, amount: number): string {
+  const a = hexToRgb(from);
+  const b = hexToRgb(to);
+  const t = clamp(amount, 0, 1);
+  return rgbToHex({
+    r: a.r + (b.r - a.r) * t,
+    g: a.g + (b.g - a.g) * t,
+    b: a.b + (b.b - a.b) * t
+  });
+}
+
 const FALLBACK_PRIMARY = '#0f172a';
 const FALLBACK_TEXT = '#0f172a';
 
@@ -143,15 +161,13 @@ export function deriveTheme(
         : clamp(primaryHsl.l + 22, 55, 72)
   });
 
-  // A clearly visible tint of primary's hue rather than a flat neutral, so
-  // the page canvas reads as part of the same palette — light or dark to
-  // match Text — without going so dark/saturated that body text loses
-  // contrast against it.
-  const backgroundColor = fromHsl({
-    h: primaryHsl.h,
-    s: clamp(primaryHsl.s * 0.5, 0, 35),
-    l: preferDarkBackground ? 10 : 95
-  });
+  // Primary blended straight into white (or black) rather than recomputed
+  // through HSL — a dark, fairly desaturated primary like navy still reads
+  // as "clearly tinted" this way, where an HSL saturation tweak would wash
+  // it out toward gray. Light or dark to match Text.
+  const backgroundColor = preferDarkBackground
+    ? mixHex('#000000', primaryColor, 0.35)
+    : mixHex('#ffffff', primaryColor, 0.2);
 
   // A translucent version of primary, used as the hero gradient overlay.
   const heroOverlayColor = `${primaryColor}a6`;
