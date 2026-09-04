@@ -247,7 +247,7 @@ function ContentBlocksSection({
             <motion.div
               key={block.id}
               variants={fadeUp}
-              className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm"
+              className="overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm"
             >
               <BlockMedia
                 title={title || subtitle || t('contentLabel')}
@@ -318,7 +318,7 @@ function ItemCard({
     <button
       type="button"
       onClick={() => onOpen(item)}
-      className="group block w-full overflow-hidden rounded-[30px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {itemImageUrl ? (
@@ -422,7 +422,7 @@ function ProjectCard({
     <button
       type="button"
       onClick={() => onOpen(project)}
-      className="group block w-full overflow-hidden rounded-[30px] border border-slate-200 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {projectImageUrl ? (
@@ -523,10 +523,10 @@ function CategorySection({
 
   return (
     <motion.div variants={fadeUp} className="space-y-7">
-      <div className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm md:p-10">
+      <div className="rounded-[28px] border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm md:p-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-600">
               <Layers3 className="h-4 w-4" />
               {categoryLabel}
             </div>
@@ -542,7 +542,7 @@ function CategorySection({
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-3 text-sm font-semibold text-slate-700">
             {items.length}
           </div>
         </div>
@@ -565,7 +565,7 @@ function CategorySection({
           ))}
         </div>
       ) : (
-        <div className="rounded-[28px] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
+        <div className="rounded-[28px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-8 text-center text-slate-500">
           {emptyCategoryItemsLabel}
         </div>
       )}
@@ -658,10 +658,10 @@ function ItemModal({
           animate={{opacity: 1, y: 0, scale: 1}}
           exit={{opacity: 0, y: 20, scale: 0.98}}
           transition={{duration: 0.25}}
-          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(960px,92vw)] overflow-hidden rounded-[32px] bg-white shadow-2xl"
+          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(960px,92vw)] overflow-hidden rounded-[32px] bg-[var(--color-surface)] shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
             <h3 className="text-xl font-black text-slate-950">{title}</h3>
             <button
               type="button"
@@ -729,7 +729,7 @@ function ItemModal({
                   ) : null}
 
                   {hasSpecifications ? (
-                    <div className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+                    <div className="min-w-0 rounded-[24px] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5">
                       <h4 className="text-xl font-black text-slate-950">
                         {t('specifications')}
                       </h4>
@@ -869,10 +869,10 @@ function ProjectModal({
           animate={{opacity: 1, y: 0, scale: 1}}
           exit={{opacity: 0, y: 20, scale: 0.98}}
           transition={{duration: 0.25}}
-          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(980px,92vw)] overflow-hidden rounded-[32px] bg-white shadow-2xl"
+          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(980px,92vw)] overflow-hidden rounded-[32px] bg-[var(--color-surface)] shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
             <h3 className="text-xl font-black text-slate-950">{title}</h3>
             <button
               type="button"
@@ -933,7 +933,7 @@ function ProjectModal({
                   ) : null}
 
                   {hasClient || hasProjectDate || hasLocation ? (
-                    <div className="space-y-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+                    <div className="space-y-4 rounded-[24px] border border-[var(--color-border)] bg-[var(--color-surface-muted)] p-5">
                       <h4 className="text-xl font-black text-slate-950">
                         {t('projectInfo')}
                       </h4>
@@ -1006,7 +1006,7 @@ function LoadMoreItems({
         type="button"
         disabled={query.isFetchingNextPage}
         onClick={() => query.fetchNextPage()}
-        className="inline-flex min-h-12 items-center rounded-full border border-[var(--color-primary)] bg-white px-8 py-3 text-base font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-primary-soft)] disabled:opacity-60"
+        className="inline-flex min-h-12 items-center rounded-full border border-[var(--color-primary)] bg-[var(--color-surface)] px-8 py-3 text-base font-semibold text-[var(--color-primary)] transition hover:bg-[var(--color-primary-soft)] disabled:opacity-60"
       >
         {label}
       </button>
@@ -1185,7 +1185,7 @@ export default function PublicSectionPage({locale, data}: Props) {
   className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-5 py-3 text-base font-semibold transition ${
     isActive
       ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]'
-      : 'border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
+      : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
   }`}
 >
   <span>{label}</span>
@@ -1200,7 +1200,7 @@ export default function PublicSectionPage({locale, data}: Props) {
   className={`inline-flex min-h-12 items-center gap-2 rounded-full border px-5 py-3 text-base font-semibold transition ${
     effectiveSelectedCategoryId === 'uncategorized'
       ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]'
-      : 'border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
+      : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
   }`}
 >
   <span>{t('uncategorized')}</span>
@@ -1334,7 +1334,7 @@ export default function PublicSectionPage({locale, data}: Props) {
               ))}
             </motion.div>
           ) : itemsQuery.isPending ? null : (
-            <div className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+            <div className="rounded-[32px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-10 text-center">
               <Package className="mx-auto h-10 w-10 text-slate-400" />
               <h2 className="mt-5 text-3xl font-black text-slate-950">
                 {t('noItemsYet')}
@@ -1397,7 +1397,7 @@ export default function PublicSectionPage({locale, data}: Props) {
               ))}
             </motion.div>
           ) : projectsQuery.isPending ? null : (
-            <div className="rounded-[32px] border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+            <div className="rounded-[32px] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-muted)] p-10 text-center">
               <FolderKanban className="mx-auto h-10 w-10 text-slate-400" />
               <h2 className="mt-5 text-3xl font-black text-slate-950">
                 {t('noProjectsYet')}
