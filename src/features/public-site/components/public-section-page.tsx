@@ -17,7 +17,7 @@ import {
   Tag,
   UserRound
 } from 'lucide-react';
-import {Link} from '@/i18n/navigation';
+import {useRouter} from '@/i18n/navigation';
 import type {SectionContentBlockResponse} from '@/features/content-blocks/types';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
 import type {SectionItemMediaResponse} from '@/features/item-media/types';
@@ -83,8 +83,21 @@ function SectionHero({
   coverVideoUrl?: string | null;
   backLabel: string;
 }) {
+  const router = useRouter();
   const resolvedCoverImageUrl = resolveMediaUrl(coverImageUrl);
   const resolvedCoverVideoUrl = resolveMediaUrl(coverVideoUrl);
+
+  // A plain link to "/" always lands at the top of the homepage. Going back
+  // through browser history instead returns to wherever on the homepage the
+  // visitor actually scrolled from — falling back to "/" only when there's
+  // no page to go back to (a shared link opened directly, a new tab).
+  function handleBack() {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
+  }
 
   return (
     <section className="relative isolate overflow-hidden">
@@ -137,13 +150,14 @@ function SectionHero({
           className="max-w-4xl"
         >
           <motion.div variants={fadeUp}>
-            <Link
-              href="/"
+            <button
+              type="button"
+              onClick={handleBack}
               className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/85 backdrop-blur-md transition hover:bg-white/15"
             >
               <ArrowLeft className="h-4 w-4" />
               {backLabel}
-            </Link>
+            </button>
           </motion.div>
 
           <motion.h1
