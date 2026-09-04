@@ -128,6 +128,35 @@ export async function getMediaByType(
   );
 }
 
+/**
+ * Reads an already-uploaded file back as a File, via our own backend
+ * (not the storage bucket directly, which may not allow cross-origin
+ * reads) — used by the gallery's "Edit" crop tool.
+ */
+export async function fetchMediaAsFile(item: MediaLibraryItem): Promise<File> {
+  const token = getRequiredToken();
+
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}${endpoints.admin.mediaLibrary}/${item.id}/raw`,
+    {
+      method: 'GET',
+      headers: {
+        Authorization: token
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new HttpError({
+      message: `Request failed with status ${response.status}`,
+      status: response.status
+    });
+  }
+
+  const blob = await response.blob();
+  return new File([blob], item.fileName, {type: item.mimeType});
+}
+
 export async function deleteMedia(id: number): Promise<void> {
   await apiClient<unknown>(`${endpoints.admin.mediaLibrary}/${id}`, {
     method: 'DELETE',

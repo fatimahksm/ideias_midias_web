@@ -21,6 +21,9 @@ type Props = {
   aspect?: number;
   cropShape?: 'rect' | 'round';
   isApplying?: boolean;
+  /** When provided, renders a row of quick aspect-ratio buttons above the zoom slider. */
+  aspectPresets?: {label: string; value: number}[];
+  onAspectSelect?: (value: number) => void;
   onClose: () => void;
   onApply: (file: File, previewUrl: string) => Promise<void> | void;
 };
@@ -124,6 +127,8 @@ export function ImageCropModal({
   aspect = 4 / 3,
   cropShape = 'rect',
   isApplying = false,
+  aspectPresets,
+  onAspectSelect,
   onClose,
   onApply
 }: Props) {
@@ -236,7 +241,33 @@ export function ImageCropModal({
           </div>
 
           <div className="flex flex-col border-t border-slate-200 bg-slate-50 p-5 lg:border-l lg:border-t-0">
-            <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            {aspectPresets && aspectPresets.length > 0 ? (
+              <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex flex-wrap gap-2">
+                  {aspectPresets.map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      disabled={isApplying}
+                      onClick={() => onAspectSelect?.(preset.value)}
+                      className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        aspect === preset.value
+                          ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+                          : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div
+              className={`rounded-3xl border border-slate-200 bg-white p-4 shadow-sm ${
+                aspectPresets && aspectPresets.length > 0 ? 'mt-4' : ''
+              }`}
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                 {zoomLabel}
               </p>
