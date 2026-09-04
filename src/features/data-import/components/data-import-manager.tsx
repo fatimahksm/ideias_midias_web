@@ -352,13 +352,13 @@ function SheetReview({
         <table className="w-full min-w-max border-collapse text-sm">
           <thead>
             <tr className="bg-slate-50">
-              <th className="sticky left-0 z-10 border-b border-slate-200 bg-slate-50 px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th className="sticky left-0 z-10 border-b border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {t('rowNumberColumn')}
               </th>
               {sheet.fieldsMeta.map((meta) => (
                 <th
                   key={meta.field}
-                  className="border-b border-slate-200 px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
+                  className="border-b border-slate-200 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500"
                 >
                   {t(`field_${meta.field}` as never)}
                   {meta.required ? ' *' : ''}
@@ -375,7 +375,7 @@ function SheetReview({
 
               return (
                 <tr key={row.rowNumber} className="border-b border-slate-100 last:border-b-0">
-                  <td className={`sticky left-0 z-10 px-3 py-2.5 align-top ${rowBg}`}>
+                  <td className={`sticky left-0 z-10 px-2.5 py-1.5 align-top ${rowBg}`}>
                     <p className="text-sm font-medium text-slate-800">#{row.rowNumber}</p>
                     {rowError ? (
                       <p className="mt-1 max-w-[12rem] text-xs text-red-700">{rowError}</p>
@@ -383,7 +383,7 @@ function SheetReview({
                   </td>
 
                   {sheet.fieldsMeta.map((meta) => (
-                    <td key={meta.field} className={`px-3 py-2.5 align-top ${rowBg}`}>
+                    <td key={meta.field} className={`px-2.5 py-1.5 align-top ${rowBg}`}>
                       <FieldEditor
                         meta={meta}
                         value={fieldValue(sheet.sheet, row, meta.field)}
@@ -438,37 +438,41 @@ function FieldEditor({
   onPickMedia
 }: FieldEditorProps) {
   const inputClassName =
-    'w-full min-w-[11rem] rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10';
+    'w-full min-w-[11rem] rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-accent)]/10';
 
   if (meta.type === 'IMAGE' || meta.type === 'VIDEO') {
     const resolvedUrl = resolveMediaUrl(value || undefined);
 
     return (
-      <div className="flex items-start gap-2">
-        <div className="h-14 w-20 shrink-0 overflow-hidden rounded-lg border border-dashed border-slate-300 bg-slate-50">
-          {resolvedUrl ? (
-            meta.type === 'VIDEO' ? (
+      <div className="flex items-center gap-1.5 whitespace-nowrap">
+        {resolvedUrl ? (
+          <div className="h-7 w-7 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+            {meta.type === 'VIDEO' ? (
               <video src={resolvedUrl} className="h-full w-full object-cover" muted />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={resolvedUrl} alt="" className="h-full w-full object-cover" />
-            )
-          ) : (
-            <div className="flex h-full items-center justify-center px-1 text-center text-[10px] text-slate-400">
-              {t('noImage')}
-            </div>
-          )}
-        </div>
-        <div className="flex flex-col gap-1">
-          <Button type="button" variant="outline" size="sm" onClick={onPickMedia}>
-            {resolvedUrl ? t('changeImage') : t('pickImage')}
-          </Button>
-          {value ? (
-            <Button type="button" variant="ghost" size="sm" onClick={onClear}>
-              {t('clearImage')}
-            </Button>
-          ) : null}
-        </div>
+            )}
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onPickMedia}
+          className="text-xs font-medium text-[var(--color-primary)] underline-offset-2 hover:underline"
+        >
+          {resolvedUrl ? t('changeImage') : t('pickImage')}
+        </button>
+
+        {value ? (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-xs font-medium text-red-600 underline-offset-2 hover:underline"
+          >
+            {t('clearImage')}
+          </button>
+        ) : null}
       </div>
     );
   }
