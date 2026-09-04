@@ -690,31 +690,8 @@
       "homeCardsLabel": "Cartões iniciais",
       "homeCardsHint": "Cartões de atalho e destaque da página inicial.",
       "contactMethodsLabel": "Contato methods",
-      "contactMethodsHint": "Canais de contato visíveis e ações diretas.",
-      "stats": {
-        "homeCardsHint": "Gerencie os cartões exibidos na página inicial.",
-        "contactMethodsLabel": "Formas de contato",
-        "contactMethodsHint": "Controle como os visitantes podem falar com a empresa."
-      }
+      "contactMethodsHint": "Canais de contato visíveis e ações diretas."
     },
-    "siteSettingsCardTitle": "Configurações do site",
-    "siteSettingsCardDescription": "Atualize a identidade pública, o destaque e as informações gerais do site.",
-    "siteSettingsCardAction": "Abrir configurações do site",
-    "homeCardsCardTitle": "Cartões iniciais",
-    "homeCardsCardDescription": "Gerencie os cartões exibidos na página inicial e controle sua ordem.",
-    "homeCardsCardAction": "Gerenciar cartões iniciais",
-    "sectionsCardTitle": "Seções",
-    "sectionsCardDescription": "Crie e organize as principais seções que estruturam o site público.",
-    "sectionsCardAction": "Gerenciar seções",
-    "mediaCardTitle": "Galeria",
-    "mediaCardDescription": "Reveja os arquivos enviados e reutilize mídia em itens, projetos e conteúdo.",
-    "mediaCardAction": "Abrir galeria",
-    "contactMethodsCardTitle": "Contato methods",
-    "contactMethodsCardDescription": "Gerencie telefone, e-mail, links sociais e outros canais de contato.",
-    "contactMethodsCardAction": "Gerenciar métodos de contato",
-    "themeSettingsCardTitle": "Tema configurações",
-    "themeSettingsCardDescription": "Ajuste as cores, a tipografia e o estilo visual usados em todo o site.",
-    "themeSettingsCardAction": "Abrir configurações do tema",
     "analyticsTitle": "Visão geral de tráfego",
     "analyticsDescription": "Atividade dos visitantes no site público.",
     "analyticsAllTimeCaption": "{count} visualizações no total",
@@ -739,8 +716,7 @@
     "topSectionsEmpty": "Nenhuma visualização de seção registrada ainda.",
     "topSectionsViewsUnit": "visualizações",
     "contentOverviewTitle": "Visão geral do conteúdo",
-    "contentOverviewDescription": "Retrato de tudo o que está publicado atualmente no site.",
-    "quickActionsTitle": "Ações rápidas"
+    "contentOverviewDescription": "Retrato de tudo o que está publicado atualmente no site."
   },
   "ContactMethodsPage": {
     "title": "Contato",
@@ -1431,7 +1407,7 @@
     "studioTitle": "Estúdio de seções",
     "studioSubtitle": "Construa a estrutura do site com blocos de seção limpos e reutilizáveis.",
     "createSection": "Criar seção",
-    "searchPlaceholder": "Pesquisar por nome ou slug",
+    "searchPlaceholder": "Pesquisar por nome ou link",
     "typeFilterLabel": "Tipo de seção",
     "statusFilterLabel": "Status",
     "sortByLabel": "Ordenar por",
@@ -1454,7 +1430,6 @@
     "searchEmptyDescription": "Tente outra palavra-chave ou crie uma nova seção se esta ainda não existir.",
     "createFirst": "Criar a primeira seção",
     "sortOrder": "Ordem de exibição",
-    "slugLabel": "Caminho de pré-visualização",
     "updatedAt": "Última atualização",
     "contentMode": "Modo de conteúdo",
     "noDescription": "Nenhuma descrição adicionada ainda.",
@@ -1633,15 +1608,15 @@
   },
   "SectionForm": {
     "identityCardTitle": "Identidade da seção",
-    "identityCardDescription": "Defina o tipo, o slug e os nomes bilíngues que moldam esta seção.",
+    "identityCardDescription": "Defina o tipo, o link da página e os nomes bilíngues que moldam esta seção.",
     "identityStudioNote": "Escolha primeiro o tipo de seção. Ele controla como o conteúdo se comportará depois em todo o site.",
     "sectionTypeLabel": "Tipo de seção",
     "sectionTypeHint": "Isto define o fluxo de conteúdo da seção.",
-    "slugLabel": "Caminho de pré-visualização",
-    "slugHint": "Usado no endereço público da página. Mantenha-o curto e legível.",
-    "slugToolsTitle": "Ferramentas de slug",
-    "regenerateSlug": "Gerar slug novamente",
-    "autoSlugToggle": "Sincronizar slug automaticamente",
+    "slugLabel": "Link da página",
+    "slugHint": "Este é o endereço da página desta seção. Ele é criado automaticamente a partir do nome acima — normalmente você não precisa alterá-lo.",
+    "slugToolsTitle": "Opções do link da página",
+    "regenerateSlug": "Igual ao nome",
+    "autoSlugToggle": "Atualizar sempre",
     "namesGroupTitle": "Nomes bilíngues",
     "namesGroupDescription": "Mantenha os nomes alinhados entre português e inglês, permanecendo rápidos de editar.",
     "ptLabel": "Português",
@@ -1651,7 +1626,7 @@
     "namePtLabel": "Nome em português",
     "namePtHint": "É este que aparece no conteúdo em português.",
     "nameEnLabel": "Nome em inglês",
-    "nameEnHint": "Também ajuda a gerar o slug da seção.",
+    "nameEnHint": "Também cria o endereço da página da seção automaticamente.",
     "descriptionCardTitle": "Descrições da seção",
     "descriptionCardDescription": "Adicione contexto editorial para que a seção fique completa e com significado.",
     "descriptionGroupTitle": "Descrições bilíngues",
@@ -1679,7 +1654,7 @@
     "createSuccess": "Seção criada com sucesso.",
     "untitledSection": "Seção sem título",
     "untitledSectionPt": "Ainda sem nome em português",
-    "previewPathLabel": "Caminho de pré-visualização",
+    "previewPathLabel": "Link da página",
     "sidebarSortOrder": "Ordem de exibição",
     "sidebarPublishing": "Publicação",
     "publishingActive": "Pronta para aparecer como conteúdo ativo",
@@ -1687,8 +1662,8 @@
     "coverPreviewTitle": "Pré-visualização da capa",
     "coverPreviewDescription": "Dá uma noção visual rápida antes de salvar.",
     "noCoverSelected": "Nenhuma mídia de capa selecionada ainda.",
-    "slugRequired": "O slug é obrigatório.",
-    "slugTooLong": "O slug é longo demais.",
+    "slugRequired": "O link da página é obrigatório.",
+    "slugTooLong": "O link da página é longo demais.",
     "namePtRequired": "O nome em português é obrigatório.",
     "namePtTooLong": "O nome em português é longo demais.",
     "nameEnRequired": "O nome em inglês é obrigatório.",
@@ -1728,71 +1703,19 @@
     "backToSections": "Voltar para seções",
     "editSection": "Editar configurações da seção",
     "previewSection": "Pré-visualização seção",
-    "sectionIdLabel": "Seção record",
-    "slugLabel": "Pré-visualização path",
     "contentModeLabel": "Modo de conteúdo",
     "sortOrderLabel": "Ordem de exibição",
-    "manageHomepage": "Gerenciar a página inicial",
-    "nextStepTitle": "Próximo passo para esta seção",
-    "nextStepSubtitle": "Esta área de trabalho indica o módulo certo conforme o tipo da seção.",
-    "integrationNoticeTitle": "Seção-aware management comes next",
-    "integrationNoticeDescription": "No próximo passo, estes módulos ficam embutidos aqui dentro, para não ser preciso saltar entre páginas soltas do admin.",
     "CONTENT": {
-      "introTitle": "Espaço de trabalho da seção de conteúdo",
-      "introDescription": "Esta seção usa um fluxo de conteúdo livre. Tudo deve ser gerenciado dentro da própria seção.",
-      "embeddedTitle": "Gerencie os blocos de conteúdo aqui",
-      "embeddedDescription": "Esta área de trabalho mantém todo o fluxo de blocos de conteúdo dentro da seção, o que é bem mais fácil de gerenciar.",
-      "actions": {
-        "contentBlocks": {
-          "title": "Blocos de conteúdo",
-          "description": "Gerencie texto bilíngue, blocos de mídia e conteúdo de apresentação para este tipo de seção.",
-          "button": "Abrir blocos de conteúdo"
-        }
-      }
+      "embeddedTitle": "Blocos de conteúdo"
     },
     "CATEGORY_ITEMS": {
-      "introTitle": "Espaço de trabalho de categoria + itens",
-      "introDescription": "Esta seção tem duas camadas: primeiro as categorias e depois os itens dentro delas.",
-      "embeddedTitle": "Gerencie categorias e itens aqui",
-      "embeddedDescription": "Esta área de trabalho mostra o fluxo real desta seção: primeiro as categorias e depois os itens, tudo no mesmo lugar.",
-      "actions": {
-        "categories": {
-          "title": "Categorias",
-          "description": "Crie e organize os grupos que pertencem a esta seção antes de preenchê-los com itens.",
-          "button": "Abrir categorias"
-        },
-        "items": {
-          "title": "Itens",
-          "description": "Gerencie os itens que depois serão vinculados sob as categorias corretas dentro desta seção.",
-          "button": "Abrir itens"
-        }
-      }
+      "embeddedTitle": "Categorias e itens"
     },
     "DIRECT_ITEMS": {
-      "introTitle": "Espaço de trabalho de itens diretos",
-      "introDescription": "Esta seção lista os itens diretamente, sem camada de categorias.",
-      "embeddedTitle": "Gerencie os itens diretos aqui",
-      "embeddedDescription": "Esta área de trabalho mantém o fluxo de itens dentro da própria seção, sem a confusão das categorias.",
-      "actions": {
-        "items": {
-          "title": "Itens",
-          "description": "Gerencie os itens diretos que pertencem a esta seção sem aninhamento de categorias.",
-          "button": "Abrir itens"
-        }
-      }
+      "embeddedTitle": "Itens"
     },
     "PORTFOLIO": {
-      "introTitle": "Portfolio espaço de trabalho",
-      "introDescription": "Esta seção serve para apresentação por projetos e narrativa com bastante mídia.",
-      "embeddedTitle": "Gerencie os projetos de portfólio aqui",
-      "embeddedDescription": "Esta área de trabalho mantém o fluxo de projetos dentro da própria seção de portfólio, em vez de espalhar por várias páginas do admin.",
-      "actions": {
-        "projects": {
-          "title": "Portfolio Projetos",
-          "description": "Gerencie os projetos visuais que aparecerão dentro desta seção de portfólio.",
-          "button": "Abrir portfolio projetos"
-        }
-      }
+      "embeddedTitle": "Projetos de portfólio"
     }
   },
   "MediaLibraryManager": {
@@ -1971,9 +1894,7 @@
     "previewHint": "Isso foi só uma checagem — nada foi salvo ainda. Clique em \"Confirmar\" para realmente adicionar esses dados ao site.",
     "imagesCardTitle": "3. Anexar imagens (opcional)",
     "imagesCardDescription": "Uma célula do Excel só guarda texto, não um arquivo de imagem. Escolha cada imagem ou vídeo na Galeria em vez de digitar uma URL — também serve para corrigir uma linha que ainda não tem imagem.",
-    "rowNumberColumn": "Linha",
     "showMoreFields": "Mais campos",
-    "hideMoreFields": "Ocultar campos",
     "noImage": "Sem imagem",
     "pickImage": "Escolher da Galeria",
     "changeImage": "Trocar",
@@ -1993,7 +1914,7 @@
     "booleanNo": "Não",
     "selectPlaceholder": "Escolher...",
     "noOptionsAvailable": "Ainda sem opções — adicione uma na planilha da qual isso depende primeiro",
-    "field_slug": "Caminho de pré-visualização",
+    "field_slug": "Link da página",
     "field_name_pt": "Nome (Português)",
     "field_name_en": "Nome (Inglês)",
     "field_section_type": "Tipo de seção",

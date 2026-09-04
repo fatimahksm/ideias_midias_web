@@ -675,11 +675,6 @@
     "description": "Track the main content areas and jump quickly into the parts you manage most.",
     "statsLoadError": "Failed to load dashboard statistics.",
     "stats": {
-      "stats": {
-        "homeCardsHint": "Manage the cards displayed on the homepage.",
-        "contactMethodsLabel": "Contact methods",
-        "contactMethodsHint": "Control the ways visitors can reach the company."
-      },
       "sectionsLabel": "Sections",
       "sectionsHint": "Main content areas configured in the website.",
       "categoriesLabel": "Categories",
@@ -697,24 +692,6 @@
       "contactMethodsLabel": "Contact methods",
       "contactMethodsHint": "Visible contact channels and direct actions."
     },
-    "siteSettingsCardTitle": "Site settings",
-    "siteSettingsCardDescription": "Update the public identity, hero content and global website information.",
-    "siteSettingsCardAction": "Open site settings",
-    "homeCardsCardTitle": "Home cards",
-    "homeCardsCardDescription": "Manage the cards shown on the homepage and control their order.",
-    "homeCardsCardAction": "Manage home cards",
-    "sectionsCardTitle": "Sections",
-    "sectionsCardDescription": "Create and organize the main sections that structure the public website.",
-    "sectionsCardAction": "Manage sections",
-    "mediaCardTitle": "Gallery",
-    "mediaCardDescription": "Review uploaded files and reuse media across items, projects and content.",
-    "mediaCardAction": "Open gallery",
-    "contactMethodsCardTitle": "Contact methods",
-    "contactMethodsCardDescription": "Manage phone, email, social links and other contact channels.",
-    "contactMethodsCardAction": "Manage contact methods",
-    "themeSettingsCardTitle": "Theme settings",
-    "themeSettingsCardDescription": "Adjust colors, typography and visual style used across the website.",
-    "themeSettingsCardAction": "Open theme settings",
     "analyticsTitle": "Traffic overview",
     "analyticsDescription": "Visitor activity across the public website.",
     "analyticsAllTimeCaption": "{count} views all-time",
@@ -739,8 +716,7 @@
     "topSectionsEmpty": "No section views recorded yet.",
     "topSectionsViewsUnit": "views",
     "contentOverviewTitle": "Content overview",
-    "contentOverviewDescription": "Snapshot of everything currently published across the site.",
-    "quickActionsTitle": "Quick actions"
+    "contentOverviewDescription": "Snapshot of everything currently published across the site."
   },
   "ContactMethodsPage": {
     "title": "Contact",
@@ -1431,7 +1407,7 @@
     "studioTitle": "Sections studio",
     "studioSubtitle": "Build the website structure with clean, reusable section blocks.",
     "createSection": "Create section",
-    "searchPlaceholder": "Search by name or slug",
+    "searchPlaceholder": "Search by name or link",
     "typeFilterLabel": "Section type",
     "statusFilterLabel": "Status",
     "sortByLabel": "Sort by",
@@ -1454,7 +1430,6 @@
     "searchEmptyDescription": "Try another keyword, or create a new section if this one does not exist yet.",
     "createFirst": "Create first section",
     "sortOrder": "Sort order",
-    "slugLabel": "Preview path",
     "updatedAt": "Last updated",
     "contentMode": "Content mode",
     "noDescription": "No description added yet.",
@@ -1633,15 +1608,15 @@
   },
   "SectionForm": {
     "identityCardTitle": "Section identity",
-    "identityCardDescription": "Define the type, slug and bilingual names that shape this section.",
+    "identityCardDescription": "Define the type, page link and bilingual names that shape this section.",
     "identityStudioNote": "Choose the section type first. It controls how the content will behave later across the website.",
     "sectionTypeLabel": "Section type",
     "sectionTypeHint": "This decides the future content flow of the section.",
-    "slugLabel": "Preview path",
-    "slugHint": "Used in the public URL path. Keep it clean and readable.",
-    "slugToolsTitle": "Slug tools",
-    "regenerateSlug": "Regenerate slug",
-    "autoSlugToggle": "Auto-sync slug",
+    "slugLabel": "Page link",
+    "slugHint": "This becomes the section's web address. It's created automatically from the name above — you usually don't need to change it.",
+    "slugToolsTitle": "Page link options",
+    "regenerateSlug": "Match the name",
+    "autoSlugToggle": "Auto-update",
     "namesGroupTitle": "Bilingual names",
     "namesGroupDescription": "Keep names aligned across Portuguese and English while staying fast to edit.",
     "ptLabel": "Portuguese",
@@ -1651,7 +1626,7 @@
     "namePtLabel": "Portuguese name",
     "namePtHint": "This appears for Portuguese-facing content.",
     "nameEnLabel": "English name",
-    "nameEnHint": "This also helps generate the section slug.",
+    "nameEnHint": "This also creates the section's web address automatically.",
     "descriptionCardTitle": "Section descriptions",
     "descriptionCardDescription": "Add editorial context so the section feels complete and meaningful.",
     "descriptionGroupTitle": "Bilingual descriptions",
@@ -1679,7 +1654,7 @@
     "createSuccess": "Section created successfully.",
     "untitledSection": "Untitled section",
     "untitledSectionPt": "No Portuguese name yet",
-    "previewPathLabel": "Preview path",
+    "previewPathLabel": "Page link",
     "sidebarSortOrder": "Sort order",
     "sidebarPublishing": "Publishing",
     "publishingActive": "Ready to appear as active content",
@@ -1687,8 +1662,8 @@
     "coverPreviewTitle": "Cover preview",
     "coverPreviewDescription": "This gives you a quick visual feel before saving.",
     "noCoverSelected": "No cover media selected yet.",
-    "slugRequired": "Slug is required.",
-    "slugTooLong": "Slug is too long.",
+    "slugRequired": "Page link is required.",
+    "slugTooLong": "Page link is too long.",
     "namePtRequired": "Portuguese name is required.",
     "namePtTooLong": "Portuguese name is too long.",
     "nameEnRequired": "English name is required.",
@@ -1728,71 +1703,19 @@
     "backToSections": "Back to sections",
     "editSection": "Edit section settings",
     "previewSection": "Preview section",
-    "sectionIdLabel": "Section record",
-    "slugLabel": "Preview path",
     "contentModeLabel": "Content mode",
     "sortOrderLabel": "Sort order",
-    "manageHomepage": "Manage homepage",
-    "nextStepTitle": "Next step for this section",
-    "nextStepSubtitle": "This workspace now points the owner to the correct module based on the section type.",
-    "integrationNoticeTitle": "Section-aware management comes next",
-    "integrationNoticeDescription": "In the next step, these modules will be embedded directly into this workspace so the owner no longer has to jump between global admin pages.",
     "CONTENT": {
-      "introTitle": "Content section workspace",
-      "introDescription": "This section uses a flexible content flow. Everything should now be managed inside the section itself.",
-      "embeddedTitle": "Manage content blocks here",
-      "embeddedDescription": "This workspace now keeps the full content-block flow inside the section, which is much easier for the owner to manage.",
-      "actions": {
-        "contentBlocks": {
-          "title": "Content Blocks",
-          "description": "Manage bilingual text, media blocks and presentation content for this section type.",
-          "button": "Open content blocks"
-        }
-      }
+      "embeddedTitle": "Content blocks"
     },
     "CATEGORY_ITEMS": {
-      "introTitle": "Category + items workspace",
-      "introDescription": "This section is structured in two layers: categories first, then items inside those categories.",
-      "embeddedTitle": "Manage categories and items here",
-      "embeddedDescription": "This workspace now shows the real management flow for this section: categories first, then items inside the same section.",
-      "actions": {
-        "categories": {
-          "title": "Categories",
-          "description": "Create and organize the groups that belong to this section before filling them with items.",
-          "button": "Open categories"
-        },
-        "items": {
-          "title": "Items",
-          "description": "Manage the items that will later be linked under the correct categories inside this section.",
-          "button": "Open items"
-        }
-      }
+      "embeddedTitle": "Categories & items"
     },
     "DIRECT_ITEMS": {
-      "introTitle": "Direct items workspace",
-      "introDescription": "This section lists items directly, without a category layer.",
-      "embeddedTitle": "Manage direct items here",
-      "embeddedDescription": "This workspace now keeps the item flow inside the section itself, without category clutter.",
-      "actions": {
-        "items": {
-          "title": "Items",
-          "description": "Manage the direct items that belong to this section without category nesting.",
-          "button": "Open items"
-        }
-      }
+      "embeddedTitle": "Items"
     },
     "PORTFOLIO": {
-      "introTitle": "Portfolio workspace",
-      "introDescription": "This section is meant for project-driven presentation and media-heavy storytelling.",
-      "embeddedTitle": "Manage portfolio projects here",
-      "embeddedDescription": "This workspace now keeps the project flow inside the portfolio section itself instead of sending the owner to scattered admin pages.",
-      "actions": {
-        "projects": {
-          "title": "Portfolio Projects",
-          "description": "Manage the visual projects that will appear inside this portfolio section.",
-          "button": "Open portfolio projects"
-        }
-      }
+      "embeddedTitle": "Portfolio projects"
     }
   },
   "MediaLibraryManager": {
@@ -1971,9 +1894,7 @@
     "previewHint": "This was only a check — nothing was saved yet. Click \"Commit\" to actually add this data to the website.",
     "imagesCardTitle": "3. Attach images (optional)",
     "imagesCardDescription": "An Excel cell can only hold text, not a picture file. Pick each image or video from the Gallery instead of typing a URL — this also works to fix a row that has no image yet.",
-    "rowNumberColumn": "Row",
     "showMoreFields": "More fields",
-    "hideMoreFields": "Hide fields",
     "noImage": "No image",
     "pickImage": "Pick from Gallery",
     "changeImage": "Change",
@@ -1993,7 +1914,7 @@
     "booleanNo": "No",
     "selectPlaceholder": "Choose...",
     "noOptionsAvailable": "No options yet — add one in the sheet this depends on first",
-    "field_slug": "Preview path",
+    "field_slug": "Page link",
     "field_name_pt": "Name (Portuguese)",
     "field_name_en": "Name (English)",
     "field_section_type": "Section type",

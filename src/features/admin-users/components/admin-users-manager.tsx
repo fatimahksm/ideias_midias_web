@@ -4,6 +4,7 @@ import {useMemo, useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
+import {ActionMenu} from '@/components/ui/action-menu';
 import {Button} from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/confirm-dialog';
 import {Input} from '@/components/ui/input';
@@ -330,37 +331,35 @@ export default function AdminUsersManager() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Link href={`/admin/users/${item.id}/edit`}>
                     <Button type="button" variant="outline">
                       {t('edit')}
                     </Button>
                   </Link>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      setResetState({adminId: item.id, name: item.fullName})
-                    }
-                  >
-                    {t('resetPassword')}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleToggleStatus(item)}
-                    isLoading={statusMutation.isPending}
-                  >
-                    {item.isActive ? t('deactivate') : t('activate')}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    onClick={() => handleDelete(item)}
-                    isLoading={deleteMutation.isPending}
-                  >
-                    {t('delete')}
-                  </Button>
+
+                  <ActionMenu
+                    label={common('moreActions')}
+                    items={[
+                      {
+                        key: 'reset',
+                        label: t('resetPassword'),
+                        onSelect: () =>
+                          setResetState({adminId: item.id, name: item.fullName})
+                      },
+                      {
+                        key: 'toggleStatus',
+                        label: item.isActive ? t('deactivate') : t('activate'),
+                        onSelect: () => handleToggleStatus(item)
+                      },
+                      {
+                        key: 'delete',
+                        label: t('delete'),
+                        tone: 'danger',
+                        onSelect: () => handleDelete(item)
+                      }
+                    ]}
+                  />
                 </div>
               </div>
             </div>
