@@ -143,12 +143,14 @@ export function deriveTheme(
         : clamp(primaryHsl.l + 22, 55, 72)
   });
 
-  // A faint tint of primary's hue rather than a flat neutral, so the page
-  // canvas reads as part of the same palette — light or dark to match Text.
+  // A clearly visible tint of primary's hue rather than a flat neutral, so
+  // the page canvas reads as part of the same palette — light or dark to
+  // match Text — without going so dark/saturated that body text loses
+  // contrast against it.
   const backgroundColor = fromHsl({
     h: primaryHsl.h,
-    s: clamp(primaryHsl.s * 0.18, 0, 14),
-    l: preferDarkBackground ? 10 : 97
+    s: clamp(primaryHsl.s * 0.5, 0, 35),
+    l: preferDarkBackground ? 10 : 95
   });
 
   // A translucent version of primary, used as the hero gradient overlay.
