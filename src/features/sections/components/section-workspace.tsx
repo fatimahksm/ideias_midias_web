@@ -22,17 +22,30 @@ type Props = {
 
 function InfoCard({
   label,
-  value
+  value,
+  href
 }: {
   label: string;
   value: string | number;
+  href?: string;
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
         {label}
       </p>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 block truncate text-sm font-semibold text-[var(--color-primary)] hover:underline"
+        >
+          {value}
+        </a>
+      ) : (
+        <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
+      )}
     </div>
   );
 }
@@ -130,7 +143,7 @@ export function SectionWorkspace({sectionId}: Props) {
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <InfoCard label={t('sectionIdLabel')} value={`#${section.id}`} />
-          <InfoCard label={t('slugLabel')} value={previewPath} />
+          <InfoCard label={t('slugLabel')} value={previewPath} href={`/${locale}${previewPath}`} />
           <InfoCard
             label={t('contentModeLabel')}
             value={sectionsCommon(`types.${section.sectionType}.shortMode`)}
