@@ -3,7 +3,7 @@
 import {useEffect, useRef} from 'react';
 import {MapPin} from 'lucide-react';
 import maplibregl from 'maplibre-gl';
-import {OSM_RASTER_STYLE} from '@/lib/map/tile-style';
+import {SATELLITE_RASTER_STYLE} from '@/lib/map/tile-style';
 
 type Props = {
   lat: number;
@@ -111,7 +111,7 @@ export default function PublicLocationMap({
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: OSM_RASTER_STYLE,
+      style: SATELLITE_RASTER_STYLE,
       center: [lng, lat],
       zoom: MAP_ZOOM,
       minZoom: 3,
