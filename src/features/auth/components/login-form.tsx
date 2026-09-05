@@ -10,6 +10,7 @@ import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {
   clearAdminSession,
   getAdminToken,
@@ -40,8 +41,7 @@ export default function LoginForm() {
   const locale = useLocale();
   const router = useRouter();
 
-  const [serverError, setServerError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const {showSuccess, showError} = useToast();
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -86,19 +86,16 @@ export default function LoginForm() {
   });
 
   async function onSubmit(values: AdminLoginFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
     try {
       const result = await adminLogin(values);
 
       setAdminToken(result.token);
-      setSuccessMessage(t('loginSuccess'));
+      showSuccess(t('loginSuccess'));
 
       router.replace(`/${locale}/admin`);
     } catch (error) {
       const appError = toAppError(error);
-      setServerError(getErrorMessage(appError, (key) => errorT(key)));
+      showError(getErrorMessage(appError, (key) => errorT(key)));
     }
   }
 
@@ -138,18 +135,6 @@ export default function LoginForm() {
         autoComplete="current-password"
         {...register('password')}
       />
-
-      {serverError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {serverError}
-        </div>
-      ) : null}
-
-      {successMessage ? (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {successMessage}
-        </div>
-      ) : null}
 
       <Button
         type="submit"

@@ -16,6 +16,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {getAllSections} from '@/features/sections/api';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {
   createCategory,
   getAllCategories,
@@ -134,13 +135,12 @@ export default function CategoryForm({
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [serverError, setServerError] = useState('');
+  const {showSuccess, showError} = useToast();
 
   // The form is two screens: everything about the content, then publishing.
   // Both are one click away, so changing one field never means scrolling past
   // everything else.
   const [step, setStep] = useState(0);
-  const [successMessage, setSuccessMessage] = useState('');
   const isSectionLocked =
     mode === 'create' &&
     typeof initialSectionId === 'number' &&
@@ -194,8 +194,7 @@ export default function CategoryForm({
       return createCategory(payload);
     },
     onSuccess: async (savedCategory) => {
-      setServerError('');
-      setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
+      showSuccess(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
       await queryClient.invalidateQueries({queryKey: ['categories']});
 
@@ -220,8 +219,7 @@ export default function CategoryForm({
       });
     },
     onError: (error) => {
-      setSuccessMessage('');
-      setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));
+      showError(getErrorMessage(toAppError(error), (key) => errorT(key)));
     }
   });
 
@@ -306,9 +304,6 @@ export default function CategoryForm({
   );
 
   async function onSubmit(values: CategoryFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
     const payload: SectionCategoryPayload = {
       sectionId: values.sectionId,
       namePt: values.namePt.trim(),
@@ -369,12 +364,6 @@ export default function CategoryForm({
           </Link>
 
           <div className="flex flex-wrap items-center gap-3">
-            {successMessage ? (
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-                {successMessage}
-              </span>
-            ) : null}
-
             <Button
               type="submit"
               isLoading={saveMutation.isPending}
@@ -384,12 +373,6 @@ export default function CategoryForm({
             </Button>
           </div>
         </div>
-
-        {serverError ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {serverError}
-          </div>
-        ) : null}
 
         <FormStepNav
           steps={navSteps}

@@ -3,13 +3,14 @@
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo} from 'react';
 import {Controller, useForm} from 'react-hook-form';
 import {SettingsCard} from '@/components/common/settings-card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {applyThemeVariables} from '@/lib/theme/css-variables';
 import {defaultTheme} from '@/lib/theme/default-theme';
 import {deriveTheme} from '@/lib/theme/derive-theme';
@@ -163,8 +164,7 @@ export default function ThemeSettingsForm() {
   const errorT = useTranslations('CommonErrors');
   const common = useTranslations('Common');
 
-  const [serverError, setServerError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const {showSuccess, showError} = useToast();
 
   const {
     control,
@@ -204,8 +204,7 @@ export default function ThemeSettingsForm() {
   const saveMutation = useMutation({
     mutationFn: updateAdminThemeSettings,
     onSuccess: (savedTheme) => {
-      setServerError('');
-      setSuccessMessage(t('saveSuccess'));
+      showSuccess(t('saveSuccess'));
       reset({
         primaryColor: savedTheme.primaryColor,
         textColor: savedTheme.textColor
@@ -216,8 +215,7 @@ export default function ThemeSettingsForm() {
       });
     },
     onError: (error) => {
-      setSuccessMessage('');
-      setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));
+      showError(getErrorMessage(toAppError(error), (key) => errorT(key)));
     }
   });
 
@@ -234,8 +232,6 @@ export default function ThemeSettingsForm() {
   );
 
   async function onSubmit(values: ThemeSettingsFormValues) {
-    setServerError('');
-    setSuccessMessage('');
     const fullTheme = deriveTheme(values.primaryColor, values.textColor);
     await saveMutation.mutateAsync(fullTheme);
   }
@@ -299,18 +295,6 @@ export default function ThemeSettingsForm() {
       >
         <ThemePreview derivedTheme={derivedTheme} t={t} />
       </SettingsCard>
-
-      {serverError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {serverError}
-        </div>
-      ) : null}
-
-      {successMessage ? (
-        <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {successMessage}
-        </div>
-      ) : null}
 
       <div className="flex justify-end">
         <Button

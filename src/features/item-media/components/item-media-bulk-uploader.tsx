@@ -6,6 +6,7 @@ import {Button} from '@/components/ui/button';
 import {uploadMedia} from '@/features/media-library/api';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {createItemMedia} from '../api';
 
 type Props = {
@@ -23,9 +24,8 @@ export function ItemMediaBulkUploader({
   const errorT = useTranslations('CommonErrors');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const {showSuccess, showError} = useToast();
   const [isUploading, setIsUploading] = useState(false);
-  const [localError, setLocalError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   function resetInput() {
     if (inputRef.current) {
@@ -46,15 +46,12 @@ export function ItemMediaBulkUploader({
     );
 
     if (invalidFile) {
-      setSuccessMessage('');
-      setLocalError(t('invalidMediaOnly'));
+      showError(t('invalidMediaOnly'));
       resetInput();
       return;
     }
 
     setIsUploading(true);
-    setLocalError('');
-    setSuccessMessage('');
 
     try {
       for (const [index, file] of files.entries()) {
@@ -78,7 +75,7 @@ export function ItemMediaBulkUploader({
         });
       }
 
-      setSuccessMessage(
+      showSuccess(
         t('bulkSuccess', {
           count: files.length
         })
@@ -88,8 +85,7 @@ export function ItemMediaBulkUploader({
         await onCompleted();
       }
     } catch (error) {
-      setSuccessMessage('');
-      setLocalError(
+      showError(
         getErrorMessage(toAppError(error), (key) => errorT(key)) ||
           t('uploadFailed')
       );
@@ -132,17 +128,6 @@ export function ItemMediaBulkUploader({
         </div>
       </div>
 
-      {successMessage ? (
-        <div className="mt-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {successMessage}
-        </div>
-      ) : null}
-
-      {localError ? (
-        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {localError}
-        </div>
-      ) : null}
     </div>
   );
 }

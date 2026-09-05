@@ -18,6 +18,7 @@ import {getAllSections} from '@/features/sections/api';
 import type {SectionResponse} from '@/features/sections/types';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {
   createHomeCard,
   getAllHomeCards,
@@ -135,8 +136,7 @@ export default function HomeCardForm({mode, cardId}: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [serverError, setServerError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const {showSuccess, showError} = useToast();
 
   // Creating walks through the steps one at a time; editing collapses them
   // into two screens so there is less to click through.
@@ -193,8 +193,7 @@ export default function HomeCardForm({mode, cardId}: Props) {
       return createHomeCard(payload);
     },
     onSuccess: async (savedCard) => {
-      setServerError('');
-      setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
+      showSuccess(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
       await queryClient.invalidateQueries({queryKey: ['home-cards']});
 
@@ -216,8 +215,7 @@ export default function HomeCardForm({mode, cardId}: Props) {
       });
     },
     onError: (error) => {
-      setSuccessMessage('');
-      setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));
+      showError(getErrorMessage(toAppError(error), (key) => errorT(key)));
     }
   });
 
@@ -360,9 +358,6 @@ export default function HomeCardForm({mode, cardId}: Props) {
   }
 
   async function onSubmit(values: HomeCardFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
     const payload: HomeCardPayload = {
       sectionId: values.sectionId,
       titlePt: values.titlePt.trim(),
@@ -388,11 +383,6 @@ export default function HomeCardForm({mode, cardId}: Props) {
             </Button>
           </Link>
 
-          {successMessage ? (
-            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-              {successMessage}
-            </span>
-          ) : null}
         </div>
 
         <FormStepNav
@@ -401,12 +391,6 @@ export default function HomeCardForm({mode, cardId}: Props) {
           onSelect={setStep}
           maxSelectableStep={isWizard ? step : undefined}
         />
-
-        {serverError ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {serverError}
-          </div>
-        ) : null}
 
         {showCard(0) && (
         <SettingsCard
