@@ -15,6 +15,7 @@ import {Textarea} from '@/components/ui/textarea';
 import {MediaUploadField} from '@/features/media-library/components/media-upload-field';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {
   createSection,
   getAllSections,
@@ -144,8 +145,7 @@ export default function SectionForm({mode, sectionId}: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [serverError, setServerError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const {showSuccess, showError} = useToast();
   const [autoSlug, setAutoSlug] = useState(mode === 'create');
   const [savedSectionId, setSavedSectionId] = useState<number | undefined>(
     sectionId
@@ -207,10 +207,7 @@ export default function SectionForm({mode, sectionId}: Props) {
       return createSection(payload);
     },
     onSuccess: async (savedSection) => {
-      setServerError('');
-      setSuccessMessage(
-        mode === 'edit' ? t('saveSuccess') : t('createSuccess')
-      );
+      showSuccess(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
       setSavedSectionId(savedSection.id);
       setSavedSectionType(savedSection.sectionType);
 
@@ -235,8 +232,7 @@ export default function SectionForm({mode, sectionId}: Props) {
       });
     },
     onError: (error) => {
-      setSuccessMessage('');
-      setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));
+      showError(getErrorMessage(toAppError(error), (key) => errorT(key)));
     }
   });
 
@@ -394,8 +390,6 @@ export default function SectionForm({mode, sectionId}: Props) {
   }
 
   async function onSubmit(values: SectionFormValues) {
-    setServerError('');
-    setSuccessMessage('');
 
     const payload: SectionPayload = {
       slug: values.slug.trim(),
@@ -725,18 +719,6 @@ export default function SectionForm({mode, sectionId}: Props) {
             </div>
           </SettingsCard>
           )}
-
-          {serverError ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {serverError}
-            </div>
-          ) : null}
-
-          {successMessage ? (
-            <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-              {successMessage}
-            </div>
-          ) : null}
 
           {(!isWizard || showCard(4)) && (
           <div className="flex flex-wrap items-center justify-between gap-3">

@@ -17,6 +17,7 @@ import {getPortfolioProjectById} from '@/features/portfolio-projects/api';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {
   createPortfolioProjectMedia,
   getPortfolioProjectMediaById,
@@ -141,13 +142,12 @@ export default function PortfolioProjectMediaForm({
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [serverError, setServerError] = useState('');
+  const {showSuccess, showError} = useToast();
 
   // The form is two screens: everything about the content, then publishing.
   // Both are one click away, so changing one field never means scrolling past
   // everything else.
   const [step, setStep] = useState(0);
-  const [successMessage, setSuccessMessage] = useState('');
 
   const {
     register,
@@ -197,8 +197,7 @@ export default function PortfolioProjectMediaForm({
       return createPortfolioProjectMedia(payload);
     },
   onSuccess: async (savedMedia) => {
-  setServerError('');
-  setSuccessMessage(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
+  showSuccess(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
   await Promise.all([
     queryClient.invalidateQueries({
@@ -224,8 +223,7 @@ export default function PortfolioProjectMediaForm({
   });
 },
     onError: (error) => {
-      setSuccessMessage('');
-      setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));
+      showError(getErrorMessage(toAppError(error), (key) => errorT(key)));
     }
   });
 
@@ -293,9 +291,6 @@ export default function PortfolioProjectMediaForm({
   );
 
   async function onSubmit(values: PortfolioProjectMediaFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
     const payload: PortfolioProjectMediaPayload = {
       projectId,
       mediaType: values.mediaType,
@@ -354,12 +349,6 @@ export default function PortfolioProjectMediaForm({
           </Link>
 
           <div className="flex flex-wrap items-center gap-3">
-            {successMessage ? (
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
-                {successMessage}
-              </span>
-            ) : null}
-
             <Button
               type="submit"
               isLoading={saveMutation.isPending}
@@ -369,12 +358,6 @@ export default function PortfolioProjectMediaForm({
             </Button>
           </div>
         </div>
-
-        {serverError ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {serverError}
-          </div>
-        ) : null}
 
         <FormStepNav
           steps={navSteps}

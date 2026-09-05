@@ -15,6 +15,7 @@ import {Input} from '@/components/ui/input';
 import {Select} from '@/components/ui/select';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {
   createContactMethod,
   getAllContactMethods,
@@ -146,13 +147,12 @@ export default function ContactMethodForm({mode, methodId}: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [serverError, setServerError] = useState('');
+  const {showSuccess, showError} = useToast();
 
   // The form is two screens: everything about the content, then publishing.
   // Both are one click away, so changing one field never means scrolling past
   // everything else.
   const [step, setStep] = useState(0);
-  const [successMessage, setSuccessMessage] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<string>('LB');
   const [socialPlatform, setSocialPlatform] =
     useState<SocialPlatformValue>('instagram');
@@ -199,10 +199,7 @@ export default function ContactMethodForm({mode, methodId}: Props) {
       return createContactMethod(payload);
     },
     onSuccess: async (savedMethod) => {
-      setServerError('');
-      setSuccessMessage(
-        mode === 'edit' ? t('saveSuccess') : t('createSuccess')
-      );
+      showSuccess(mode === 'edit' ? t('saveSuccess') : t('createSuccess'));
 
       await queryClient.invalidateQueries({queryKey: ['contact-methods']});
 
@@ -226,8 +223,7 @@ export default function ContactMethodForm({mode, methodId}: Props) {
       }
     },
     onError: (error) => {
-      setSuccessMessage('');
-      setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));
+      showError(getErrorMessage(toAppError(error), (key) => errorT(key)));
     }
   });
 
@@ -347,9 +343,6 @@ export default function ContactMethodForm({mode, methodId}: Props) {
   }
 
   async function onSubmit(values: ContactMethodFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
     const payload: ContactMethodPayload = {
       type: values.type,
       labelPt: values.labelPt.trim(),
@@ -589,17 +582,6 @@ export default function ContactMethodForm({mode, methodId}: Props) {
           </SettingsCard>
           )}
 
-          {serverError ? (
-            <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {serverError}
-            </div>
-          ) : null}
-
-          {successMessage ? (
-            <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-              {successMessage}
-            </div>
-          ) : null}
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link href="/admin/contact-methods">

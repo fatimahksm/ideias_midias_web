@@ -15,6 +15,7 @@ import {SettingsCard} from '@/components/common/settings-card';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {MediaUploadField} from '@/features/media-library/components/media-upload-field';
+import {useToast} from '@/components/common/toast-provider';
 import {siteSettingsSchema, type SiteSettingsFormValues} from '../schema';
 import {getAdminSiteSettings, updateAdminSiteSettings} from '../api';
 import type {SiteSettingsPayload, SiteSettingsResponse} from '../types';
@@ -155,12 +156,11 @@ export default function SiteSettingsForm() {
   const common = useTranslations('Common');
   const errorT = useTranslations('CommonErrors');
 
-  const [serverError, setServerError] = useState('');
+  const {showSuccess, showError} = useToast();
 
   // Four screens instead of one very long page: identity, hero, video,
   // location. Each is one click away from the others.
   const [step, setStep] = useState(0);
-  const [successMessage, setSuccessMessage] = useState('');
 
   const backgroundOptions = useMemo(
     () => [
@@ -244,9 +244,6 @@ export default function SiteSettingsForm() {
   }, [reset, siteSettingsQuery.data]);
 
   async function onSubmit(values: SiteSettingsFormValues) {
-    setServerError('');
-    setSuccessMessage('');
-
     const payload: SiteSettingsPayload = {
       companyNamePt: values.companyNamePt.trim(),
       companyNameEn: values.companyNameEn.trim(),
@@ -269,11 +266,11 @@ export default function SiteSettingsForm() {
 
     try {
       await updateMutation.mutateAsync(payload);
-      setSuccessMessage(t('saveSuccess'));
+      showSuccess(t('saveSuccess'));
       await siteSettingsQuery.refetch();
     } catch (error) {
       const appError = toAppError(error);
-      setServerError(getErrorMessage(appError, (key) => errorT(key)));
+      showError(getErrorMessage(appError, (key) => errorT(key)));
     }
   }
 
@@ -725,18 +722,6 @@ export default function SiteSettingsForm() {
         </div>
       </SettingsCard>
       )}
-
-      {serverError ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-sm">
-          {serverError}
-        </div>
-      ) : null}
-
-      {successMessage ? (
-        <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 shadow-sm">
-          {successMessage}
-        </div>
-      ) : null}
 
       <div className="sticky bottom-4 z-10">
         <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-4 shadow-xl backdrop-blur md:flex-row md:items-center md:justify-between">

@@ -4,7 +4,7 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useMutation, useQuery} from '@tanstack/react-query';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo} from 'react';
 import {useForm} from 'react-hook-form';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -12,6 +12,7 @@ import {Select} from '@/components/ui/select';
 import {toAppError} from '@/lib/api/client';
 import {z} from 'zod';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
+import {useToast} from '@/components/common/toast-provider';
 import {
   createAdminUser,
   getAdminUserById,
@@ -35,8 +36,7 @@ export default function AdminUserForm(props: Props) {
   const locale = useLocale();
   const router = useRouter();
 
-  const [serverError, setServerError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const {showSuccess, showError} = useToast();
 
   const isCreate = props.mode === 'create';
   const isEditMode = props.mode === 'edit' && typeof props.adminId === 'number';
@@ -102,13 +102,11 @@ export default function AdminUserForm(props: Props) {
       return updateAdminUser(props.adminId, values as UpdateAdminUserFormValues);
     },
     onSuccess: () => {
-      setServerError('');
-      setSuccessMessage(isCreate ? t('createSuccess') : t('updateSuccess'));
+      showSuccess(isCreate ? t('createSuccess') : t('updateSuccess'));
       router.replace(`/${locale}/admin/users`);
     },
     onError: (error) => {
-      setSuccessMessage('');
-      setServerError(getErrorMessage(toAppError(error), (key) => errorT(key)));
+      showError(getErrorMessage(toAppError(error), (key) => errorT(key)));
     }
   });
 
@@ -121,14 +119,10 @@ export default function AdminUserForm(props: Props) {
   );
 
   async function handleCreateSubmit(values: CreateAdminUserFormValues) {
-    setServerError('');
-    setSuccessMessage('');
     await mutation.mutateAsync(values);
   }
 
   async function handleEditSubmit(values: UpdateAdminUserFormValues) {
-    setServerError('');
-    setSuccessMessage('');
     await mutation.mutateAsync(values);
   }
 
@@ -201,18 +195,6 @@ export default function AdminUserForm(props: Props) {
           ]}
         />
 
-        {serverError ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {serverError}
-          </div>
-        ) : null}
-
-        {successMessage ? (
-          <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-            {successMessage}
-          </div>
-        ) : null}
-
         <div className="flex flex-wrap justify-end gap-2">
           <Button
             type="button"
@@ -271,18 +253,6 @@ export default function AdminUserForm(props: Props) {
         }
         options={roleOptions}
       />
-
-      {serverError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {serverError}
-        </div>
-      ) : null}
-
-      {successMessage ? (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-          {successMessage}
-        </div>
-      ) : null}
 
       <div className="flex flex-wrap justify-end gap-2">
         <Button
