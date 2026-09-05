@@ -417,8 +417,7 @@ function ProjectCard({
   noImageLabel,
   untitledLabel,
   portfolioLabel,
-  visitProjectLabel,
-  notAvailableLabel
+  detailsLabel
 }: {
   locale: string;
   project: PortfolioProjectResponse;
@@ -427,8 +426,7 @@ function ProjectCard({
   noImageLabel: string;
   untitledLabel: string;
   portfolioLabel: string;
-  visitProjectLabel: string;
-  notAvailableLabel: string;
+  detailsLabel: string;
 }) {
   const title =
     getLocalizedValue(locale, project.titlePt, project.titleEn) || untitledLabel;
@@ -491,7 +489,7 @@ function ProjectCard({
           </span>
 
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]">
-            {project.projectUrl ? visitProjectLabel : notAvailableLabel}
+            {detailsLabel}
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
           </span>
         </div>
@@ -1290,8 +1288,7 @@ export default function PublicSectionPage({locale, data}: Props) {
                     noImageLabel={t('noImage')}
                     untitledLabel={t('untitled')}
                     portfolioLabel={t('portfolioLabel')}
-                    visitProjectLabel={t('visitProject')}
-                    notAvailableLabel={t('notAvailable')}
+                    detailsLabel={t('details')}
                   />
                 </motion.div>
               ))}

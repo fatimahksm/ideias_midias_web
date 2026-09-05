@@ -141,8 +141,8 @@ export function TrendChart({
           onPointerMove={handlePointerMove}
           onPointerLeave={() => setHoverIndex(null)}
         >
-          {yTicks.map((tick) => (
-            <g key={tick}>
+          {yTicks.map((tick, index) => (
+            <g key={index}>
               <line
                 x1={PADDING.left}
                 x2={WIDTH - PADDING.right}
