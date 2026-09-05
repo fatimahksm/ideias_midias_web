@@ -32,7 +32,7 @@ export function MediaPreview({
             <video
               src={resolvedUrl}
               controls
-              className="h-52 w-full bg-black object-cover"
+              className="h-52 w-full bg-black object-contain"
             />
           )
         ) : (
