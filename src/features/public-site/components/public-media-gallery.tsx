@@ -2,7 +2,7 @@
 
 import {useEffect, useMemo, useState} from 'react';
 import Image from 'next/image';
-import {ImageIcon, LoaderCircle, Play} from 'lucide-react';
+import {ChevronLeft, ChevronRight, ImageIcon, LoaderCircle} from 'lucide-react';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 import {getLocalizedValue, toEmbeddableVideoUrl} from '../utils';
 
@@ -135,93 +135,65 @@ export default function PublicMediaGallery({
       ? toEmbeddableVideoUrl(activeMedia.mediaUrl)
       : null;
 
+  const hasMultiple = preparedMedia.length > 1;
+
+  const goToPrevious = () => {
+    setActiveIndex(
+      (safeActiveIndex - 1 + preparedMedia.length) % preparedMedia.length
+    );
+  };
+
+  const goToNext = () => {
+    setActiveIndex((safeActiveIndex + 1) % preparedMedia.length);
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-muted)]">
-        {activeMedia.mediaType === 'IMAGE' ? (
-          <Image
-            src={activeMedia.mediaUrl || ''}
-            alt={activeAlt}
-            fill
-            className="object-cover"
-          />
-        ) : activeEmbedUrl ? (
-          <iframe
-            src={activeEmbedUrl}
-            title={activeAlt}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-        ) : (
-          <video
-            className="h-full w-full object-cover"
-            controls
-            playsInline
-            preload="metadata"
+    <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-muted)]">
+      {activeMedia.mediaType === 'IMAGE' ? (
+        <Image
+          src={activeMedia.mediaUrl || ''}
+          alt={activeAlt}
+          fill
+          className="object-cover"
+        />
+      ) : activeEmbedUrl ? (
+        <iframe
+          src={activeEmbedUrl}
+          title={activeAlt}
+          className="h-full w-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      ) : (
+        <video
+          className="h-full w-full object-cover"
+          controls
+          playsInline
+          preload="metadata"
+        >
+          <source src={activeMedia.mediaUrl || ''} />
+        </video>
+      )}
+
+      {hasMultiple ? (
+        <>
+          <button
+            type="button"
+            onClick={goToPrevious}
+            aria-label="Previous"
+            className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
           >
-            <source src={activeMedia.mediaUrl || ''} />
-          </video>
-        )}
-      </div>
-
-      {preparedMedia.length > 1 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {preparedMedia.map((mediaItem, index) => {
-            const thumbAlt =
-              getLocalizedValue(
-                locale,
-                mediaItem.altTextPt,
-                mediaItem.altTextEn
-              ) || `${title} ${index + 1}`;
-
-            const resolvedThumbnailUrl =
-              mediaItem.thumbnailUrl || mediaItem.mediaUrl || '';
-
-            return (
-              <button
-                key={`${mediaItem.id}-${index}`}
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                className={`group relative overflow-hidden rounded-2xl border transition ${
-                  safeActiveIndex === index
-                    ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/15'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/50'
-                }`}
-              >
-                <div className="relative aspect-[4/3] w-full bg-[var(--color-surface-muted)]">
-                  {mediaItem.mediaType === 'IMAGE' ? (
-                    <Image
-                      src={resolvedThumbnailUrl}
-                      alt={thumbAlt}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : mediaItem.thumbnailUrl ? (
-                    <>
-                      <Image
-                        src={resolvedThumbnailUrl}
-                        alt={thumbAlt}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/30" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] shadow-lg">
-                          <Play className="ml-0.5 h-4 w-4" />
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-slate-900 text-white">
-                      <Play className="h-6 w-6" />
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <button
+            type="button"
+            onClick={goToNext}
+            aria-label="Next"
+            className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        </>
       ) : null}
     </div>
   );
