@@ -5,7 +5,6 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {useTranslations} from 'next-intl';
 import {
   ArrowLeft,
-  ArrowRight,
   CalendarDays,
   CircleX,
   FileText,
@@ -326,29 +325,20 @@ function ItemCard({
   item,
   onOpen,
   featuredLabel,
-  detailsLabel,
   noImageLabel,
-  itemLabel,
-  untitledLabel
+  untitledLabel,
+  showCaption
 }: {
   locale: string;
   item: PublicSectionItemResponse;
   onOpen: (item: PublicSectionItemResponse) => void;
   featuredLabel: string;
-  detailsLabel: string;
   noImageLabel: string;
-  itemLabel: string;
   untitledLabel: string;
+  showCaption: boolean;
 }) {
   const title =
     getLocalizedValue(locale, item.titlePt, item.titleEn) || untitledLabel;
-
-  const shortDescription =
-    getLocalizedValue(
-      locale,
-      item.shortDescriptionPt,
-      item.shortDescriptionEn
-    ) || '';
 
   const itemImageUrl = resolveMediaUrl(item.coverImageUrl);
 
@@ -356,55 +346,35 @@ function ItemCard({
     <button
       type="button"
       onClick={() => onOpen(item)}
-      className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group relative block aspect-square w-full overflow-hidden rounded-2xl bg-[var(--color-surface-muted)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
-        {itemImageUrl ? (
-          <>
-            <Image
-              src={itemImageUrl}
-              alt={title}
-              fill
-              className="object-cover transition duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/0 to-transparent" />
-          </>
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
-            <Package className="h-10 w-10 text-[var(--color-primary)]/50" strokeWidth={1.5} />
-            <span className="text-xs font-medium text-[var(--color-text-muted)]">{noImageLabel}</span>
-          </div>
-        )}
-
-        {item.isFeatured ? (
-          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text)] shadow-lg backdrop-blur">
-            <Star className="h-3.5 w-3.5" />
-            {featuredLabel}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="space-y-3 p-6">
-        <h3 className="text-xl font-black tracking-[-0.02em] text-[var(--color-text)]">
-          {title}
-        </h3>
-
-        {shortDescription ? (
-          <p className="line-clamp-3 text-base leading-7 text-[var(--color-text-muted)]">
-            {shortDescription}
-          </p>
-        ) : null}
-
-        <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            {itemLabel}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]">
-            {detailsLabel}
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </span>
+      {itemImageUrl ? (
+        <Image
+          src={itemImageUrl}
+          alt={title}
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover transition duration-700 group-hover:scale-110"
+        />
+      ) : (
+        <div className="flex h-full flex-col items-center justify-center gap-2 text-[var(--color-text-muted)]">
+          <Package className="h-10 w-10 text-[var(--color-primary)]/50" strokeWidth={1.5} />
+          <span className="text-xs font-medium text-[var(--color-text-muted)]">{noImageLabel}</span>
         </div>
-      </div>
+      )}
+
+      {item.isFeatured ? (
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text)] shadow">
+          <Star className="h-3.5 w-3.5" />
+          {featuredLabel}
+        </div>
+      ) : null}
+
+      {showCaption ? (
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-3.5">
+          <p className="truncate text-sm font-semibold text-white">{title}</p>
+        </div>
+      ) : null}
     </button>
   );
 }
@@ -416,8 +386,7 @@ function ProjectCard({
   featuredLabel,
   noImageLabel,
   untitledLabel,
-  portfolioLabel,
-  detailsLabel
+  showCaption
 }: {
   locale: string;
   project: PortfolioProjectResponse;
@@ -425,18 +394,10 @@ function ProjectCard({
   featuredLabel: string;
   noImageLabel: string;
   untitledLabel: string;
-  portfolioLabel: string;
-  detailsLabel: string;
+  showCaption: boolean;
 }) {
   const title =
     getLocalizedValue(locale, project.titlePt, project.titleEn) || untitledLabel;
-
-  const shortDescription =
-    getLocalizedValue(
-      locale,
-      project.shortDescriptionPt,
-      project.shortDescriptionEn
-    ) || '';
 
   const projectImageUrl = resolveMediaUrl(project.coverImageUrl);
 
@@ -444,56 +405,35 @@ function ProjectCard({
     <button
       type="button"
       onClick={() => onOpen(project)}
-      className="group block w-full overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group relative block aspect-square w-full overflow-hidden rounded-2xl bg-[var(--color-surface-muted)] text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
-        {projectImageUrl ? (
-          <>
-            <Image
-              src={projectImageUrl}
-              alt={title}
-              fill
-              className="object-cover transition duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/0 to-transparent" />
-          </>
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
-            <FolderKanban className="h-10 w-10 text-[var(--color-primary)]/50" strokeWidth={1.5} />
-            <span className="text-xs font-medium text-[var(--color-text-muted)]">{noImageLabel}</span>
-          </div>
-        )}
-
-        {project.isFeatured ? (
-          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text)] shadow-lg backdrop-blur">
-            <Star className="h-3.5 w-3.5" />
-            {featuredLabel}
-          </div>
-        ) : null}
-      </div>
-
-      <div className="space-y-3 p-6">
-        <h3 className="text-xl font-black tracking-[-0.02em] text-[var(--color-text)]">
-          {title}
-        </h3>
-
-        {shortDescription ? (
-          <p className="line-clamp-3 text-base leading-7 text-[var(--color-text-muted)]">
-            {shortDescription}
-          </p>
-        ) : null}
-
-        <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-4">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-            {portfolioLabel}
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-primary)]">
-            {detailsLabel}
-            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-          </span>
+      {projectImageUrl ? (
+        <Image
+          src={projectImageUrl}
+          alt={title}
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover transition duration-700 group-hover:scale-110"
+        />
+      ) : (
+        <div className="flex h-full flex-col items-center justify-center gap-2 text-[var(--color-text-muted)]">
+          <FolderKanban className="h-10 w-10 text-[var(--color-primary)]/50" strokeWidth={1.5} />
+          <span className="text-xs font-medium text-[var(--color-text-muted)]">{noImageLabel}</span>
         </div>
-      </div>
+      )}
+
+      {project.isFeatured ? (
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text)] shadow">
+          <Star className="h-3.5 w-3.5" />
+          {featuredLabel}
+        </div>
+      ) : null}
+
+      {showCaption ? (
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-3.5">
+          <p className="truncate text-sm font-semibold text-white">{title}</p>
+        </div>
+      ) : null}
     </button>
   );
 }
@@ -1170,10 +1110,9 @@ export default function PublicSectionPage({locale, data}: Props) {
                   item={item}
                   onOpen={(value) => setActiveModal({type: 'item', item: value})}
                   featuredLabel={t('featured')}
-                  detailsLabel={t('details')}
                   noImageLabel={t('noImage')}
-                  itemLabel={t('itemLabel')}
                   untitledLabel={t('untitled')}
+                  showCaption={data.section.showItemDetails}
                 />
               ))}
             </motion.div>
@@ -1225,10 +1164,9 @@ export default function PublicSectionPage({locale, data}: Props) {
                     item={item}
                     onOpen={(value) => setActiveModal({type: 'item', item: value})}
                     featuredLabel={t('featured')}
-                    detailsLabel={t('details')}
                     noImageLabel={t('noImage')}
-                    itemLabel={t('itemLabel')}
                     untitledLabel={t('untitled')}
+                    showCaption={data.section.showItemDetails}
                   />
                 </motion.div>
               ))}
@@ -1287,8 +1225,7 @@ export default function PublicSectionPage({locale, data}: Props) {
                     featuredLabel={t('featured')}
                     noImageLabel={t('noImage')}
                     untitledLabel={t('untitled')}
-                    portfolioLabel={t('portfolioLabel')}
-                    detailsLabel={t('details')}
+                    showCaption={false}
                   />
                 </motion.div>
               ))}

@@ -906,8 +906,6 @@
   "PublicSite": {
     "close": "Close",
     "categoryLabel": "Category",
-    "itemLabel": "Item",
-    "portfolioLabel": "Portfolio",
     "contentLabel": "Content",
     "videoLabel": "Video",
     "primaryContacts": "Primary contacts",
