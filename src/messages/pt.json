@@ -931,6 +931,8 @@
     "contactDescription": "Fale conosco pelo canal que preferir, ou abra a nossa localização direto no Google Maps.",
     "companyStory": "Nossa história",
     "companyStoryDescription": "Um olhar mais atento sobre a marca, o trabalho e a forma como apresentamos ideias.",
+    "watchVideo": "Assistir ao vídeo",
+    "slowConnectionNotice": "Sua conexão parece lenta agora. Toque para carregar o vídeo mesmo assim.",
     "openInMaps": "Abrir no Maps",
     "location": "Localização",
     "locationNumbered": "Localização {number}",
