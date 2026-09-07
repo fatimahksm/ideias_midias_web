@@ -33,6 +33,7 @@ export const sectionSchema = z.object({
   coverVideoUrl: z.string().trim(),
 
   isActive: z.boolean(),
+  showItemDetails: z.boolean(),
 
   sortOrder: z
     .number({

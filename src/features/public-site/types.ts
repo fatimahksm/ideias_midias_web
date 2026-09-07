@@ -36,10 +36,26 @@ export type PublicSectionItemResponse = {
   updatedAt?: string;
 };
 
+export type PublicHomeGalleryImage = {
+  id: number;
+  imageUrl: string | null;
+  titlePt: string;
+  titleEn: string;
+  isFeatured: boolean;
+  /** Whether this image's own section wants item names shown under it. */
+  showCaption: boolean;
+  /** Section this image belongs to, so the card can link to the right page. */
+  sectionSlug: string;
+};
+
 export type PublicHomeData = {
   siteSettings: SiteSettingsResponse | null;
   homeCards: HomeCardResponse[];
   contactMethods: ContactMethodResponse[];
+  /** Items from every non-portfolio featured section, merged into one gallery. */
+  servicesImages: PublicHomeGalleryImage[];
+  /** Projects from every portfolio-type featured section, merged into one gallery. */
+  ourWorkImages: PublicHomeGalleryImage[];
 };
 
 export type PublicSectionPageData = {

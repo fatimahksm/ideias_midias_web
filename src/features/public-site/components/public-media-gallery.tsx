@@ -1,8 +1,15 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import Image from 'next/image';
-import {ImageIcon, LoaderCircle, Play} from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleX,
+  ImageIcon,
+  LoaderCircle,
+  Play
+} from 'lucide-react';
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 import {getLocalizedValue, toEmbeddableVideoUrl} from '../utils';
 
@@ -89,16 +96,7 @@ export default function PublicMediaGallery({
     [media, fallbackImageUrl, fallbackVideoUrl]
   );
 
-  const mediaSignature = useMemo(
-    () => preparedMedia.map((item) => `${item.id}:${item.mediaUrl}`).join('|'),
-    [preparedMedia]
-  );
-
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [mediaSignature]);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (isLoading && !preparedMedia.length) {
     return (
@@ -122,10 +120,118 @@ export default function PublicMediaGallery({
     );
   }
 
-  const safeActiveIndex =
-    activeIndex >= preparedMedia.length ? 0 : activeIndex;
+  if (preparedMedia.length === 1) {
+    const only = preparedMedia[0];
+    const onlyAlt =
+      getLocalizedValue(locale, only.altTextPt, only.altTextEn) || title;
 
-  const activeMedia = preparedMedia[safeActiveIndex];
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setLightboxIndex(0)}
+          className="relative block aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-muted)]"
+        >
+          {only.mediaType === 'IMAGE' ? (
+            <Image src={only.mediaUrl || ''} alt={onlyAlt} fill className="object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-slate-900 text-white">
+              <Play className="h-10 w-10" />
+            </div>
+          )}
+        </button>
+
+        {lightboxIndex !== null ? (
+          <MediaLightbox
+            locale={locale}
+            title={title}
+            media={preparedMedia}
+            activeIndex={lightboxIndex}
+            onChangeIndex={setLightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />
+        ) : null}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-2 p-1">
+        {preparedMedia.map((item, index) => {
+          const alt =
+            getLocalizedValue(locale, item.altTextPt, item.altTextEn) || '';
+          const thumbnailUrl =
+            item.mediaType === 'IMAGE'
+              ? item.thumbnailUrl || item.mediaUrl || ''
+              : item.thumbnailUrl || '';
+
+          return (
+            <button
+              key={`${item.id}-${index}`}
+              type="button"
+              onClick={() => setLightboxIndex(index)}
+              className="group relative aspect-square overflow-hidden rounded-2xl bg-[var(--color-surface-muted)]"
+            >
+              {thumbnailUrl ? (
+                <Image
+                  src={thumbnailUrl}
+                  alt={alt || title}
+                  fill
+                  className="object-cover transition duration-500 group-hover:scale-110"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-slate-900" />
+              )}
+
+              {item.mediaType === 'VIDEO' ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)]">
+                    <Play className="ml-0.5 h-4 w-4" />
+                  </div>
+                </div>
+              ) : null}
+
+              {alt ? (
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4">
+                  <p className="truncate text-[11px] font-semibold text-white">{alt}</p>
+                </div>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+
+      {lightboxIndex !== null ? (
+        <MediaLightbox
+          locale={locale}
+          title={title}
+          media={preparedMedia}
+          activeIndex={lightboxIndex}
+          onChangeIndex={setLightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function MediaLightbox({
+  locale,
+  title,
+  media,
+  activeIndex,
+  onChangeIndex,
+  onClose
+}: {
+  locale: string;
+  title: string;
+  media: GalleryMediaItem[];
+  activeIndex: number;
+  onChangeIndex: (index: number) => void;
+  onClose: () => void;
+}) {
+  const activeMedia = media[activeIndex];
   const activeAlt =
     getLocalizedValue(locale, activeMedia.altTextPt, activeMedia.altTextEn) ||
     title;
@@ -135,15 +241,40 @@ export default function PublicMediaGallery({
       ? toEmbeddableVideoUrl(activeMedia.mediaUrl)
       : null;
 
+  const hasMultiple = media.length > 1;
+
+  const goToPrevious = () => {
+    onChangeIndex((activeIndex - 1 + media.length) % media.length);
+  };
+
+  const goToNext = () => {
+    onChangeIndex((activeIndex + 1) % media.length);
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-muted)]">
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-black"
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close"
+        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+      >
+        <CircleX className="h-5 w-5" />
+      </button>
+
+      <div
+        className="relative flex h-full w-full items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         {activeMedia.mediaType === 'IMAGE' ? (
           <Image
             src={activeMedia.mediaUrl || ''}
             alt={activeAlt}
             fill
-            className="object-cover"
+            className="object-contain"
           />
         ) : activeEmbedUrl ? (
           <iframe
@@ -155,7 +286,7 @@ export default function PublicMediaGallery({
           />
         ) : (
           <video
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             controls
             playsInline
             preload="metadata"
@@ -163,66 +294,34 @@ export default function PublicMediaGallery({
             <source src={activeMedia.mediaUrl || ''} />
           </video>
         )}
+
+        {hasMultiple ? (
+          <>
+            <button
+              type="button"
+              onClick={goToPrevious}
+              aria-label="Previous"
+              className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              type="button"
+              onClick={goToNext}
+              aria-label="Next"
+              className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </>
+        ) : null}
+
+        {getLocalizedValue(locale, activeMedia.altTextPt, activeMedia.altTextEn) ? (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-4 py-1.5 text-sm font-semibold text-white">
+            {getLocalizedValue(locale, activeMedia.altTextPt, activeMedia.altTextEn)}
+          </div>
+        ) : null}
       </div>
-
-      {preparedMedia.length > 1 ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {preparedMedia.map((mediaItem, index) => {
-            const thumbAlt =
-              getLocalizedValue(
-                locale,
-                mediaItem.altTextPt,
-                mediaItem.altTextEn
-              ) || `${title} ${index + 1}`;
-
-            const resolvedThumbnailUrl =
-              mediaItem.thumbnailUrl || mediaItem.mediaUrl || '';
-
-            return (
-              <button
-                key={`${mediaItem.id}-${index}`}
-                type="button"
-                onClick={() => setActiveIndex(index)}
-                className={`group relative overflow-hidden rounded-2xl border transition ${
-                  safeActiveIndex === index
-                    ? 'border-[var(--color-primary)] ring-2 ring-[var(--color-primary)]/15'
-                    : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/50'
-                }`}
-              >
-                <div className="relative aspect-[4/3] w-full bg-[var(--color-surface-muted)]">
-                  {mediaItem.mediaType === 'IMAGE' ? (
-                    <Image
-                      src={resolvedThumbnailUrl}
-                      alt={thumbAlt}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : mediaItem.thumbnailUrl ? (
-                    <>
-                      <Image
-                        src={resolvedThumbnailUrl}
-                        alt={thumbAlt}
-                        fill
-                        className="object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/30" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] shadow-lg">
-                          <Play className="ml-0.5 h-4 w-4" />
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex h-full items-center justify-center bg-slate-900 text-white">
-                      <Play className="h-6 w-6" />
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
     </div>
   );
 }

@@ -12,9 +12,16 @@ import type {PortfolioProjectMediaResponse} from '@/features/portfolio-project-m
 import type {PageResponse} from '@/types/api';
 import type {
   PublicHomeData,
+  PublicHomeGalleryImage,
   PublicSectionItemResponse,
   PublicSectionPageData
 } from './types';
+
+/**
+ * The homepage shows every active item/project directly, no "view all"
+ * click-through, so this is a generous cap rather than a small preview size.
+ */
+const HOME_GALLERY_IMAGE_COUNT = 60;
 
 export const PUBLIC_ITEMS_PAGE_SIZE = 24;
 
@@ -86,8 +93,95 @@ function sortByOrder<T extends {sortOrder: number}>(items: T[]) {
   return [...items].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+/**
+ * Every portfolio project as a homepage gallery image, always caption-free —
+ * "Our Work" is a pure photo wall regardless of the section's own toggle.
+ */
+async function getSectionWorkImages(
+  section: SectionResponse
+): Promise<PublicHomeGalleryImage[]> {
+  const page = await getPublicPortfolioProjectsPage(
+    section.id,
+    0,
+    HOME_GALLERY_IMAGE_COUNT
+  ).catch(() => EMPTY_PROJECTS_PAGE);
+
+  return page.content.map((project) => ({
+    id: project.id,
+    imageUrl: project.coverImageUrl ?? null,
+    titlePt: project.titlePt,
+    titleEn: project.titleEn,
+    isFeatured: project.isFeatured,
+    showCaption: false,
+    sectionSlug: section.slug
+  }));
+}
+
+/**
+ * Every item in one non-portfolio section as a homepage gallery image, its
+ * caption shown or hidden per that section's own "Homepage preview" toggle.
+ */
+async function getSectionServiceImages(
+  section: SectionResponse
+): Promise<PublicHomeGalleryImage[]> {
+  const page = await getPublicSectionItemsPage(
+    section.id,
+    null,
+    0,
+    HOME_GALLERY_IMAGE_COUNT
+  ).catch(() => EMPTY_ITEMS_PAGE);
+
+  return page.content.map((item) => ({
+    id: item.id,
+    imageUrl: item.coverImageUrl ?? null,
+    titlePt: item.titlePt,
+    titleEn: item.titleEn,
+    isFeatured: item.isFeatured,
+    showCaption: section.showItemDetails,
+    sectionSlug: section.slug
+  }));
+}
+
+/**
+ * Merges every featured section's items/projects into exactly two homepage
+ * galleries — "Services" (everything except portfolio sections) and
+ * "Our Work" (portfolio sections) — rather than one row per section.
+ */
+async function getPublicHomeGalleries(homeCards: HomeCardResponse[]): Promise<{
+  servicesImages: PublicHomeGalleryImage[];
+  ourWorkImages: PublicHomeGalleryImage[];
+}> {
+  const sections = await apiClient<SectionResponse[]>(endpoints.public.sections, {
+    method: 'GET',
+    revalidate: PUBLIC_REVALIDATE_SECONDS
+  }).catch(() => []);
+
+  const sectionsById = new Map(sections.map((section) => [section.id, section]));
+
+  const featuredSections = homeCards
+    .map((homeCard) => sectionsById.get(homeCard.sectionId))
+    .filter((section): section is SectionResponse => Boolean(section));
+
+  const workSections = featuredSections.filter(
+    (section) => section.sectionType === 'PORTFOLIO'
+  );
+  const serviceSections = featuredSections.filter(
+    (section) => section.sectionType === 'DIRECT_ITEMS' || section.sectionType === 'CATEGORY_ITEMS'
+  );
+
+  const [servicesGroups, workGroups] = await Promise.all([
+    Promise.all(serviceSections.map(getSectionServiceImages)),
+    Promise.all(workSections.map(getSectionWorkImages))
+  ]);
+
+  return {
+    servicesImages: servicesGroups.flat(),
+    ourWorkImages: workGroups.flat()
+  };
+}
+
 export async function getPublicHomeData(): Promise<PublicHomeData> {
-  const [siteSettings, homeCards, contactMethods] = await Promise.all([
+  const [siteSettings, homeCardsRaw, contactMethods] = await Promise.all([
     apiClient<SiteSettingsResponse>(endpoints.public.siteSettings, {
       method: 'GET',
       revalidate: PUBLIC_REVALIDATE_SECONDS
@@ -104,12 +198,17 @@ export async function getPublicHomeData(): Promise<PublicHomeData> {
     }).catch(() => [])
   ]);
 
+  const homeCards = sortByOrder(homeCardsRaw.filter((item) => item.isActive));
+  const {servicesImages, ourWorkImages} = await getPublicHomeGalleries(homeCards);
+
   return {
     siteSettings,
-    homeCards: sortByOrder(homeCards.filter((item) => item.isActive)),
+    homeCards,
     contactMethods: sortByOrder(
       contactMethods.filter((item) => item.isActive)
-    )
+    ),
+    servicesImages,
+    ourWorkImages
   };
 }
 

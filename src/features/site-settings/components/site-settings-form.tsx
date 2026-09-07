@@ -198,13 +198,20 @@ export default function SiteSettingsForm() {
       addressEn: '',
       mapEmbedUrl: '',
       locationLat: undefined,
-      locationLng: undefined
+      locationLng: undefined,
+      address2Pt: '',
+      address2En: '',
+      mapEmbedUrl2: '',
+      location2Lat: undefined,
+      location2Lng: undefined
     }
   });
 
   const heroBackgroundType = watch('heroBackgroundType');
   const locationLat = watch('locationLat');
   const locationLng = watch('locationLng');
+  const location2Lat = watch('location2Lat');
+  const location2Lng = watch('location2Lng');
 
   const siteSettingsQuery = useQuery<SiteSettingsResponse, Error>({
     queryKey: ['admin-site-settings'],
@@ -239,7 +246,12 @@ export default function SiteSettingsForm() {
       addressEn: siteSettingsQuery.data.addressEn ?? '',
       mapEmbedUrl: siteSettingsQuery.data.mapEmbedUrl ?? '',
       locationLat: siteSettingsQuery.data.locationLat ?? undefined,
-      locationLng: siteSettingsQuery.data.locationLng ?? undefined
+      locationLng: siteSettingsQuery.data.locationLng ?? undefined,
+      address2Pt: siteSettingsQuery.data.address2Pt ?? '',
+      address2En: siteSettingsQuery.data.address2En ?? '',
+      mapEmbedUrl2: siteSettingsQuery.data.mapEmbedUrl2 ?? '',
+      location2Lat: siteSettingsQuery.data.location2Lat ?? undefined,
+      location2Lng: siteSettingsQuery.data.location2Lng ?? undefined
     });
   }, [reset, siteSettingsQuery.data]);
 
@@ -261,7 +273,12 @@ export default function SiteSettingsForm() {
       addressEn: emptyToNull(values.addressEn),
       mapEmbedUrl: emptyToNull(values.mapEmbedUrl),
       locationLat: values.locationLat ?? null,
-      locationLng: values.locationLng ?? null
+      locationLng: values.locationLng ?? null,
+      address2Pt: emptyToNull(values.address2Pt),
+      address2En: emptyToNull(values.address2En),
+      mapEmbedUrl2: emptyToNull(values.mapEmbedUrl2),
+      location2Lat: values.location2Lat ?? null,
+      location2Lng: values.location2Lng ?? null
     };
 
     try {
@@ -718,6 +735,131 @@ export default function SiteSettingsForm() {
                 }
               }}
             />
+          </div>
+        </div>
+
+        <div className="mt-8 border-t border-slate-200 pt-8">
+          <p className="mb-4 text-sm font-semibold text-slate-900">
+            {t('secondLocationTitle')}
+          </p>
+
+          <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+            <div className="space-y-4">
+              <BilingualFieldGroup
+                title={t('addressGroupTitle')}
+                description={t('address2GroupDescription')}
+                ptCode={t('ptCode')}
+                enCode={t('enCode')}
+                ptLabel={t('ptLabel')}
+                enLabel={t('enLabel')}
+                copyPtToEnLabel={t('copyPtToEn')}
+                copyEnToPtLabel={t('copyEnToPt')}
+                ptField={
+                  <Textarea
+                    id="address2Pt"
+                    label={t('addressPt')}
+                    placeholder={t('addressPtPlaceholder')}
+                    {...register('address2Pt')}
+                  />
+                }
+                enField={
+                  <Textarea
+                    id="address2En"
+                    label={t('addressEn')}
+                    placeholder={t('addressEnPlaceholder')}
+                    {...register('address2En')}
+                  />
+                }
+                onCopyPtToEn={() =>
+                  setValue('address2En', getValues('address2Pt'), {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  })
+                }
+                onCopyEnToPt={() =>
+                  setValue('address2Pt', getValues('address2En'), {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  })
+                }
+              />
+
+              <input type="hidden" {...register('mapEmbedUrl2')} />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <Input
+                    id="location2Lat"
+                    type="number"
+                    step="any"
+                    label={t('locationLat')}
+                    placeholder={t('locationLatPlaceholder')}
+                    error={
+                      errors.location2Lat?.message ? t('invalidLatitude') : undefined
+                    }
+                    readOnly
+                    {...register('location2Lat', {
+                      setValueAs: (value) =>
+                        value === '' ? undefined : Number(value)
+                    })}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <Input
+                    id="location2Lng"
+                    type="number"
+                    step="any"
+                    label={t('locationLng')}
+                    placeholder={t('locationLngPlaceholder')}
+                    error={
+                      errors.location2Lng?.message
+                        ? t('invalidLongitude')
+                        : undefined
+                    }
+                    readOnly
+                    {...register('location2Lng', {
+                      setValueAs: (value) =>
+                        value === '' ? undefined : Number(value)
+                    })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm">
+              <MapPickerField
+                lat={location2Lat ?? undefined}
+                lng={location2Lng ?? undefined}
+                onChange={({lat, lng, address, mapUrl}) => {
+                  setValue('location2Lat', lat, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+
+                  setValue('location2Lng', lng, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+
+                  setValue('mapEmbedUrl2', mapUrl, {
+                    shouldDirty: true
+                  });
+
+                  if (address) {
+                    setValue('address2Pt', address, {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    });
+
+                    setValue('address2En', address, {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    });
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
       </SettingsCard>

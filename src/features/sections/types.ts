@@ -16,6 +16,7 @@ export type SectionResponse = {
   coverVideoUrl?: string | null;
   isActive: boolean;
   sortOrder: number;
+  showItemDetails: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -31,4 +32,5 @@ export type SectionPayload = {
   coverVideoUrl?: string | null;
   isActive: boolean;
   sortOrder: number;
+  showItemDetails: boolean;
 };

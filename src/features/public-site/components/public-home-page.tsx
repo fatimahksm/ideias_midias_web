@@ -13,7 +13,7 @@ import {
 import LanguageSwitcher from '@/components/common/language-switcher';
 import {Link} from '@/i18n/navigation';
 import {getContactHref} from '@/features/contact-methods/utils';
-import type {PublicHomeData} from '../types';
+import type {PublicHomeData, PublicHomeGalleryImage} from '../types';
 import {
   buildMapsUrl,
   getLocalizedValue,
@@ -120,6 +120,97 @@ function buildMapEmbedUrl({
 
   return '';
 }
+
+function HomeGallerySection({
+  title,
+  badge,
+  images,
+  locale,
+  t,
+  muted = false
+}: {
+  title: string;
+  badge: string;
+  images: PublicHomeGalleryImage[];
+  locale: string;
+  t: ReturnType<typeof useTranslations<'PublicSite'>>;
+  muted?: boolean;
+}) {
+  return (
+    <section className={muted ? 'bg-[var(--color-surface-muted)]/40 py-16 md:py-20' : 'py-16 md:py-20'}>
+      <div className="mx-auto max-w-7xl px-6 md:px-8">
+        <motion.div
+          initial={{opacity: 0, y: 24}}
+          whileInView={{opacity: 1, y: 0}}
+          viewport={{once: true, amount: 0.2}}
+          transition={{duration: 0.7}}
+          className="mb-10 text-center"
+        >
+          <span className="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+            {badge}
+          </span>
+
+          <h2 className="mt-5 text-3xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-5xl">
+            {title}
+          </h2>
+        </motion.div>
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{once: true, amount: 0.1}}
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-5 lg:grid-cols-4"
+        >
+          {images.map((image) => {
+            const imageUrl = resolveMediaUrl(image.imageUrl);
+            const caption =
+              getLocalizedValue(locale, image.titlePt, image.titleEn) ||
+              t('untitled');
+
+            return (
+              <motion.div key={image.id} variants={fadeUp} transition={{duration: 0.5}}>
+                <Link
+                  href={`/sections/${image.sectionSlug}`}
+                  className="group relative block aspect-square overflow-hidden rounded-2xl bg-[var(--color-surface-muted)] shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={caption}
+                      fill
+                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                      className="object-cover transition duration-700 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-[var(--color-text-muted)]">
+                      {t('noImage')}
+                    </div>
+                  )}
+
+                  {image.isFeatured ? (
+                    <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text)] shadow">
+                      {t('featured')}
+                    </div>
+                  ) : null}
+
+                  {image.showCaption ? (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-3.5">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {caption}
+                      </p>
+                    </div>
+                  ) : null}
+                </Link>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export default function PublicHomePage({locale, data}: Props) {
   const t = useTranslations('PublicSite');
 
@@ -158,6 +249,28 @@ export default function PublicHomePage({locale, data}: Props) {
     addressPt: site?.addressPt,
     addressEn: site?.addressEn
   });
+
+  const address2 = getLocalizedValue(locale, site?.address2Pt, site?.address2En);
+
+  const mapsUrl2 = buildMapsUrl(locale, {
+    locationLat: site?.location2Lat,
+    locationLng: site?.location2Lng,
+    addressPt: site?.address2Pt,
+    addressEn: site?.address2En
+  });
+
+  const mapEmbedUrl2 = buildMapEmbedUrl({
+    mapEmbedUrl: site?.mapEmbedUrl2,
+    locationLat: site?.location2Lat,
+    locationLng: site?.location2Lng,
+    addressPt: site?.address2Pt,
+    addressEn: site?.address2En
+  });
+
+  const locations = [
+    {key: 'primary', address, mapsUrl, mapEmbedUrl},
+    {key: 'secondary', address: address2, mapsUrl: mapsUrl2, mapEmbedUrl: mapEmbedUrl2}
+  ].filter((location) => hasMeaningfulText(location.address) || location.mapEmbedUrl);
 
   const whatsappMethod = data.contactMethods.find(
     (item) => item.type === 'WHATSAPP'
@@ -279,19 +392,23 @@ export default function PublicHomePage({locale, data}: Props) {
               <motion.h1
                 variants={fadeUp}
                 transition={{duration: 0.8}}
-                className="text-5xl font-black tracking-[-0.04em] md:text-7xl xl:text-8xl"
+                className="text-5xl font-black uppercase tracking-[-0.02em] md:text-7xl xl:text-8xl"
               >
                 {heroTitle}
               </motion.h1>
 
               {heroSubtitle ? (
-                <motion.p
+                <motion.div
                   variants={fadeUp}
                   transition={{duration: 0.85}}
-                  className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/85 md:text-xl md:leading-9"
+                  className="mx-auto mt-6 flex max-w-2xl items-center justify-center gap-4"
                 >
-                  {heroSubtitle}
-                </motion.p>
+                  <span className="h-px flex-1 max-w-16 bg-white/40" />
+                  <p className="shrink-0 text-sm font-semibold uppercase tracking-[0.3em] text-white/90 sm:text-base">
+                    {heroSubtitle}
+                  </p>
+                  <span className="h-px flex-1 max-w-16 bg-white/40" />
+                </motion.div>
               ) : null}
 
               <motion.div
@@ -299,13 +416,6 @@ export default function PublicHomePage({locale, data}: Props) {
                 transition={{duration: 0.9}}
                 className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
               >
-                <a
-                  href="#home-sections"
-                  className="inline-flex min-h-14 items-center justify-center rounded-2xl bg-white px-7 py-3 text-base font-semibold text-[var(--color-text)] shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
-                >
-                  {t('exploreSections')}
-                </a>
-
                 {whatsappHref ? (
                   <a
                     href={whatsappHref}
@@ -327,8 +437,8 @@ export default function PublicHomePage({locale, data}: Props) {
             className="flex justify-center pb-4"
           >
             <a
-              href="#home-sections"
-              aria-label={t('exploreSections')}
+              href="#about"
+              aria-label={t('aboutTitle')}
               className="inline-flex h-14 w-14 animate-bounce items-center justify-center rounded-full border border-white/20 bg-white/10 text-white shadow-lg backdrop-blur-md transition hover:bg-white/15"
             >
               <ArrowDown className="h-5 w-5" />
@@ -337,112 +447,57 @@ export default function PublicHomePage({locale, data}: Props) {
         </div>
       </section>
 
-      <section id="home-sections" className="relative py-20 md:py-28">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--color-surface-muted)]/60 to-transparent" />
+      {intro ? (
+        <section id="about" className="relative py-20 md:py-28">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--color-surface-muted)]/60 to-transparent" />
 
-        <div className="relative mx-auto max-w-7xl px-6 md:px-8">
-          <motion.div
-            initial={{opacity: 0, y: 24}}
-            whileInView={{opacity: 1, y: 0}}
-            viewport={{once: true, amount: 0.2}}
-            transition={{duration: 0.7}}
-            className="mx-auto mb-14 max-w-3xl text-center"
-          >
-            <span className="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
-              {t('quickLinks')}
-            </span>
+          <div className="relative mx-auto max-w-4xl px-6 text-center md:px-8">
+            <motion.div
+              initial={{opacity: 0, y: 24}}
+              whileInView={{opacity: 1, y: 0}}
+              viewport={{once: true, amount: 0.3}}
+              transition={{duration: 0.7}}
+            >
+              <span className="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+                {t('aboutBadge')}
+              </span>
 
-            <h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-6xl">
-              {t('exploreSections')}
-            </h2>
+              <h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-6xl">
+                {t('aboutTitle')}
+              </h2>
 
-            <p className="mt-4 text-lg leading-8 text-[var(--color-text-muted)] md:text-xl">
-              {t('exploreSectionsDescription')}
-            </p>
-          </motion.div>
+              <p className="mt-6 text-lg leading-8 text-[var(--color-text-muted)] md:text-xl">
+                {intro}
+              </p>
+            </motion.div>
+          </div>
+        </section>
+      ) : null}
 
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{once: true, amount: 0.12}}
-            className="grid gap-8 md:grid-cols-2 xl:grid-cols-3"
-          >
-            {data.homeCards.map((card) => {
-              const title =
-                getLocalizedValue(locale, card.titlePt, card.titleEn) ||
-                t('untitled');
+      {data.servicesImages.length ? (
+        <HomeGallerySection
+          title={t('servicesTitle')}
+          badge={t('servicesBadge')}
+          images={data.servicesImages}
+          locale={locale}
+          t={t}
+        />
+      ) : null}
 
-              const description =
-                getLocalizedValue(
-                  locale,
-                  card.shortDescriptionPt,
-                  card.shortDescriptionEn
-                ) || '';
+      {data.servicesImages.length && data.ourWorkImages.length ? (
+        <div className="mx-auto h-px max-w-7xl bg-[var(--color-border)]" />
+      ) : null}
 
-              const href = card.sectionSlug
-                ? `/sections/${card.sectionSlug}`
-                : '/';
-
-              const cardImageUrl = resolveMediaUrl(card.imageUrl);
-
-              return (
-                <motion.div
-                  key={card.id}
-                  variants={fadeUp}
-                  transition={{duration: 0.6}}
-                >
-                  <Link
-                    href={href}
-                    className="group block overflow-hidden rounded-[30px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_10px_35px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-2 hover:shadow-[0_20px_60px_rgba(15,23,42,0.14)]"
-                  >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-surface-muted)]">
-                      {cardImageUrl ? (
-                        <>
-                          <Image
-                            src={cardImageUrl}
-                            alt={title}
-                            fill
-                            className="object-cover transition duration-700 group-hover:scale-110"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent opacity-90" />
-                        </>
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]">
-                          {t('noImage')}
-                        </div>
-                      )}
-
-                      <div className="absolute right-5 top-5 inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/15 text-white shadow-lg backdrop-blur-md transition duration-300 group-hover:rotate-45 group-hover:bg-white/20">
-                        <ArrowUpRight className="h-5 w-5" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 p-7">
-                      <h3 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)] transition group-hover:opacity-85">
-                        {title}
-                      </h3>
-
-                      {description ? (
-                        <p className="line-clamp-3 text-base leading-8 text-[var(--color-text-muted)]">
-                          {description}
-                        </p>
-                      ) : null}
-
-                      <div className="pt-2">
-                        <span className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                          {t('exploreSections')}
-                          <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </section>
+      {data.ourWorkImages.length ? (
+        <HomeGallerySection
+          title={t('ourWorkTitle')}
+          badge={t('ourWorkBadge')}
+          images={data.ourWorkImages}
+          locale={locale}
+          t={t}
+          muted
+        />
+      ) : null}
 
       {companyVideoUrl ? (
         <section className="py-20 md:py-28">
@@ -674,95 +729,128 @@ export default function PublicHomePage({locale, data}: Props) {
               ) : null}
             </motion.div>
 
-            <motion.div
-  initial={{opacity: 0, y: 28}}
-  whileInView={{opacity: 1, y: 0}}
-  viewport={{once: true, amount: 0.15}}
-  transition={{duration: 0.75}}
->
-  {mapEmbedUrl ? (
-    <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
-      <div className="relative">
-        <iframe
-          src={mapEmbedUrl}
-          title={t('location')}
-          className="h-[520px] w-full"
-          loading="lazy"
-          allowFullScreen
-          referrerPolicy="no-referrer-when-downgrade"
-        />
+            <div className="space-y-6">
+              {locations.length ? (
+                locations.map((location, index) => (
+                  <motion.div
+                    key={location.key}
+                    initial={{opacity: 0, y: 28}}
+                    whileInView={{opacity: 1, y: 0}}
+                    viewport={{once: true, amount: 0.15}}
+                    transition={{duration: 0.75}}
+                  >
+                    {location.mapEmbedUrl ? (
+                      <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
+                        <div className="relative">
+                          <iframe
+                            src={location.mapEmbedUrl}
+                            title={t('location')}
+                            className="h-[420px] w-full"
+                            loading="lazy"
+                            allowFullScreen
+                            referrerPolicy="no-referrer-when-downgrade"
+                          />
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5">
-          <div className="pointer-events-auto rounded-[24px] border border-white/20 bg-white/94 p-4 shadow-xl backdrop-blur-md md:max-w-md">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                <MapPin className="h-5 w-5" />
-              </div>
+                          <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5">
+                            <div className="pointer-events-auto rounded-[24px] border border-white/20 bg-white/94 p-4 shadow-xl backdrop-blur-md md:max-w-md">
+                              <div className="flex items-start gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                                  <MapPin className="h-5 w-5" />
+                                </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-black text-[var(--color-text)]">
-                  {t('location')}
-                </p>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-sm font-black text-[var(--color-text)]">
+                                    {locations.length > 1
+                                      ? t('locationNumbered', {number: index + 1})
+                                      : t('location')}
+                                  </p>
 
-                {hasMeaningfulText(address) ? (
-                  <p className="mt-1 text-sm leading-6 text-[var(--color-text-muted)]">
-                    {address}
-                  </p>
-                ) : null}
-              </div>
-            </div>
+                                  {hasMeaningfulText(location.address) ? (
+                                    <p className="mt-1 text-sm leading-6 text-[var(--color-text-muted)]">
+                                      {location.address}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              </div>
 
-            {mapsUrl ? (
-              <div className="mt-4">
-                <a
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                              {location.mapsUrl ? (
+                                <div className="mt-4">
+                                  <a
+                                    href={location.mapsUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                    {t('openInMaps')}
+                                  </a>
+                                </div>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
+                        <div className="flex flex-col justify-between gap-6 bg-[var(--color-surface-muted)] p-8 sm:flex-row sm:items-center">
+                          <div className="flex items-start gap-4">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white shadow-lg">
+                              <MapPin className="h-6 w-6" />
+                            </div>
+
+                            <div>
+                              <h3 className="text-xl font-black text-[var(--color-text)]">
+                                {locations.length > 1
+                                  ? t('locationNumbered', {number: index + 1})
+                                  : t('location')}
+                              </h3>
+
+                              <p className="mt-1 max-w-md text-base leading-7 text-[var(--color-text-muted)]">
+                                {location.address}
+                              </p>
+                            </div>
+                          </div>
+
+                          {location.mapsUrl ? (
+                            <a
+                              href={location.mapsUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="theme-accent-button inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition hover:opacity-90"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              {t('openInMaps')}
+                            </a>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))
+              ) : (
+                <motion.div
+                  initial={{opacity: 0, y: 28}}
+                  whileInView={{opacity: 1, y: 0}}
+                  viewport={{once: true, amount: 0.15}}
+                  transition={{duration: 0.75}}
+                  className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_24px_80px_rgba(0,0,0,0.08)]"
                 >
-                  <ExternalLink className="h-4 w-4" />
-                  {t('openInMaps')}
-                </a>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </div>
-  ) : (
-    <div className="overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_24px_80px_rgba(0,0,0,0.08)]">
-      <div className="flex h-[520px] flex-col justify-between bg-[var(--color-surface-muted)] p-8">
-        <div>
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white shadow-lg">
-            <MapPin className="h-7 w-7" />
-          </div>
+                  <div className="flex h-[420px] flex-col justify-center bg-[var(--color-surface-muted)] p-8 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-primary)] text-white shadow-lg">
+                      <MapPin className="h-7 w-7" />
+                    </div>
 
-          <h3 className="mt-6 text-3xl font-black text-[var(--color-text)]">
-            {t('location')}
-          </h3>
+                    <h3 className="mt-6 text-3xl font-black text-[var(--color-text)]">
+                      {t('location')}
+                    </h3>
 
-          <p className="mt-3 max-w-md text-base leading-8 text-[var(--color-text-muted)]">
-            {address || t('locationNotAvailable')}
-          </p>
-        </div>
-
-        {mapsUrl ? (
-          <div>
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="theme-accent-button inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-semibold transition hover:opacity-90"
-            >
-              <ExternalLink className="h-4 w-4" />
-              {t('openInMaps')}
-            </a>
-          </div>
-        ) : null}
-      </div>
-    </div>
-  )}
-</motion.div>
+                    <p className="mx-auto mt-3 max-w-md text-base leading-8 text-[var(--color-text-muted)]">
+                      {t('locationNotAvailable')}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
       </section>
