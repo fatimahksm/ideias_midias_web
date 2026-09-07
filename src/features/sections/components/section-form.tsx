@@ -183,6 +183,7 @@ export default function SectionForm({mode, sectionId}: Props) {
       coverImageUrl: '',
       coverVideoUrl: '',
       isActive: true,
+      showItemDetails: true,
       sortOrder: 0
     }
   });
@@ -228,6 +229,7 @@ export default function SectionForm({mode, sectionId}: Props) {
         coverImageUrl: savedSection.coverImageUrl ?? '',
         coverVideoUrl: savedSection.coverVideoUrl ?? '',
         isActive: savedSection.isActive,
+        showItemDetails: savedSection.showItemDetails,
         sortOrder: savedSection.sortOrder
       });
     },
@@ -251,6 +253,7 @@ export default function SectionForm({mode, sectionId}: Props) {
       coverImageUrl: section.coverImageUrl ?? '',
       coverVideoUrl: section.coverVideoUrl ?? '',
       isActive: section.isActive,
+      showItemDetails: section.showItemDetails,
       sortOrder: section.sortOrder
     });
 
@@ -401,6 +404,7 @@ export default function SectionForm({mode, sectionId}: Props) {
       coverImageUrl: emptyToNull(values.coverImageUrl),
       coverVideoUrl: emptyToNull(values.coverVideoUrl),
       isActive: values.isActive,
+      showItemDetails: values.showItemDetails,
       sortOrder: values.sortOrder
     };
 
@@ -716,6 +720,42 @@ export default function SectionForm({mode, sectionId}: Props) {
                 hint={t('sortOrderHint')}
                 min={0}
               />
+            </div>
+
+            <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <p className="mb-3 text-sm font-semibold text-slate-900">
+                {t('showItemDetailsTitle')}
+              </p>
+
+              <Controller
+                name="showItemDetails"
+                control={control}
+                render={({field}) => (
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      type="button"
+                      variant={field.value ? 'primary' : 'outline'}
+                      size="sm"
+                      onClick={() => field.onChange(true)}
+                    >
+                      {t('showItemDetailsOn')}
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant={!field.value ? 'secondary' : 'outline'}
+                      size="sm"
+                      onClick={() => field.onChange(false)}
+                    >
+                      {t('showItemDetailsOff')}
+                    </Button>
+                  </div>
+                )}
+              />
+
+              <p className="mt-3 text-sm text-slate-500">
+                {t('showItemDetailsHint')}
+              </p>
             </div>
           </SettingsCard>
           )}

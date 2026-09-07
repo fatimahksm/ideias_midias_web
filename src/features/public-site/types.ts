@@ -36,10 +36,25 @@ export type PublicSectionItemResponse = {
   updatedAt?: string;
 };
 
+export type PublicHomePreviewImage = {
+  id: number;
+  imageUrl: string | null;
+  titlePt: string;
+  titleEn: string;
+  isFeatured: boolean;
+};
+
+export type PublicHomeSectionPreview = {
+  section: SectionResponse;
+  homeCard: HomeCardResponse;
+  images: PublicHomePreviewImage[];
+};
+
 export type PublicHomeData = {
   siteSettings: SiteSettingsResponse | null;
   homeCards: HomeCardResponse[];
   contactMethods: ContactMethodResponse[];
+  sectionPreviews: PublicHomeSectionPreview[];
 };
 
 export type PublicSectionPageData = {

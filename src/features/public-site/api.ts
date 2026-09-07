@@ -12,9 +12,13 @@ import type {PortfolioProjectMediaResponse} from '@/features/portfolio-project-m
 import type {PageResponse} from '@/types/api';
 import type {
   PublicHomeData,
+  PublicHomePreviewImage,
+  PublicHomeSectionPreview,
   PublicSectionItemResponse,
   PublicSectionPageData
 } from './types';
+
+const HOME_PREVIEW_IMAGE_COUNT = 8;
 
 export const PUBLIC_ITEMS_PAGE_SIZE = 24;
 
@@ -86,8 +90,77 @@ function sortByOrder<T extends {sortOrder: number}>(items: T[]) {
   return [...items].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+/**
+ * A handful of images for one section's homepage preview row: items for
+ * DIRECT_ITEMS/CATEGORY_ITEMS sections, projects for PORTFOLIO sections.
+ * CONTENT sections have neither, so they get no preview row.
+ */
+async function getHomePreviewImages(
+  section: SectionResponse
+): Promise<PublicHomePreviewImage[]> {
+  if (section.sectionType === 'PORTFOLIO') {
+    const page = await getPublicPortfolioProjectsPage(
+      section.id,
+      0,
+      HOME_PREVIEW_IMAGE_COUNT
+    ).catch(() => EMPTY_PROJECTS_PAGE);
+
+    return page.content.map((project) => ({
+      id: project.id,
+      imageUrl: project.coverImageUrl ?? null,
+      titlePt: project.titlePt,
+      titleEn: project.titleEn,
+      isFeatured: project.isFeatured
+    }));
+  }
+
+  if (section.sectionType === 'DIRECT_ITEMS' || section.sectionType === 'CATEGORY_ITEMS') {
+    const page = await getPublicSectionItemsPage(
+      section.id,
+      null,
+      0,
+      HOME_PREVIEW_IMAGE_COUNT
+    ).catch(() => EMPTY_ITEMS_PAGE);
+
+    return page.content.map((item) => ({
+      id: item.id,
+      imageUrl: item.coverImageUrl ?? null,
+      titlePt: item.titlePt,
+      titleEn: item.titleEn,
+      isFeatured: item.isFeatured
+    }));
+  }
+
+  return [];
+}
+
+async function getPublicHomeSectionPreviews(
+  homeCards: HomeCardResponse[]
+): Promise<PublicHomeSectionPreview[]> {
+  const sections = await apiClient<SectionResponse[]>(endpoints.public.sections, {
+    method: 'GET',
+    revalidate: PUBLIC_REVALIDATE_SECONDS
+  }).catch(() => []);
+
+  const sectionsById = new Map(sections.map((section) => [section.id, section]));
+
+  const previews = await Promise.all(
+    homeCards.map(async (homeCard) => {
+      const section = sectionsById.get(homeCard.sectionId);
+      if (!section) return null;
+
+      const images = await getHomePreviewImages(section);
+      if (!images.length) return null;
+
+      return {section, homeCard, images} satisfies PublicHomeSectionPreview;
+    })
+  );
+
+  return previews.filter((preview): preview is PublicHomeSectionPreview => preview !== null);
+}
+
 export async function getPublicHomeData(): Promise<PublicHomeData> {
-  const [siteSettings, homeCards, contactMethods] = await Promise.all([
+  const [siteSettings, homeCardsRaw, contactMethods] = await Promise.all([
     apiClient<SiteSettingsResponse>(endpoints.public.siteSettings, {
       method: 'GET',
       revalidate: PUBLIC_REVALIDATE_SECONDS
@@ -104,12 +177,16 @@ export async function getPublicHomeData(): Promise<PublicHomeData> {
     }).catch(() => [])
   ]);
 
+  const homeCards = sortByOrder(homeCardsRaw.filter((item) => item.isActive));
+  const sectionPreviews = await getPublicHomeSectionPreviews(homeCards);
+
   return {
     siteSettings,
-    homeCards: sortByOrder(homeCards.filter((item) => item.isActive)),
+    homeCards,
     contactMethods: sortByOrder(
       contactMethods.filter((item) => item.isActive)
-    )
+    ),
+    sectionPreviews
   };
 }
 

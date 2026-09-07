@@ -19,6 +19,11 @@ export type SiteSettingsResponse = {
   mapEmbedUrl?: string | null;
   locationLat?: number | null;
   locationLng?: number | null;
+  address2Pt?: string | null;
+  address2En?: string | null;
+  mapEmbedUrl2?: string | null;
+  location2Lat?: number | null;
+  location2Lng?: number | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -41,4 +46,9 @@ export type SiteSettingsPayload = {
   mapEmbedUrl?: string | null;
   locationLat?: number | null;
   locationLng?: number | null;
+  address2Pt?: string | null;
+  address2En?: string | null;
+  mapEmbedUrl2?: string | null;
+  location2Lat?: number | null;
+  location2Lng?: number | null;
 };

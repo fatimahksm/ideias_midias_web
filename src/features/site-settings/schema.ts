@@ -48,6 +48,25 @@ export const siteSettingsSchema = z.object({
     .refine(
       (value) => value == null || (value >= -180 && value <= 180),
       {error: 'invalidLongitude'}
+    ),
+
+  address2Pt: z.string().trim().nullable().optional(),
+  address2En: z.string().trim().nullable().optional(),
+
+  mapEmbedUrl2: z.string().trim().nullable().optional(),
+
+  location2Lat: z
+    .union([z.number(), z.null(), z.undefined()])
+    .refine(
+      (value) => value == null || (value >= -90 && value <= 90),
+      {error: 'invalidLatitude'}
+    ),
+
+  location2Lng: z
+    .union([z.number(), z.null(), z.undefined()])
+    .refine(
+      (value) => value == null || (value >= -180 && value <= 180),
+      {error: 'invalidLongitude'}
     )
 });
 
