@@ -13,7 +13,7 @@ import {
 import LanguageSwitcher from '@/components/common/language-switcher';
 import {Link} from '@/i18n/navigation';
 import {getContactHref} from '@/features/contact-methods/utils';
-import type {PublicHomeData} from '../types';
+import type {PublicHomeData, PublicHomeGalleryImage} from '../types';
 import {
   buildMapsUrl,
   getLocalizedValue,
@@ -120,6 +120,97 @@ function buildMapEmbedUrl({
 
   return '';
 }
+
+function HomeGallerySection({
+  title,
+  badge,
+  images,
+  locale,
+  t,
+  muted = false
+}: {
+  title: string;
+  badge: string;
+  images: PublicHomeGalleryImage[];
+  locale: string;
+  t: ReturnType<typeof useTranslations<'PublicSite'>>;
+  muted?: boolean;
+}) {
+  return (
+    <section className={muted ? 'bg-[var(--color-surface-muted)]/40 py-16 md:py-20' : 'py-16 md:py-20'}>
+      <div className="mx-auto max-w-7xl px-6 md:px-8">
+        <motion.div
+          initial={{opacity: 0, y: 24}}
+          whileInView={{opacity: 1, y: 0}}
+          viewport={{once: true, amount: 0.2}}
+          transition={{duration: 0.7}}
+          className="mb-10 text-center"
+        >
+          <span className="inline-flex rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-text-muted)]">
+            {badge}
+          </span>
+
+          <h2 className="mt-5 text-3xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-5xl">
+            {title}
+          </h2>
+        </motion.div>
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{once: true, amount: 0.1}}
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-5 lg:grid-cols-4"
+        >
+          {images.map((image) => {
+            const imageUrl = resolveMediaUrl(image.imageUrl);
+            const caption =
+              getLocalizedValue(locale, image.titlePt, image.titleEn) ||
+              t('untitled');
+
+            return (
+              <motion.div key={image.id} variants={fadeUp} transition={{duration: 0.5}}>
+                <Link
+                  href={`/sections/${image.sectionSlug}`}
+                  className="group relative block aspect-square overflow-hidden rounded-2xl bg-[var(--color-surface-muted)] shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  {imageUrl ? (
+                    <Image
+                      src={imageUrl}
+                      alt={caption}
+                      fill
+                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                      className="object-cover transition duration-700 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-[var(--color-text-muted)]">
+                      {t('noImage')}
+                    </div>
+                  )}
+
+                  {image.isFeatured ? (
+                    <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text)] shadow">
+                      {t('featured')}
+                    </div>
+                  ) : null}
+
+                  {image.showCaption ? (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-3.5">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {caption}
+                      </p>
+                    </div>
+                  ) : null}
+                </Link>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export default function PublicHomePage({locale, data}: Props) {
   const t = useTranslations('PublicSite');
 
@@ -383,113 +474,30 @@ export default function PublicHomePage({locale, data}: Props) {
         </section>
       ) : null}
 
-      {data.sectionPreviews.map((preview, index) => {
-        const title =
-          getLocalizedValue(
-            locale,
-            preview.homeCard.titlePt,
-            preview.homeCard.titleEn
-          ) || t('untitled');
+      {data.servicesImages.length ? (
+        <HomeGallerySection
+          title={t('servicesTitle')}
+          badge={t('servicesBadge')}
+          images={data.servicesImages}
+          locale={locale}
+          t={t}
+        />
+      ) : null}
 
-        const description =
-          getLocalizedValue(
-            locale,
-            preview.homeCard.shortDescriptionPt,
-            preview.homeCard.shortDescriptionEn
-          ) || '';
+      {data.servicesImages.length && data.ourWorkImages.length ? (
+        <div className="mx-auto h-px max-w-7xl bg-[var(--color-border)]" />
+      ) : null}
 
-        const showCaptions = preview.section.showItemDetails;
-        const sectionHref = `/sections/${preview.section.slug}`;
-
-        return (
-          <section
-            key={preview.section.id}
-            className={index % 2 === 1 ? 'bg-[var(--color-surface-muted)]/40 py-16 md:py-20' : 'py-16 md:py-20'}
-          >
-            <div className="mx-auto max-w-7xl px-6 md:px-8">
-              <motion.div
-                initial={{opacity: 0, y: 24}}
-                whileInView={{opacity: 1, y: 0}}
-                viewport={{once: true, amount: 0.2}}
-                transition={{duration: 0.7}}
-                className="mb-10 flex flex-wrap items-end justify-between gap-4"
-              >
-                <div className="max-w-2xl">
-                  <h2 className="text-3xl font-black tracking-[-0.03em] text-[var(--color-text)] md:text-5xl">
-                    {title}
-                  </h2>
-
-                  {description ? (
-                    <p className="mt-3 text-base leading-7 text-[var(--color-text-muted)] md:text-lg">
-                      {description}
-                    </p>
-                  ) : null}
-                </div>
-
-                <Link
-                  href={sectionHref}
-                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-2.5 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]"
-                >
-                  {t('viewAll')}
-                  <ArrowUpRight className="h-4 w-4" />
-                </Link>
-              </motion.div>
-
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{once: true, amount: 0.1}}
-                className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-5 lg:grid-cols-4"
-              >
-                {preview.images.map((image) => {
-                  const imageUrl = resolveMediaUrl(image.imageUrl);
-                  const caption =
-                    getLocalizedValue(locale, image.titlePt, image.titleEn) ||
-                    t('untitled');
-
-                  return (
-                    <motion.div key={image.id} variants={fadeUp} transition={{duration: 0.5}}>
-                      <Link
-                        href={sectionHref}
-                        className="group relative block aspect-square overflow-hidden rounded-2xl bg-[var(--color-surface-muted)] shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-                      >
-                        {imageUrl ? (
-                          <Image
-                            src={imageUrl}
-                            alt={caption}
-                            fill
-                            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                            className="object-cover transition duration-700 group-hover:scale-110"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-[var(--color-text-muted)]">
-                            {t('noImage')}
-                          </div>
-                        )}
-
-                        {image.isFeatured ? (
-                          <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text)] shadow">
-                            {t('featured')}
-                          </div>
-                        ) : null}
-
-                        {showCaptions ? (
-                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent p-3.5">
-                            <p className="truncate text-sm font-semibold text-white">
-                              {caption}
-                            </p>
-                          </div>
-                        ) : null}
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </div>
-          </section>
-        );
-      })}
+      {data.ourWorkImages.length ? (
+        <HomeGallerySection
+          title={t('ourWorkTitle')}
+          badge={t('ourWorkBadge')}
+          images={data.ourWorkImages}
+          locale={locale}
+          t={t}
+          muted
+        />
+      ) : null}
 
       {companyVideoUrl ? (
         <section className="py-20 md:py-28">
