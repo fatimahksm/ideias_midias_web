@@ -133,7 +133,13 @@ export default function PublicMediaGallery({
           className="relative block aspect-[16/10] w-full overflow-hidden bg-[var(--color-surface-muted)]"
         >
           {only.mediaType === 'IMAGE' ? (
-            <Image src={only.mediaUrl || ''} alt={onlyAlt} fill className="object-cover" />
+            <Image
+              src={only.mediaUrl || ''}
+              alt={onlyAlt}
+              fill
+              sizes="(min-width: 896px) 896px, 100vw"
+              className="object-cover"
+            />
           ) : (
             <div className="flex h-full items-center justify-center bg-slate-900 text-white">
               <Play className="h-10 w-10" />
@@ -178,6 +184,7 @@ export default function PublicMediaGallery({
                   src={thumbnailUrl}
                   alt={alt || title}
                   fill
+                  sizes="(min-width: 896px) 298px, 33vw"
                   className="object-cover transition duration-500 group-hover:scale-110"
                 />
               ) : (
@@ -274,6 +281,7 @@ function MediaLightbox({
             src={activeMedia.mediaUrl || ''}
             alt={activeAlt}
             fill
+            sizes="100vw"
             className="object-contain"
           />
         ) : activeEmbedUrl ? (
