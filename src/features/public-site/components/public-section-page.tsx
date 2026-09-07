@@ -512,33 +512,26 @@ function ItemModal({
   return (
     <AnimatePresence>
       <motion.div
-        initial={{opacity: 0}}
-        animate={{opacity: 1}}
-        exit={{opacity: 0}}
-        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+        initial={{opacity: 0, y: 24}}
+        animate={{opacity: 1, y: 0}}
+        exit={{opacity: 0, y: 24}}
+        transition={{duration: 0.25}}
+        className="fixed inset-0 z-[100] flex flex-col bg-[var(--color-surface)]"
       >
-        <motion.div
-          initial={{opacity: 0, y: 30, scale: 0.98}}
-          animate={{opacity: 1, y: 0, scale: 1}}
-          exit={{opacity: 0, y: 20, scale: 0.98}}
-          transition={{duration: 0.25}}
-          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(960px,92vw)] overflow-hidden rounded-[32px] bg-[var(--color-surface)] shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-            <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t('close') }
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-border)]"
-            >
-              <CircleX className="h-5 w-5" />
-            </button>
-          </div>
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+          <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('close') }
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-border)]"
+          >
+            <CircleX className="h-5 w-5" />
+          </button>
+        </div>
 
-          <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-4xl">
             <PublicMediaGallery
               locale={locale}
               title={title}
@@ -608,7 +601,7 @@ function ItemModal({
               ) : null}
             </div>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );
@@ -723,43 +716,35 @@ function ProjectModal({
   return (
     <AnimatePresence>
       <motion.div
-        initial={{opacity: 0}}
-        animate={{opacity: 1}}
-        exit={{opacity: 0}}
-        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+        initial={{opacity: 0, y: 24}}
+        animate={{opacity: 1, y: 0}}
+        exit={{opacity: 0, y: 24}}
+        transition={{duration: 0.25}}
+        className="fixed inset-0 z-[100] flex flex-col bg-[var(--color-surface)]"
       >
-        <motion.div
-          initial={{opacity: 0, y: 30, scale: 0.98}}
-          animate={{opacity: 1, y: 0, scale: 1}}
-          exit={{opacity: 0, y: 20, scale: 0.98}}
-          transition={{duration: 0.25}}
-          className="mx-auto mt-6 max-h-[calc(100vh-3rem)] w-[min(980px,92vw)] overflow-hidden rounded-[32px] bg-[var(--color-surface)] shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
-            <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t('close')}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-border)]"
-            >
-              <CircleX className="h-5 w-5" />
-            </button>
-          </div>
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+          <h3 className="text-xl font-black text-[var(--color-text)]">{title}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('close')}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] transition hover:bg-[var(--color-border)]"
+          >
+            <CircleX className="h-5 w-5" />
+          </button>
+        </div>
 
-          <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">
-           <PublicMediaGallery
-  locale={locale}
-  title={title}
-  media={galleryMedia}
-  fallbackImageUrl={project.coverImageUrl}
-  fallbackVideoUrl={project.videoUrl}
-  loadingLabel={t('loadingMedia')}
-  noMediaLabel={t('noMedia')}
-/>
-           
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-4xl">
+            <PublicMediaGallery
+              locale={locale}
+              title={title}
+              media={galleryMedia}
+              fallbackImageUrl={project.coverImageUrl}
+              fallbackVideoUrl={project.videoUrl}
+              loadingLabel={t('loadingMedia')}
+              noMediaLabel={t('noMedia')}
+            />
 
             <div className="space-y-8 p-6 md:p-8">
               <div className="flex flex-wrap items-center gap-3">
@@ -842,7 +827,7 @@ function ProjectModal({
               ) : null}
             </div>
           </div>
-        </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );
