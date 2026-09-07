@@ -1,32 +1,22 @@
 'use client';
 
 import {useSyncExternalStore} from 'react';
-
-type NetworkInformation = {
-  saveData?: boolean;
-  effectiveType?: string;
-  addEventListener?: (type: string, listener: () => void) => void;
-  removeEventListener?: (type: string, listener: () => void) => void;
-};
-
-function getConnection() {
-  if (typeof navigator === 'undefined') return undefined;
-
-  return (navigator as Navigator & {connection?: NetworkInformation}).connection;
-}
+import {useIsSlowConnection} from '../hooks/use-slow-connection';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-/** Re-checks when the connection changes, e.g. mobile data to wi-fi. */
-function subscribe(onChange: () => void) {
-  const connection = getConnection();
+function prefersReducedMotion() {
+  if (typeof window === 'undefined') return false;
+
+  return window.matchMedia?.(REDUCED_MOTION_QUERY).matches ?? false;
+}
+
+function subscribeToMotionPreference(onChange: () => void) {
   const motionQuery = window.matchMedia?.(REDUCED_MOTION_QUERY);
 
-  connection?.addEventListener?.('change', onChange);
   motionQuery?.addEventListener('change', onChange);
 
   return () => {
-    connection?.removeEventListener?.('change', onChange);
     motionQuery?.removeEventListener('change', onChange);
   };
 }
@@ -38,37 +28,24 @@ type Props = {
   posterUrl?: string;
 };
 
-const SLOW_CONNECTIONS = ['slow-2g', '2g', '3g'];
-
-/**
- * True unless the visitor has asked to save data, is on a slow connection, or
- * has asked for reduced motion. A decorative background loop is never worth a
- * multi-megabyte download on a phone connection.
- */
-function shouldLoadVideo() {
-  if (typeof window === 'undefined') return false;
-
-  if (window.matchMedia?.(REDUCED_MOTION_QUERY).matches) {
-    return false;
-  }
-
-  const connection = getConnection();
-
-  if (!connection) return true;
-  if (connection.saveData) return false;
-
-  return !SLOW_CONNECTIONS.includes(connection.effectiveType ?? '');
-}
-
 /**
  * A muted, looping background video that is not part of the server-rendered
  * markup: the browser only learns about it after the page decides the
- * connection can carry it, so a slow visitor never starts the download.
+ * connection can carry it, so a slow visitor never starts the download. A
+ * decorative background loop is never worth a multi-megabyte download on a
+ * phone connection, or worth it to a visitor who asked for reduced motion.
  */
 export function BackgroundVideo({src, className, posterUrl}: Props) {
+  const isSlowConnection = useIsSlowConnection();
   // The server snapshot is always false, so the video is never in the
   // server-rendered HTML and no request starts before the check runs.
-  const canPlay = useSyncExternalStore(subscribe, shouldLoadVideo, () => false);
+  const reducedMotion = useSyncExternalStore(
+    subscribeToMotionPreference,
+    prefersReducedMotion,
+    () => false
+  );
+
+  const canPlay = !isSlowConnection && !reducedMotion;
 
   if (!canPlay) {
     return (

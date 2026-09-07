@@ -1,5 +1,6 @@
 'use client';
 
+import {useState} from 'react';
 import Image from 'next/image';
 import {motion} from 'framer-motion';
 import {useTranslations} from 'next-intl';
@@ -27,6 +28,7 @@ import {
 import {resolveMediaUrl} from '@/lib/media/resolve-media-url';
 import {PageViewTracker} from '@/features/analytics/components/page-view-tracker';
 import {BackgroundVideo} from './background-video';
+import {useIsSlowConnection} from '../hooks/use-slow-connection';
 
 type Props = {
   locale: string;
@@ -208,6 +210,55 @@ function HomeGallerySection({
         </motion.div>
       </div>
     </section>
+  );
+}
+
+/**
+ * A self-hosted video that will not start downloading on a slow connection
+ * or in data-saver mode - a company intro clip is worth minutes of someone's
+ * data plan, unlike a decorative loop, so it asks first instead of silently
+ * skipping. Tapping through overrides the guard for that visit.
+ */
+function GatedVideoPlayer({
+  src,
+  title,
+  watchLabel,
+  slowConnectionLabel
+}: {
+  src: string;
+  title: string;
+  watchLabel: string;
+  slowConnectionLabel: string;
+}) {
+  const isSlowConnection = useIsSlowConnection();
+  const [forceLoad, setForceLoad] = useState(false);
+
+  if (isSlowConnection && !forceLoad) {
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-slate-950 p-8 text-center">
+        <p className="max-w-sm text-sm text-white/70">{slowConnectionLabel}</p>
+        <button
+          type="button"
+          onClick={() => setForceLoad(true)}
+          className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
+        >
+          <Play className="h-4 w-4" />
+          {watchLabel}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <video
+      className="h-full w-full"
+      controls
+      playsInline
+      preload="metadata"
+      aria-label={title}
+    >
+      <source src={src} />
+    </video>
   );
 }
 
@@ -551,14 +602,12 @@ export default function PublicHomePage({locale, data}: Props) {
                     allowFullScreen
                   />
                 ) : (
-                  <video
-                    className="h-full w-full"
-                    controls
-                    playsInline
-                    preload="metadata"
-                  >
-                    <source src={companyVideoUrl} />
-                  </video>
+                  <GatedVideoPlayer
+                    src={companyVideoUrl}
+                    title={t('companyStory')}
+                    watchLabel={t('watchVideo')}
+                    slowConnectionLabel={t('slowConnectionNotice')}
+                  />
                 )}
               </div>
             </motion.div>
