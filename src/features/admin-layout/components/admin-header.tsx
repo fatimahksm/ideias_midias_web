@@ -1,11 +1,12 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import LanguageSwitcher from '@/components/common/language-switcher';
 import {Button} from '@/components/ui/button';
 import {clearAdminSession, getAdminToken} from '@/lib/auth/token';
+import {useIsHydrated} from '@/hooks/use-is-hydrated';
 import {useAdminSession} from '../hooks/use-admin-session';
 
 export function AdminHeader() {
@@ -14,11 +15,7 @@ export function AdminHeader() {
   const locale = useLocale();
   const router = useRouter();
 
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  const isHydrated = useIsHydrated();
 
   const storedToken = useMemo(() => {
     if (!isHydrated) return null;

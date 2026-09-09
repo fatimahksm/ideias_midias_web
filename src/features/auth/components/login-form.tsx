@@ -4,10 +4,11 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useQuery} from '@tanstack/react-query';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo} from 'react';
 import {useForm} from 'react-hook-form';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
+import {useIsHydrated} from '@/hooks/use-is-hydrated';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {useToast} from '@/components/common/toast-provider';
@@ -42,11 +43,7 @@ export default function LoginForm() {
   const router = useRouter();
 
   const {showSuccess, showError} = useToast();
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  const isHydrated = useIsHydrated();
 
   const storedToken = useMemo(() => {
     if (!isHydrated) return null;

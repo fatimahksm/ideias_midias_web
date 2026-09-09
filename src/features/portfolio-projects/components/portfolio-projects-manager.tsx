@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useDebouncedValue} from '@/hooks/use-debounced-value';
 import {
   useInfiniteQuery,
@@ -32,6 +32,7 @@ import type {
 } from '../types';
 import {emptyToNull} from '../utils';
 import {PortfolioProjectCard} from './portfolio-project-card';
+import {usePinnedFilterState} from '@/hooks/use-pinned-filter-state';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type FeaturedFilter = 'ALL' | 'FEATURED' | 'REGULAR';
@@ -80,9 +81,7 @@ export default function PortfolioProjectsManager({
   const isSectionScoped = typeof sectionId === 'number';
 
   const [search, setSearch] = useState('');
-  const [sectionFilter, setSectionFilter] = useState(
-    isSectionScoped ? String(sectionId) : 'ALL'
-  );
+  const [sectionFilter, setSectionFilter] = usePinnedFilterState(sectionId);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [featuredFilter, setFeaturedFilter] =
     useState<FeaturedFilter>('ALL');
@@ -93,12 +92,6 @@ export default function PortfolioProjectsManager({
   );
   const [deleteTarget, setDeleteTarget] =
     useState<PortfolioProjectResponse | null>(null);
-
-  useEffect(() => {
-    if (isSectionScoped && sectionId) {
-      setSectionFilter(String(sectionId));
-    }
-  }, [isSectionScoped, sectionId]);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 

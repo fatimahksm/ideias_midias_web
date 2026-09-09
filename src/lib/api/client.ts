@@ -1,7 +1,7 @@
 import {HttpError} from './http-error';
 import type {ApiErrorResponse, ApiResponse, AppError} from '@/types/api';
 import {endpoints} from './endpoints';
-import {clearAdminSession, getAdminToken, setAdminToken} from '@/lib/auth/token';
+import {clearAdminSession, setAdminToken} from '@/lib/auth/token';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;

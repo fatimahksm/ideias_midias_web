@@ -1,5 +1,6 @@
 'use client';
 import {useEffect, useMemo, useState} from 'react';
+import {useQuery} from '@tanstack/react-query';
 import Image from 'next/image';
 import {AnimatePresence, motion} from 'framer-motion';
 import {useTranslations} from 'next-intl';
@@ -17,6 +18,7 @@ import {
   UserRound
 } from 'lucide-react';
 import {useRouter} from '@/i18n/navigation';
+import {PUBLIC_MEDIA_STALE_TIME_MS} from '../constants/cache';
 import type {SectionContentBlockResponse} from '@/features/content-blocks/types';
 import type {PortfolioProjectResponse} from '@/features/portfolio-projects/types';
 import type {SectionItemMediaResponse} from '@/features/item-media/types';
@@ -449,37 +451,17 @@ function ItemModal({
   onClose: () => void;
   t: TranslateFn;
 }) {
-  const [galleryMedia, setGalleryMedia] = useState<SectionItemMediaResponse[]>(
-    []
-  );
-  const [isMediaLoading, setIsMediaLoading] = useState(true);
+  // The rest of the app fetches through TanStack Query; doing the same here
+  // means reopening an item the visitor already viewed costs no request, and
+  // the cancel-on-unmount bookkeeping comes for free.
+  const mediaQuery = useQuery({
+    queryKey: ['public-item-media', item.id],
+    queryFn: () => getPublicItemMedia(item.id),
+    staleTime: PUBLIC_MEDIA_STALE_TIME_MS
+  });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    setIsMediaLoading(true);
-
-    getPublicItemMedia(item.id)
-      .then((response) => {
-        if (isMounted) {
-          setGalleryMedia(response);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setGalleryMedia([]);
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsMediaLoading(false);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [item.id]);
+  const galleryMedia: SectionItemMediaResponse[] = mediaQuery.data ?? [];
+  const isMediaLoading = mediaQuery.isPending;
 
   const title =
     getLocalizedValue(locale, item.titlePt, item.titleEn) || t('untitled');

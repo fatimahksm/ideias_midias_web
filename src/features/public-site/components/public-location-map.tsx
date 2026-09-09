@@ -2,7 +2,7 @@
 
 import {useEffect, useRef} from 'react';
 import {MapPin} from 'lucide-react';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import {SATELLITE_RASTER_STYLE} from '@/lib/map/tile-style';
 
 type Props = {

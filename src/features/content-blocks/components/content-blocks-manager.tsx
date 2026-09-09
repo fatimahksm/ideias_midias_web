@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
@@ -27,6 +27,7 @@ import type {
 } from '../types';
 import {emptyToNull} from '../utils';
 import {ContentBlockCard} from './content-block-card';
+import {usePinnedFilterState} from '@/hooks/use-pinned-filter-state';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type TypeFilter = 'ALL' | ContentBlockType;
@@ -74,9 +75,7 @@ export default function ContentBlocksManager({
   const isSectionScoped = typeof sectionId === 'number';
 
   const [search, setSearch] = useState('');
-  const [sectionFilter, setSectionFilter] = useState(
-    isSectionScoped ? String(sectionId) : 'ALL'
-  );
+  const [sectionFilter, setSectionFilter] = usePinnedFilterState(sectionId);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
   const [sortBy, setSortBy] = useState<SortBy>('sortOrder');
@@ -86,12 +85,6 @@ export default function ContentBlocksManager({
   );
   const [deleteTarget, setDeleteTarget] =
     useState<SectionContentBlockResponse | null>(null);
-
-  useEffect(() => {
-    if (isSectionScoped && sectionId) {
-      setSectionFilter(String(sectionId));
-    }
-  }, [isSectionScoped, sectionId]);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 

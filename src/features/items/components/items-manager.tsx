@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useDebouncedValue} from '@/hooks/use-debounced-value';
 import {
   useInfiniteQuery,
@@ -26,6 +26,7 @@ import {deleteItem, getItemStats, getItemsPage, updateItem} from '../api';
 import type {SectionItemPayload, SectionItemResponse} from '../types';
 import {emptyToNull} from '../utils';
 import {ItemCard} from './item-card';
+import {ALL_FILTER_VALUE, usePinnedFilterState} from '@/hooks/use-pinned-filter-state';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type FeaturedFilter = 'ALL' | 'FEATURED' | 'REGULAR';
@@ -83,19 +84,13 @@ export default function ItemsManager({
   const isCategoryScoped = typeof categoryId === 'number';
 
   const [search, setSearch] = useState('');
-  const [sectionFilter, setSectionFilter] = useState(
-    isSectionScoped
-      ? String(sectionId)
-      : initialSectionId
-        ? String(initialSectionId)
-        : 'ALL'
+  const [sectionFilter, setSectionFilter] = usePinnedFilterState(
+    sectionId,
+    initialSectionId ? String(initialSectionId) : ALL_FILTER_VALUE
   );
-  const [categoryFilter, setCategoryFilter] = useState(
-    isCategoryScoped
-      ? String(categoryId)
-      : initialCategoryId
-        ? String(initialCategoryId)
-        : 'ALL'
+  const [categoryFilter, setCategoryFilter] = usePinnedFilterState(
+    categoryId,
+    initialCategoryId ? String(initialCategoryId) : ALL_FILTER_VALUE
   );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [featuredFilter, setFeaturedFilter] =
@@ -107,18 +102,6 @@ export default function ItemsManager({
   );
   const [deleteTarget, setDeleteTarget] =
     useState<SectionItemResponse | null>(null);
-
-  useEffect(() => {
-    if (isSectionScoped && sectionId) {
-      setSectionFilter(String(sectionId));
-    }
-  }, [isSectionScoped, sectionId]);
-
-  useEffect(() => {
-    if (isCategoryScoped && categoryId) {
-      setCategoryFilter(String(categoryId));
-    }
-  }, [isCategoryScoped, categoryId]);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 

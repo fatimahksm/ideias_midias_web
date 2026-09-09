@@ -1,3 +1,4 @@
+import {createElement} from 'react';
 import {
   Globe,
   Mail,
@@ -25,6 +26,25 @@ function getFallbackIcon(type: ContactMethodResponse['type']): LucideIcon {
   }
 }
 
+/**
+ * Resolves the admin's chosen icon name to one of the icon components declared
+ * above, falling back to a sensible default for the contact type. Kept out of
+ * the component body so the returned value is unambiguously an existing
+ * component rather than something built during render.
+ */
+function resolveContactIcon(
+  type: ContactMethodResponse['type'],
+  iconName?: string | null
+): LucideIcon {
+  const normalizedIconName = iconName?.trim().toLowerCase();
+
+  if (normalizedIconName && ICONS_BY_NAME[normalizedIconName]) {
+    return ICONS_BY_NAME[normalizedIconName];
+  }
+
+  return getFallbackIcon(type);
+}
+
 export function PublicContactIcon({
   type,
   iconName,
@@ -34,12 +54,10 @@ export function PublicContactIcon({
   iconName?: string | null;
   className?: string;
 }) {
-  const normalizedIconName = iconName?.trim().toLowerCase() || '';
-  const Icon =
-    (normalizedIconName && ICONS_BY_NAME[normalizedIconName]) ||
-    getFallbackIcon(type);
-
-  return <Icon className={className} />;
+  // createElement, not <Icon />: the icons are module-level constants, but the
+  // static-components lint rule cannot see that through the lookup and reads a
+  // capitalized local binding in JSX as a component defined during render.
+  return createElement(resolveContactIcon(type, iconName), {className});
 }
 
 export function getPublicContactDisplayValue(

@@ -1,11 +1,12 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import {toAppError} from '@/lib/api/client';
 import {getErrorMessage} from '@/lib/errors/get-error-message';
 import {clearAdminSession} from '@/lib/auth/token';
+import {useIsHydrated} from '@/hooks/use-is-hydrated';
 import {useAdminSession} from '../hooks/use-admin-session';
 
 type Props = {
@@ -41,11 +42,7 @@ export function AdminSessionGuard({children}: Props) {
   const locale = useLocale();
   const router = useRouter();
 
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  const isHydrated = useIsHydrated();
 
   const sessionQuery = useAdminSession(isHydrated);
 

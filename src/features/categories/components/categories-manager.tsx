@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
@@ -17,6 +17,7 @@ import {deleteCategory, getAllCategories, updateCategory} from '../api';
 import type {SectionCategoryPayload, SectionCategoryResponse} from '../types';
 import {emptyToNull} from '../utils';
 import {CategoryCard} from './category-card';
+import {usePinnedFilterState} from '@/hooks/use-pinned-filter-state';
 
 type StatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type SortBy = 'sortOrder' | 'nameEn' | 'updatedAt';
@@ -63,9 +64,7 @@ export default function CategoriesManager({
   const isSectionScoped = typeof sectionId === 'number';
 
   const [search, setSearch] = useState('');
-  const [sectionFilter, setSectionFilter] = useState(
-    isSectionScoped ? String(sectionId) : 'ALL'
-  );
+  const [sectionFilter, setSectionFilter] = usePinnedFilterState(sectionId);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL');
   const [sortBy, setSortBy] = useState<SortBy>('sortOrder');
   const [feedback, setFeedback] = useState('');
@@ -74,12 +73,6 @@ export default function CategoriesManager({
   );
   const [deleteTarget, setDeleteTarget] =
     useState<SectionCategoryResponse | null>(null);
-
-  useEffect(() => {
-    if (isSectionScoped && sectionId) {
-      setSectionFilter(String(sectionId));
-    }
-  }, [isSectionScoped, sectionId]);
 
   const sessionQuery = useAdminSession(hasAdminToken());
 
